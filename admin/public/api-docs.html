@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Juhe Management - API 文档</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .topbar { display: none; }
+    .swagger-ui .info { margin: 20px 0; }
+    .swagger-ui .info .title { font-size: 28px; }
+    .custom-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+    }
+    .custom-header a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.85; }
+    .custom-header a:hover { opacity: 1; }
+    .custom-header span { font-size: 18px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="custom-header">
+    <span>📡 Juhe Management - API 文档</span>
+    <a href="/">← 回到管理后台</a>
+    <div style="flex:1"></div>
+    <a href="https://swagger.io/tools/swagger-ui/" target="_blank">Swagger UI</a>
+  </div>
+  <div id="swagger-ui"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+  <script>
+    SwaggerUIBundle({
+      url: '/api-docs.yaml',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [SwaggerUIBundle.presets.apis],
+      layout: 'BaseLayout',
+      defaultModelsExpandDepth: -1,
+      docExpansion: 'list',
+      filter: true,
+      tryItOutEnabled: true,
+      requestSnippetsEnabled: true,
+      requestSnippets: {
+        generators: {
+          curl_bash: { title: 'cURL (bash)', syntax: 'bash' },
+          javascript_fetch: { title: 'JavaScript (fetch)', syntax: 'javascript' },
+          python_requests: { title: 'Python (requests)', syntax: 'python' },
+        },
+        defaultExpanded: false,
+      },
+    })
+  </script>
+</body>
+</html>

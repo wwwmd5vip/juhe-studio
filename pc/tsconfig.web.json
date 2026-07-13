@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src/renderer/src/**/*", "src/shared/**/*"],
+  "exclude": ["src/main/**/*", "src/preload/**/*", "**/__tests__/**"]
+}

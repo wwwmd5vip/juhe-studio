@@ -1,0 +1,14 @@
+# Dev stage — Vite dev server with HMR, source mounted as volume for live reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy dependency files for npm install (source files are mounted as volumes at runtime)
+COPY package.json package-lock.json ./
+RUN npm install
+
+ENV VITE_DISABLE_WATCH=true
+
+EXPOSE 7071
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

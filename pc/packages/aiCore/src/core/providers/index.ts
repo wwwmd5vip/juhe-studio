@@ -1,0 +1,52 @@
+/**
+ * Providers 模块统一导出 - 独立Provider包
+ */
+
+// ==================== 核心管理器 ====================
+
+// Provider 核心功能
+export { coreExtensions, hasProviderConfig } from './core/initialization'
+
+// ==================== 基础数据和类型 ====================
+
+// 类型定义
+// 类型提取工具
+export type {
+  AiSdkModel,
+  CoreProviderSettingsMap,
+  ExtensionConfigToIdResolutionMap,
+  ExtensionToSettingsMap,
+  ExtractProviderIds,
+  ProviderError,
+  StringKeys,
+  UnionToIntersection
+} from './types'
+
+// ==================== 工具函数 ====================
+
+// 工具函数和错误类
+export { formatPrivateKey, ProviderCreationError } from './core/utils'
+
+// ==================== Provider Extension 系统 ====================
+
+// Extension Registry
+export { ExtensionRegistry, extensionRegistry } from './core/ExtensionRegistry'
+// Extension 核心类和类型
+export {
+  type ProviderCreatorFunction,
+  ProviderExtension,
+  type ProviderExtensionConfig,
+  type ProviderModule
+} from './core/ProviderExtension'
+export type {
+  ExtractToolConfig,
+  ExtractToolConfigMap,
+  ProviderId,
+  ProviderVariant,
+  RegisteredProviderId,
+  ToolCapability,
+  ToolFactory,
+  ToolFactoryMap,
+  ToolFactoryPatch,
+  WebSearchToolConfigMap
+} from './types'

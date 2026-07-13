@@ -1,0 +1,39 @@
+{
+  "name": "@juhe-management/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Juhe Management SDK and CLI",
+  "author": "Juhe Studio",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/cjs/index.d.ts"
+    }
+  },
+  "bin": {
+    "juhe": "dist/cjs/cli/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.json",
+    "build:sdk": "tsc -p tsconfig.json && tsc -p tsconfig.cjs.json",
+    "dev": "tsc -p tsconfig.cjs.json --watch",
+    "lint": "eslint . --ext ts --report-unused-disable-directives"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  },
+  "optionalDependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "typescript": "^5.7.0"
+  }
+}

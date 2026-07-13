@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    { "idx": 0, "version": "6", "when": 1780557252078, "tag": "0000_lowly_silver_samurai", "breakpoints": true },
+    { "idx": 1, "version": "6", "when": 1780563175736, "tag": "0001_new_terrax", "breakpoints": true },
+    { "idx": 2, "version": "6", "when": 1780657524142, "tag": "0002_add_provider_preset_id", "breakpoints": true },
+    { "idx": 3, "version": "6", "when": 1780757650370, "tag": "0003_add_chat_message_blocks", "breakpoints": true },
+    { "idx": 4, "version": "6", "when": 1780757650371, "tag": "0004_add_quick_phrases", "breakpoints": true },
+    { "idx": 5, "version": "6", "when": 1780757650372, "tag": "0005_add_web_search_providers", "breakpoints": true },
+    { "idx": 6, "version": "6", "when": 1780757650373, "tag": "0006_add_skills", "breakpoints": true },
+    { "idx": 7, "version": "6", "when": 1780757650374, "tag": "0007_add_memories", "breakpoints": true },
+    { "idx": 8, "version": "6", "when": 1780757650375, "tag": "0008_add_provider_ak_sk", "breakpoints": true },
+    { "idx": 9, "version": "6", "when": 1780757650376, "tag": "0009_add_generation_task_fields", "breakpoints": true },
+    { "idx": 10, "version": "6", "when": 1781282490683, "tag": "0010_lame_firebird", "breakpoints": true },
+    { "idx": 11, "version": "6", "when": 1781783860000, "tag": "0011_ecommerce_workflows", "breakpoints": true },
+    { "idx": 12, "version": "6", "when": 1781783860001, "tag": "0012_shallow_mikhail_rasputin", "breakpoints": true },
+    { "idx": 13, "version": "6", "when": 1782656257000, "tag": "0013_add_chat_assistants", "breakpoints": true }
+  ]
+}

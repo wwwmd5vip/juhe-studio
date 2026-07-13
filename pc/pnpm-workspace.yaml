@@ -1,0 +1,11 @@
+packages:
+  - 'packages/*'
+  - 'packages/vectorstores/*'
+supportedArchitectures:
+  os:
+    - darwin
+    - win32
+    - linux
+  cpu:
+    - x64
+    - arm64

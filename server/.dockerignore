@@ -1,0 +1,29 @@
+# Environment files (secrets)
+.env
+
+# Git
+.git
+.gitignore
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Test files
+*_test.go
+
+# Build artifacts
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Markdown/planning
+*.md
+!go.sum

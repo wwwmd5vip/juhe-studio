@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+		"@react-three/drei": "^10.7.7",
+		"@react-three/fiber": "^9.6.1",
+		"camera-controls": "^3.1.2",
+		"three": "^0.185.1"
+	},
+	"devDependencies": {
+		"@types/three": "^0.185.0"
+	}
+}

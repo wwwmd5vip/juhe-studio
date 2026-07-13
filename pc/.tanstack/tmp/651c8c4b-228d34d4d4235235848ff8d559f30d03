@@ -1,0 +1,9 @@
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/ecommerce-amazon')({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return <div>Hello "/ecommerce-amazon"!</div>
+}

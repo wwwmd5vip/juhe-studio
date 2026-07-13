@@ -1,0 +1,104 @@
+appId: com.juhe-studio.app
+productName: 聚合创作引擎
+copyright: Copyright © 2026 Juhe Studio
+protocols:
+  - name: Juhe Image Protocol
+    schemes:
+      - juhe-image
+directories:
+  output: dist
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!**/electron.vite.config.{js,ts,mjs,cjs}'
+  - '!**/.{idea,git,github,eslintignore,eslintrc.cjs,prettierignore,prettierrc.yaml,editorconfig}'
+  - '!**/{biome,biome.json,tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!**/*.{test,spec}.{js,ts}'
+  - '!**/demo/**/*'
+  - '!**/docs/**/*'
+  - '!**/.{eslint,prettier}*'
+  - '!**/{.npmrc,pnpm-lock.yaml,pnpm-workspace.yaml}'
+  - '!**/node_modules/.bin/**/*'
+  # Do NOT exclude node_modules/.pnpm/**/* — pnpm symlinks point there
+  # and electron-builder follows symlinks, so excluding .pnpm strips runtime deps
+  - '!**/node_modules/.node-modules-backup/**/*'
+  - '!**/*.map'
+  - from: out
+    filter:
+      - '**/*'
+  - from: resources
+    filter:
+      - '**/*'
+  - from: src/main/db/migrations
+    to: src/main/db/migrations
+    filter:
+      - '**/*'
+asarUnpack:
+  - '**/*.{node,dll}'
+  - '**/node_modules/@libsql/**/*'
+  - '**/node_modules/@neon-rs/**/*'
+  - '**/node_modules/libsql/**/*'
+  - '**/node_modules/drizzle-orm/**/*'
+  - '**/out/main/db/migrations/**/*'
+win:
+  executableName: 聚合创作引擎
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  icon: build/icon.icns
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  # Code signing: Uses Apple Development cert for local builds
+  # For distribution, set APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID env vars
+  # and change identity to "Developer ID Application: ..."
+  notarize: false
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+dmg:
+  artifactName: ${name}-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: juhe-studio.com
+  category: Utility
+appImage:
+  artifactName: ${name}-${version}.${ext}
+publish:
+  provider: github
+  owner: juhe-studio
+  repo: juhe-studio
+  releaseType: draft
+  # NOTE: `draft` keeps releases unpublished for manual QA review before going live.
+  # Change to `release` to auto-publish on every tag push once the release pipeline is stable.
+npmRebuild: false
+extraResources:
+  - from: EULA.md
+  - from: LICENSE.md

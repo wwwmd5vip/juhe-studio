@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Test files
+*.test.ts
+*.test.tsx
+__tests__/
+
+# Documentation
+*.md
+
+# NPM logs
+npm-debug.log*
