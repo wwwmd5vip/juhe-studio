@@ -38,6 +38,7 @@ class GenerationQueue {
   onUpdate?: (task: GenerationTask) => void
   onQueueStateChange?: (state: QueueState) => void
   private executors = new Map<string, (task: GenerationTask) => Promise<void>>()
+  private onTaskSubmitted?: (taskId: string, status: 'processing') => void
 
   constructor(options: QueueOptions = {}) {
     this.maxConcurrent = options.maxConcurrent ?? 2
@@ -50,10 +51,20 @@ class GenerationQueue {
     this.executors.set(type, executor)
   }
 
-  /** 创建新任务 */
-  createTask(type: GenerationType, params: GenerationParams, priority: TaskPriority = 'normal'): GenerationTask {
+  /** 注册任务提交回调（Creator OS 检查点） */
+  setOnTaskSubmitted(fn: (taskId: string, status: 'processing') => void) {
+    this.onTaskSubmitted = fn
+  }
+
+  /** 创建新任务。如果 options.id 存在，使用预分配的 ID（Creator OS 预分配） */
+  createTask(
+    type: GenerationType,
+    params: GenerationParams,
+    priority: TaskPriority = 'normal',
+    options?: { id?: string }
+  ): GenerationTask {
     const task: GenerationTask = {
-      id: crypto.randomUUID(),
+      id: options?.id ?? crypto.randomUUID(),
       type,
       status: 'pending',
       priority,
@@ -319,6 +330,10 @@ class GenerationQueue {
   private async runTask(task: GenerationTask) {
     const runStartTime = Date.now()
     task.status = 'processing'
+    // Creator OS checkpoint: notify that this task has been picked up by the executor
+    if (this.onTaskSubmitted) {
+      try { this.onTaskSubmitted(task.id, 'processing') } catch (e) { logger.error('[Queue] onTaskSubmitted error:', e) }
+    }
     task.startedAt = Date.now()
     task.stage = 'initializing'
     // Create AbortController so the task can be cancelled mid-flight

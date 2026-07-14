@@ -6,6 +6,9 @@
 
 import type { BatchTaskRequest, GenerateRequest, GenerationProgress, TaskPriority } from '@shared/types/generation'
 import { ipcMain } from 'electron'
+import { eq } from 'drizzle-orm'
+import { db } from '../db'
+import { creatorTasks } from '../db/schema'
 import { executeAliyunImageGeneration, executeAliyunVideoGeneration } from '../services/aliyun-generation'
 import { executeAudioGeneration } from '../services/audio-generation'
 import { executeImageGeneration, saveGenerationToDb } from '../services/generation'
@@ -147,6 +150,18 @@ export function registerGenerationIpc() {
 
       updateTrayBadge(state.runningCount)
       updateTrayTooltip()
+    }
+  })
+
+  // Creator OS checkpoint: update creatorTasks.runtimeStatus when task begins executing
+  queue.setOnTaskSubmitted(async (taskId) => {
+    try {
+      await db
+        .update(creatorTasks)
+        .set({ runtimeStatus: 'processing', updatedAt: new Date().toISOString() })
+        .where(eq(creatorTasks.runtimeTaskId, taskId))
+    } catch (err) {
+      console.error('[Generation IPC] Checkpoint update failed:', err)
     }
   })
 
