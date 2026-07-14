@@ -29,6 +29,8 @@ export const generations = sqliteTable(
     externalTaskId: text('external_task_id'),
     externalProvider: text('external_provider'),
     outputs: text('outputs', { mode: 'json' }),
+    // Creator OS: nullable FK to projects
+    projectId: text('project_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -70,6 +72,8 @@ export const ecommerceWorkflows = sqliteTable(
     steps: text('steps', { mode: 'json' }).notNull(),
     modules: text('modules', { mode: 'json' }).notNull(),
     status: text('status').notNull().default('draft'),
+    // Creator OS: nullable FK to projects
+    projectId: text('project_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -332,12 +336,117 @@ export const showcaseTasks = sqliteTable(
     errorMsg: text('error_msg'),
     pointCost: integer('point_cost'),
     generationTaskIds: text('generation_task_ids', { mode: 'json' }),
+    // Creator OS: nullable FK to projects
+    projectId: text('project_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
   (table) => [
     index('showcase_tasks_status_idx').on(table.status),
     index('showcase_tasks_updated_at_idx').on(table.updatedAt)
+  ]
+)
+
+
+// ==================== Creator OS: Projects ====================
+export const projects = sqliteTable(
+  'projects',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    category: text('category').notNull().default('product_set'),
+    status: text('status').notNull().default('draft'),
+    description: text('description'),
+    batchStatus: text('batch_status').default('idle'),
+    batchError: text('batch_error'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [
+    index('projects_updated_at_idx').on(table.updatedAt),
+    index('projects_batch_status_idx').on(table.batchStatus)
+  ]
+)
+
+// ==================== Creator OS: Assets ====================
+export const assets = sqliteTable(
+  'assets',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull().default('source'),
+    filePath: text('file_path').notNull(),
+    mimeType: text('mime_type').notNull().default('image/png'),
+    width: integer('width'),
+    height: integer('height'),
+    metadata: text('metadata', { mode: 'json' }),
+    status: text('status').notNull().default('active'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [
+    index('assets_project_idx').on(table.projectId),
+    index('assets_kind_idx').on(table.kind)
+  ]
+)
+
+// ==================== Creator OS: Creator Tasks ====================
+export const creatorTasks = sqliteTable(
+  'creator_tasks',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    runtimeTaskId: text('runtime_task_id').notNull(),
+    templateSlotId: text('template_slot_id').notNull(),
+    slotIndex: integer('slot_index').notNull().default(0),
+    status: text('status').notNull().default('pending'),
+    runtimeStatus: text('runtime_status').notNull().default('pending'),
+    errorMessage: text('error_message'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [
+    index('creator_tasks_project_idx').on(table.projectId),
+    index('creator_tasks_runtime_idx').on(table.runtimeTaskId)
+  ]
+)
+
+// ==================== Creator OS: Versions ====================
+export const versions = sqliteTable(
+  'versions',
+  {
+    id: text('id').primaryKey(),
+    taskId: text('task_id').notNull().references(() => creatorTasks.id, { onDelete: 'cascade' }),
+    generationId: text('generation_id'),
+    versionNumber: integer('version_number').notNull().default(1),
+    filePath: text('file_path').notNull(),
+    mimeType: text('mime_type').notNull().default('image/png'),
+    isSelected: integer('is_selected', { mode: 'boolean' }).notNull().default(true),
+    metadata: text('metadata', { mode: 'json' }),
+    createdAt: text('created_at').notNull()
+  },
+  (table) => [
+    index('versions_task_idx').on(table.taskId)
+  ]
+)
+
+// ==================== Creator OS: Deliverables ====================
+export const deliverables = sqliteTable(
+  'deliverables',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+    taskId: text('task_id').notNull().references(() => creatorTasks.id, { onDelete: 'cascade' }),
+    versionId: text('version_id').references(() => versions.id, { onDelete: 'set null' }),
+    label: text('label').notNull(),
+    slotIndex: integer('slot_index').notNull().default(0),
+    isSelected: integer('is_selected', { mode: 'boolean' }).notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [
+    index('deliverables_project_idx').on(table.projectId)
   ]
 )
 
@@ -361,5 +470,50 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   session: one(chatSessions, {
     fields: [chatMessages.sessionId],
     references: [chatSessions.id]
+  })
+}))
+
+// ── Creator OS relations ──
+
+export const projectsRelations = relations(projects, ({ many }) => ({
+  assets: many(assets),
+  creatorTasks: many(creatorTasks),
+  deliverables: many(deliverables)
+}))
+
+export const assetsRelations = relations(assets, ({ one }) => ({
+  project: one(projects, {
+    fields: [assets.projectId],
+    references: [projects.id]
+  })
+}))
+
+export const creatorTasksRelations = relations(creatorTasks, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [creatorTasks.projectId],
+    references: [projects.id]
+  }),
+  versions: many(versions)
+}))
+
+export const versionsRelations = relations(versions, ({ one }) => ({
+  task: one(creatorTasks, {
+    fields: [versions.taskId],
+    references: [creatorTasks.id]
+  })
+}))
+
+export const deliverablesRelations = relations(deliverables, ({ one }) => ({
+  project: one(projects, {
+    fields: [deliverables.projectId],
+    references: [projects.id]
+  }),
+  task: one(creatorTasks, {
+    fields: [deliverables.taskId],
+    references: [creatorTasks.id]
+  }),
+  version: one(versions, {
+    fields: [deliverables.versionId],
+    references: [versions.id]
   })
 }))
