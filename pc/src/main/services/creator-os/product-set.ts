@@ -15,6 +15,86 @@ import type {
 import { computeBatchStatus } from '@shared/utils/creator-os-status'
 import { validatePreflight } from './preflight'
 
+/**
+ * 提交套图生成任务，同时传入每槽位的生成参数（model、providerId、prompt 等）。
+ * 这是 Creator OS 的推荐入口：renderer 收集用户配置后通过 IPC 调用。
+ */
+export async function submitProductSetWithParams(
+  projectId: string,
+  slotParams: Record<string, GenerationParams>
+): Promise<ProductSetSubmitResult> {
+  const now = new Date().toISOString()
+  const queue = getGenerationQueue()
+
+  const projRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+  const project = projRows[0]
+  if (!project) return { ok: false, error: 'Project not found' }
+
+  const sourceAssets = await db.select().from(assets).where(eq(assets.projectId, projectId))
+
+  // Validate that we have exactly 8 slots
+  const slotIds = Object.keys(slotParams)
+  if (slotIds.length !== 8) {
+    return { ok: false, error: `Expected 8 slot params, got ${slotIds.length}` }
+  }
+
+  const runtimeTaskIds: string[] = []
+
+  try {
+    for (let i = 0; i < slotIds.length; i++) {
+      const slotId = slotIds[i]
+      const params = slotParams[slotId]
+      const taskId = crypto.randomUUID()
+      const runtimeTaskId = crypto.randomUUID()
+      runtimeTaskIds.push(runtimeTaskId)
+
+      await db.insert(creatorTasks).values({
+        id: taskId,
+        projectId,
+        runtimeTaskId,
+        templateSlotId: slotId,
+        slotIndex: i,
+        status: 'pending',
+        runtimeStatus: 'pending',
+        createdAt: now,
+        updatedAt: now
+      } as typeof creatorTasks.$inferInsert)
+
+      await db.insert(deliverables).values({
+        id: crypto.randomUUID(),
+        projectId,
+        taskId,
+        versionId: null,
+        label: slotId,
+        slotIndex: i,
+        isSelected: true,
+        sortOrder: i,
+        createdAt: now,
+        updatedAt: now
+      } as typeof deliverables.$inferInsert)
+    }
+
+    // Enqueue with actual params
+    for (let i = 0; i < slotIds.length; i++) {
+      const params = slotParams[slotIds[i]]
+      queue.createTask('image', params, 'normal', { id: runtimeTaskIds[i] })
+    }
+
+    await db
+      .update(projects)
+      .set({ batchStatus: 'processing', updatedAt: new Date().toISOString() })
+      .where(eq(projects.id, projectId))
+
+    return { ok: true, taskCount: slotIds.length, runtimeTaskIds }
+  } catch (err) {
+    await db
+      .update(projects)
+      .set({ batchStatus: 'partial', batchError: String(err), updatedAt: new Date().toISOString() })
+      .where(eq(projects.id, projectId))
+    return { ok: false, error: String(err) }
+  }
+}
+
 const PRODUCT_SET_TEMPLATES: ProductSetTemplate[] = [
   {
     id: 'standard-8',

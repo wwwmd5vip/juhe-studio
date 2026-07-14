@@ -8,6 +8,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '../db'
 import { assets, deliverables } from '../db/schema'
 import type { Asset, Project } from '@shared/types/creator-os'
+import type { GenerationParams } from '@shared/types/generation'
 import { filterAllowed } from '@shared/utils/json-utils'
 import { importAsset } from '../services/creator-os/assets'
 import {
@@ -22,7 +23,8 @@ import {
   cancelProductSet,
   getBatchStatus,
   retryProductSetItems,
-  submitProductSet
+  submitProductSet,
+  submitProductSetWithParams
 } from '../services/creator-os/product-set'
 import { exportAssets } from '../services/creator-os/export'
 
@@ -84,6 +86,13 @@ ipcMain.handle('deliverable:update', async (_event, id: string, data: Record<str
 ipcMain.handle('product-set:submit', async (_event, projectId: string, templateId: string) => {
   return submitProductSet(projectId, templateId)
 })
+
+ipcMain.handle(
+  'product-set:submitWithParams',
+  async (_event, projectId: string, slotParams: Record<string, unknown>) => {
+    return submitProductSetWithParams(projectId, slotParams as Record<string, GenerationParams>)
+  }
+)
 
 ipcMain.handle('product-set:status', async (_event, projectId: string) => {
   return getBatchStatus(projectId)

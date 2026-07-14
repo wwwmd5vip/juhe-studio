@@ -465,6 +465,8 @@ const api = {
     // Product Set
     submitProductSet: (projectId: string, templateId: string) =>
       ipcRenderer.invoke('product-set:submit', projectId, templateId),
+    submitProductSetWithParams: (projectId: string, slotParams: Record<string, unknown>) =>
+      ipcRenderer.invoke('product-set:submitWithParams', projectId, slotParams),
     productSetStatus: (projectId: string) =>
       ipcRenderer.invoke('product-set:status', projectId),
     retryProductSet: (projectId: string, taskIds: string[]) =>
