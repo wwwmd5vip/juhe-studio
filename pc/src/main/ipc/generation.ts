@@ -110,7 +110,16 @@ export function registerGenerationIpc() {
 
       // 完成后保存到数据库
       if (task.status === 'completed' || task.status === 'failed') {
-        saveGenerationToDb(task).catch((err) => {
+        saveGenerationToDb(task).then((genRecord) => {
+          // Creator OS reconciliation: update creatorTasks status + materialize versions
+          import('../services/creator-os/reconciliation').then((m) =>
+            m.reconcileCreatorTask(task.id, task.status as 'completed' | 'failed', {
+              id: task.id,
+              resultUrls: JSON.stringify(task.outputs.map((o) => o.url).filter(Boolean)),
+              errorMessage: task.error ?? null
+            })
+          ).catch((err) => console.error('[Generation IPC] reconciliation error:', err))
+        }).catch((err) => {
           console.error('Failed to save generation:', err)
         })
 

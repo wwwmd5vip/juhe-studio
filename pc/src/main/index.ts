@@ -484,6 +484,17 @@ app.whenReady().then(async () => {
       console.error('[App] DB integrity check error (non-fatal):', e)
     }
 
+    // Creator OS: recover stale tasks from unclean shutdown
+    try {
+      const { recoverStaleCreatorTasks } = await import('./services/creator-os/recovery')
+      const recovered = await recoverStaleCreatorTasks()
+      if (recovered > 0) {
+        console.log(`[App] Recovered ${recovered} stale Creator OS tasks`)
+      }
+    } catch (e) {
+      console.error('[App] Creator OS recovery failed (non-fatal):', e)
+    }
+
     // Check for version downgrade — warn if current version is older than last stored version
     const lastVersion = store.get('lastVersion') as string | undefined
     const currentVersion = app.getVersion()
