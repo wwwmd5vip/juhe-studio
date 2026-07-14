@@ -460,7 +460,17 @@ const api = {
     listDeliverables: (projectId: string) =>
       ipcRenderer.invoke('deliverable:list', projectId),
     updateDeliverable: (id: string, data: Record<string, unknown>) =>
-      ipcRenderer.invoke('deliverable:update', id, data)
+      ipcRenderer.invoke('deliverable:update', id, data),
+
+    // Product Set
+    submitProductSet: (projectId: string, templateId: string) =>
+      ipcRenderer.invoke('product-set:submit', projectId, templateId),
+    productSetStatus: (projectId: string) =>
+      ipcRenderer.invoke('product-set:status', projectId),
+    retryProductSet: (projectId: string, taskIds: string[]) =>
+      ipcRenderer.invoke('product-set:retry', projectId, taskIds),
+    cancelProductSet: (projectId: string) =>
+      ipcRenderer.invoke('product-set:cancel', projectId),
   }
 }
 

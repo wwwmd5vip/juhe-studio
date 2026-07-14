@@ -18,6 +18,12 @@ import {
   updateProject
 } from '../services/creator-os/projects'
 import { updateDeliverable } from '../services/creator-os/deliverables'
+import {
+  cancelProductSet,
+  getBatchStatus,
+  retryProductSetItems,
+  submitProductSet
+} from '../services/creator-os/product-set'
 
 // ── Asset IPC ──
 
@@ -70,6 +76,24 @@ ipcMain.handle('deliverable:update', async (_event, id: string, data: Record<str
   const filtered = filterAllowed(data, ['label', 'isSelected', 'sortOrder'])
   await updateDeliverable(id, filtered)
   return true
+})
+
+// ── Product Set IPC ──
+
+ipcMain.handle('product-set:submit', async (_event, projectId: string, templateId: string) => {
+  return submitProductSet(projectId, templateId)
+})
+
+ipcMain.handle('product-set:status', async (_event, projectId: string) => {
+  return getBatchStatus(projectId)
+})
+
+ipcMain.handle('product-set:retry', async (_event, projectId: string, taskIds: string[]) => {
+  return retryProductSetItems(projectId, taskIds)
+})
+
+ipcMain.handle('product-set:cancel', async (_event, projectId: string) => {
+  return cancelProductSet(projectId)
 })
 
 export function registerCreatorOsIpc() {
