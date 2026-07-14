@@ -7,9 +7,17 @@ import { app, ipcMain } from 'electron'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../db'
 import { assets, deliverables } from '../db/schema'
-import type { Asset, Deliverable } from '@shared/types/creator-os'
+import type { Asset, Project } from '@shared/types/creator-os'
 import { filterAllowed } from '@shared/utils/json-utils'
 import { importAsset } from '../services/creator-os/assets'
+import {
+  createProject,
+  deleteProject,
+  getProject,
+  listProjects,
+  updateProject
+} from '../services/creator-os/projects'
+import { updateDeliverable } from '../services/creator-os/deliverables'
 
 // ── Asset IPC ──
 
@@ -31,10 +39,37 @@ ipcMain.handle('asset:delete', async (_event, assetId: string) => {
   return true
 })
 
-// ── Deliverable IPC (basic — project + product-set are Phase 3-5) ──
+// ── Project IPC ──
+
+ipcMain.handle('project:create', async (_event, data: Record<string, unknown>) => {
+  const filtered = filterAllowed(data, ['name', 'category', 'description', 'status'])
+  return createProject(filtered as Partial<Project>)
+})
+
+ipcMain.handle('project:list', async () => listProjects())
+
+ipcMain.handle('project:get', async (_event, id: string) => getProject(id))
+
+ipcMain.handle('project:update', async (_event, id: string, data: Record<string, unknown>) => {
+  const filtered = filterAllowed(data, ['name', 'category', 'description', 'status'])
+  return updateProject(id, filtered)
+})
+
+ipcMain.handle('project:delete', async (_event, id: string) => {
+  await deleteProject(id)
+  return true
+})
+
+// ── Deliverable IPC ──
 
 ipcMain.handle('deliverable:list', async (_event, projectId: string) => {
   return db.select().from(deliverables).where(eq(deliverables.projectId, projectId))
+})
+
+ipcMain.handle('deliverable:update', async (_event, id: string, data: Record<string, unknown>) => {
+  const filtered = filterAllowed(data, ['label', 'isSelected', 'sortOrder'])
+  await updateDeliverable(id, filtered)
+  return true
 })
 
 export function registerCreatorOsIpc() {

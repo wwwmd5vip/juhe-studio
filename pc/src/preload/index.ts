@@ -436,14 +436,31 @@ const api = {
 
   // Creator OS
   creatorOs: {
+    // Assets
     importAsset: (projectId: string, sourcePath: string) =>
       ipcRenderer.invoke('asset:import', projectId, sourcePath),
     listAssets: (projectId: string, filter?: { kind?: string }) =>
       ipcRenderer.invoke('asset:list', projectId, filter),
     deleteAsset: (assetId: string) =>
       ipcRenderer.invoke('asset:delete', assetId),
+
+    // Projects
+    createProject: (data: Record<string, unknown>) =>
+      ipcRenderer.invoke('project:create', data),
+    listProjects: () =>
+      ipcRenderer.invoke('project:list'),
+    getProject: (id: string) =>
+      ipcRenderer.invoke('project:get', id),
+    updateProject: (id: string, data: Record<string, unknown>) =>
+      ipcRenderer.invoke('project:update', id, data),
+    deleteProject: (id: string) =>
+      ipcRenderer.invoke('project:delete', id),
+
+    // Deliverables
     listDeliverables: (projectId: string) =>
-      ipcRenderer.invoke('deliverable:list', projectId)
+      ipcRenderer.invoke('deliverable:list', projectId),
+    updateDeliverable: (id: string, data: Record<string, unknown>) =>
+      ipcRenderer.invoke('deliverable:update', id, data)
   }
 }
 
