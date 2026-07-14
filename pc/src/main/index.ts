@@ -21,10 +21,19 @@ process.stderr.write = function(chunk: any, encoding?: any, cb?: any) {
   }
 }
 
-// Load .env from project root before any other code runs
-// app.getAppPath() returns project root in dev mode (electron-vite)
-loadDotenv({ path: join(app.getAppPath(), '.env') })
-if (is.dev) { console.log('[Main] Loaded .env, JUHE_API_URL:', process.env.JUHE_API_URL) }
+// Load .env before any other code runs.
+// Priority: user data dir (production override) > app bundle dir > project root (dev)
+const envPaths = [
+  join(app.getPath('userData'), '.env'),       // user-overridable (production)
+  join(app.getAppPath(), '.env'),              // bundled default / dev project root
+]
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    loadDotenv({ path: envPath })
+    if (is.dev) { console.log('[Main] Loaded .env from:', envPath) }
+  }
+}
+if (is.dev) { console.log('[Main] JUHE_API_URL:', process.env.JUHE_API_URL) }
 console.log('[Main] app.getAppPath():', app.getAppPath())
 
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'

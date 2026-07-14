@@ -67,9 +67,9 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  # Code signing: Uses Apple Development cert for local builds
-  # For distribution, set APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID env vars
-  # and change identity to "Developer ID Application: ..."
+  # 签名：使用 ad-hoc 签名（identity: "-"）解决 Gatekeeper 拦截问题
+  # 正式发布需设置 APPLE_ID/APPLE_APP_SPECIFIC_PASSWORD/APPLE_TEAM_ID 并将 identity 改为 "Developer ID Application: ..."
+  identity: "-"
   notarize: false
   target:
     - target: dmg
@@ -102,3 +102,5 @@ npmRebuild: false
 extraResources:
   - from: EULA.md
   - from: LICENSE.md
+  - from: .env
+    to: .env

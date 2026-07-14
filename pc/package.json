@@ -17,7 +17,7 @@
     "build": "electron-vite build",
     "build:unpack": "pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --dir --projectDir app-deploy",
     "build:win": "pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --win --projectDir app-deploy",
-    "build:mac": "pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --mac --projectDir app-deploy",
+    "build:mac": "pnpm packages:build && pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --mac --projectDir app-deploy --arch=x64,arm64",
     "build:linux": "pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --linux --projectDir app-deploy",
     "build:all": "pnpm packages:build && pnpm build && node scripts/prepare-deploy.mjs && cp electron-builder.yml app-deploy/ && electron-builder --mac --win --projectDir app-deploy",
     "generate:agent-prompts": "node src/shared/ecommerce-workflow/prompts/generate-registry.js",
