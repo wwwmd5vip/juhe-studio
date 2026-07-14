@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { migrate } from 'drizzle-orm/libsql/migrator'
 import { app } from 'electron'
 import { db } from './index'
+import { setMigrationStatus } from './migration-guard'
 import { migrateProviderKeysToPlaintext } from './migrate-provider-keys'
 
 async function findMigrationsFolder(): Promise<string | null> {
@@ -49,12 +50,13 @@ export async function runMigrations() {
   try {
     await migrate(db, { migrationsFolder })
     console.log('[DB] Migrations completed successfully from:', migrationsFolder)
+    setMigrationStatus(true)
     await migrateProviderKeysToPlaintext()
   } catch (error: unknown) {
     const msg = (error as Error)?.message || String(error)
     console.error('[DB] Migration failed:', msg)
-    throw new Error(
-      `Database migration failed. Please restore from backup. Error: ${msg}`
-    )
+    setMigrationStatus(false, msg)
+    console.warn('[DB] Continuing in read-only compatibility mode — Creator OS features disabled')
+    // Don't rethrow — allow app to start in degraded mode
   }
 }
