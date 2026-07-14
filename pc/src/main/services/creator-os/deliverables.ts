@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { deliverables } from '../../db/schema'
 import type { Deliverable } from '@shared/types/creator-os'

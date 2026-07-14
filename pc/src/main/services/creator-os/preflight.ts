@@ -1,7 +1,7 @@
 import type { Project, Asset, ProductSetTemplate, ProductSetPreflightResult } from '@shared/types/creator-os'
 import { db } from '../../db'
 import { models } from '../../db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { inArray } from 'drizzle-orm'
 
 export async function validatePreflight(
   project: Project,

@@ -1,7 +1,7 @@
 import type { GenerationParams } from '@shared/types/generation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../../db'
-import { assets, creatorTasks, deliverables, projects, versions } from '../../db/schema'
+import { assets, creatorTasks, deliverables, projects } from '../../db/schema'
 import { getGenerationQueue } from '../queue'
 import type {
   BatchStatus,
