@@ -66,6 +66,7 @@ import { registerAgentSquadIpc } from './agent-squad'
 import { registerAuthIpc } from './auth'
 import { registerChatIpc } from './chat'
 import { registerComfyIpc } from './comfy'
+import { registerCreatorOsIpc } from './creator-os'
 import { registerEcommerceShowcaseIpc } from './ecommerce-showcase'
 import { registerEcommerceWorkflowIpc } from './ecommerce-workflow'
 import { registerFeedbackHandlers } from './feedback'
@@ -103,6 +104,7 @@ registerVideoGenerationIpc()
 registerComfyIpc()
 registerJuhePromptsIpc()
 registerFeedbackHandlers()
+registerCreatorOsIpc()
 
 // Initialize plugin engine
 getPluginEngine()

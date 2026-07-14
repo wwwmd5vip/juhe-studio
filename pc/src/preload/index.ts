@@ -432,6 +432,18 @@ const api = {
     list: () => ipcRenderer.invoke('plugins:list'),
     activate: (pluginId: string) => ipcRenderer.invoke('plugins:activate', pluginId),
     deactivate: (pluginId: string) => ipcRenderer.invoke('plugins:deactivate', pluginId)
+  },
+
+  // Creator OS
+  creatorOs: {
+    importAsset: (projectId: string, sourcePath: string) =>
+      ipcRenderer.invoke('asset:import', projectId, sourcePath),
+    listAssets: (projectId: string, filter?: { kind?: string }) =>
+      ipcRenderer.invoke('asset:list', projectId, filter),
+    deleteAsset: (assetId: string) =>
+      ipcRenderer.invoke('asset:delete', assetId),
+    listDeliverables: (projectId: string) =>
+      ipcRenderer.invoke('deliverable:list', projectId)
   }
 }
 
