@@ -471,6 +471,10 @@ const api = {
       ipcRenderer.invoke('product-set:retry', projectId, taskIds),
     cancelProductSet: (projectId: string) =>
       ipcRenderer.invoke('product-set:cancel', projectId),
+
+    // Export
+    exportDeliverables: (projectId: string, outputDir: string) =>
+      ipcRenderer.invoke('deliverable:export', projectId, outputDir)
   }
 }
 

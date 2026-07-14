@@ -24,6 +24,7 @@ import {
   retryProductSetItems,
   submitProductSet
 } from '../services/creator-os/product-set'
+import { exportAssets } from '../services/creator-os/export'
 
 // ── Asset IPC ──
 
@@ -94,6 +95,12 @@ ipcMain.handle('product-set:retry', async (_event, projectId: string, taskIds: s
 
 ipcMain.handle('product-set:cancel', async (_event, projectId: string) => {
   return cancelProductSet(projectId)
+})
+
+// ── Export IPC ──
+
+ipcMain.handle('deliverable:export', async (_event, projectId: string, outputDir: string) => {
+  return exportAssets(projectId, outputDir)
 })
 
 export function registerCreatorOsIpc() {
