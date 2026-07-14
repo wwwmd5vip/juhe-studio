@@ -3,6 +3,7 @@
 
 @import "tailwindcss";
 @import "@cherrystudio/ui/styles/theme.css";
+@import "./creator-os-tokens.css";
 
 /* ============================================================
    JUHE STUDIO — Cyber-AI Aggregation Theme

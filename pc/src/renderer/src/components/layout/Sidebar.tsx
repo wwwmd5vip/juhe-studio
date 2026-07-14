@@ -37,6 +37,15 @@ const navGroups = [
     items: [{ to: '/', labelKey: 'nav.home', icon: Home }]
   },
   {
+    id: 'creator-os',
+    labelKey: 'nav.groups.creator-os',
+    collapsible: true,
+    defaultExpanded: true,
+    items: [
+      { to: '/', labelKey: 'creator-os.projects', icon: ShoppingBag }
+    ]
+  },
+  {
     id: 'create',
     labelKey: 'nav.groups.create',
     collapsible: true,

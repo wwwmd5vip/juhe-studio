@@ -55,7 +55,8 @@
       "system": "System",
       "creation": "Creation",
       "chatSimple": "Chat",
-      "my": "My"
+      "my": "My",
+      "creator-os": "Creator OS"
     },
     "favorites": "Favorites",
     "pinSidebar": "Pin sidebar",
@@ -2935,5 +2936,30 @@
     "selectProp": "Select a prop",
     "selectCamera": "Add or select a camera",
     "noObjects": "No objects yet"
+  },
+  "creator-os": {
+    "projects": "Projects",
+    "projects-subtitle": "Manage your ecommerce creative projects",
+    "new-project": "New Project",
+    "no-projects": "No projects yet",
+    "no-projects-hint": "Create your first project to start generating product sets",
+    "create-first": "Create First Project",
+    "back-to-projects": "Back to Projects",
+    "product-set": "Product Set",
+    "generate-all": "Generate All 8",
+    "generating": "Generating...",
+    "export": "Export",
+    "export-selected": "Export Selected",
+    "asset-panel": "Assets",
+    "import-asset": "Import Asset",
+    "result-grid": "Results",
+    "slot-main": "Main Image",
+    "slot-detail-1": "Detail 1",
+    "slot-detail-2": "Detail 2",
+    "slot-scene": "Scene",
+    "slot-color-1": "Color Variant 1",
+    "slot-color-2": "Color Variant 2",
+    "slot-size": "Size Chart",
+    "slot-packaging": "Packaging"
   }
 }

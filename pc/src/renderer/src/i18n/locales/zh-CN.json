@@ -52,7 +52,8 @@
       "system": "系统",
       "creation": "创作",
       "chatSimple": "对话",
-      "my": "我的"
+      "my": "我的",
+      "creator-os": "Creator OS"
     },
     "favorites": "收藏",
     "skills": "技能",
@@ -2963,5 +2964,30 @@
     "selectProp": "请选择道具",
     "selectCamera": "请添加或选择机位",
     "noObjects": "暂无对象"
+  },
+  "creator-os": {
+    "projects": "项目",
+    "projects-subtitle": "管理你的电商创意项目",
+    "new-project": "新建项目",
+    "no-projects": "还没有项目",
+    "no-projects-hint": "创建第一个项目来开始生成产品套图",
+    "create-first": "创建第一个项目",
+    "back-to-projects": "返回项目列表",
+    "product-set": "生成套图",
+    "generate-all": "生成全部 8 张",
+    "generating": "生成中...",
+    "export": "导出",
+    "export-selected": "导出已选",
+    "asset-panel": "素材",
+    "import-asset": "导入素材",
+    "result-grid": "生成结果",
+    "slot-main": "主图",
+    "slot-detail-1": "细节图 1",
+    "slot-detail-2": "细节图 2",
+    "slot-scene": "场景图",
+    "slot-color-1": "颜色变体 1",
+    "slot-color-2": "颜色变体 2",
+    "slot-size": "尺寸图",
+    "slot-packaging": "包装图"
   }
 }

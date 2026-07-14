@@ -1,0 +1,39 @@
+/* Creator OS Editorial Brand Tokens — extends Tailwind CSS 4 theme */
+
+@theme {
+  /* Base palette: editorial millennial — cream/parchment, warm taupe, ink */
+  --color-cos-bg: #FAF7F2;
+  --color-cos-bg-alt: #F2EDE4;
+  --color-cos-surface: #FFFFFF;
+  --color-cos-surface-hover: #F7F3EB;
+  --color-cos-border: #E0D8CB;
+  --color-cos-border-strong: #C4B8A2;
+  --color-cos-ink: #1C1915;
+  --color-cos-ink-secondary: #6B6258;
+  --color-cos-ink-muted: #9B9388;
+  --color-cos-accent: #C8A45C;
+  --color-cos-accent-hover: #B89548;
+  --color-cos-accent-muted: #D9C89D;
+  --color-cos-success: #5B8C5A;
+  --color-cos-warning: #C8893D;
+  --color-cos-error: #B8453A;
+  --color-cos-info: #5A7D9A;
+
+  /* Typography */
+  --font-cos-heading: 'Georgia', 'Noto Serif SC', serif;
+  --font-cos-body: 'Inter', 'PingFang SC', sans-serif;
+  --font-cos-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing rhythm */
+  --spacing-cos-unit: 0.25rem;
+
+  /* Shadows */
+  --shadow-cos-card: 0 1px 3px rgba(28, 25, 21, 0.06), 0 1px 2px rgba(28, 25, 21, 0.04);
+  --shadow-cos-panel: 0 4px 16px rgba(28, 25, 21, 0.08);
+  --shadow-cos-overlay: 0 16px 48px rgba(28, 25, 21, 0.12);
+
+  /* Radius */
+  --radius-cos-sm: 0.25rem;
+  --radius-cos-md: 0.5rem;
+  --radius-cos-lg: 0.75rem;
+}
