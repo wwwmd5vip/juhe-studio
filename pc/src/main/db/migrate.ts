@@ -72,6 +72,22 @@ export async function runMigrations() {
 async function safeAddMissingColumns(): Promise<void> {
   // 先补建可能缺失的表（处理 journal 已记录但 DDL 未执行的情况）
   const missingTables = [
+    // ── 0014: Creator OS tables ──
+    `CREATE TABLE IF NOT EXISTS assets (
+      id text PRIMARY KEY NOT NULL,
+      project_id text NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      kind text NOT NULL DEFAULT 'source',
+      file_path text NOT NULL,
+      mime_type text NOT NULL DEFAULT 'image/png',
+      width integer,
+      height integer,
+      metadata text,
+      status text NOT NULL DEFAULT 'active',
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS assets_project_idx ON assets (project_id)`,
+    `CREATE INDEX IF NOT EXISTS assets_kind_idx ON assets (kind)`,
     `CREATE TABLE IF NOT EXISTS creator_tasks (
       id text PRIMARY KEY NOT NULL,
       project_id text NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -132,7 +148,38 @@ async function safeAddMissingColumns(): Promise<void> {
       color text DEFAULT '#6366f1',
       created_at text NOT NULL,
       updated_at text NOT NULL
-    )`
+    )`,
+    // ── 0011: ecommerce workflows ──
+    `CREATE TABLE IF NOT EXISTS ecommerce_workflows (
+      id text PRIMARY KEY NOT NULL,
+      template_id text NOT NULL,
+      name text NOT NULL,
+      category text NOT NULL DEFAULT 'tv',
+      context text NOT NULL,
+      steps text NOT NULL,
+      modules text NOT NULL,
+      status text NOT NULL DEFAULT 'draft',
+      project_id text,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS ecommerce_workflows_template_idx ON ecommerce_workflows (template_id)`,
+    `CREATE INDEX IF NOT EXISTS ecommerce_workflows_status_idx ON ecommerce_workflows (status)`,
+    // ── showcase tasks ──
+    `CREATE TABLE IF NOT EXISTS showcase_tasks (
+      id text PRIMARY KEY NOT NULL,
+      type text NOT NULL,
+      status text NOT NULL DEFAULT 'pending',
+      input text NOT NULL,
+      result text,
+      error_msg text,
+      point_cost integer,
+      generation_task_ids text,
+      project_id text,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS showcase_tasks_status_idx ON showcase_tasks (status)`
   ]
 
   for (const sql of missingTables) {
