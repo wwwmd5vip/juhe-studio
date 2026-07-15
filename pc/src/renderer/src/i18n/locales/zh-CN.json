@@ -2988,6 +2988,9 @@
     "slot-color-1": "颜色变体 1",
     "slot-color-2": "颜色变体 2",
     "slot-size": "尺寸图",
-    "slot-packaging": "包装图"
+    "slot-packaging": "包装图",
+    "select-model": "模型",
+    "auto-model": "自动选择",
+    "cancel-all": "取消全部"
   }
 }

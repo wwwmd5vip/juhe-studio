@@ -42,7 +42,7 @@ export function QueueDrawer({}: QueueDrawerProps) {
   }, [])
 
   const activeTasks = tasks.filter(
-    (t) => t.status === 'pending' || t.status === 'processing' || t.status === 'submitting'
+    (t) => t.status === 'pending' || t.status === 'processing'
   )
   const recentTasks = tasks.filter(
     (t) => t.status === 'completed' || t.status === 'failed'

@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
+import type { DbModel } from '@shared/types/provider'
 
 export const Route = createFileRoute('/projects/$projectId/product-set')({
   component: ProductSetPage
@@ -11,6 +13,9 @@ function ProductSetPage() {
   const { projectId } = useParams({ from: '/projects/$projectId/product-set' })
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+
+  // Per-slot model selection (slotIndex → modelId)
+  const [slotModels, setSlotModels] = useState<Record<number, string>>({})
 
   const { data: project } = useQuery({
     queryKey: ['creator-os', 'projects', projectId],
@@ -22,9 +27,30 @@ function ProductSetPage() {
     queryFn: () => (window.api as any).creatorOs.listDeliverables(projectId)
   })
 
+  const { data: models = [] } = useQuery<DbModel[]>({
+    queryKey: ['db', 'models', 'image'],
+    queryFn: () => (window.api as any).models.list({ type: 'image' }),
+    staleTime: 60_000
+  })
+
   const submitMutation = useMutation({
-    mutationFn: () =>
-      (window.api as any).creatorOs.submitProductSet(projectId, 'standard-8'),
+    mutationFn: () => {
+      const slotParams: Record<string, { prompt: string; model?: string; providerId?: string }> = {}
+      for (let i = 0; i < 8; i++) {
+        const modelId = slotModels[i]
+        if (modelId) {
+          const m = models.find((x: DbModel) => x.id === modelId)
+          slotParams[String(i)] = {
+            prompt: slotLabels[i],
+            model: m?.name,
+            providerId: m?.providerId
+          }
+        } else {
+          slotParams[String(i)] = { prompt: slotLabels[i] }
+        }
+      }
+      return (window.api as any).creatorOs.submitProductSetWithParams(projectId, slotParams)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
       queryClient.invalidateQueries({ queryKey: ['creator-os', 'deliverables', projectId] })
@@ -42,7 +68,7 @@ function ProductSetPage() {
 
   const isRunning = project?.batchStatus === 'processing' || project?.batchStatus === 'submitting'
 
-  const labels = [
+  const slotLabels = [
     t('creator-os.slot-main'), t('creator-os.slot-detail-1'),
     t('creator-os.slot-detail-2'), t('creator-os.slot-scene'),
     t('creator-os.slot-color-1'), t('creator-os.slot-color-2'),
@@ -60,23 +86,50 @@ function ProductSetPage() {
         </p>
       )}
 
-      {/* 8-slot grid */}
+      {/* 8-slot grid with model selectors */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {Array.from({ length: 8 }).map((_, i) => {
           const del = (deliverables as any[]).find((d: any) => d.slotIndex === i)
           return (
             <div
               key={i}
-              className="aspect-square bg-cos-bg-alt border border-cos-border
-                         rounded-cos-md flex flex-col items-center justify-center
-                         text-cos-ink-muted"
+              className="bg-cos-bg-alt border border-cos-border rounded-cos-md
+                         overflow-hidden flex flex-col"
             >
-              <span className="text-xs font-cos-heading mb-1">{labels[i]}</span>
-              {del ? (
-                <span className="text-cos-success text-lg">✓</span>
-              ) : (
-                <span className="text-cos-ink-muted text-lg">—</span>
-              )}
+              {/* Slot preview area */}
+              <div className="aspect-square flex flex-col items-center justify-center text-cos-ink-muted">
+                <span className="text-xs font-cos-heading mb-1">{slotLabels[i]}</span>
+                {del ? (
+                  <span className="text-cos-success text-lg">✓</span>
+                ) : (
+                  <span className="text-cos-ink-muted text-lg">—</span>
+                )}
+              </div>
+
+              {/* Model selector per slot */}
+              <div className="px-2 pb-2">
+                <select
+                  value={slotModels[i] || ''}
+                  onChange={(e) =>
+                    setSlotModels((prev) => ({
+                      ...prev,
+                      [i]: e.target.value
+                    }))
+                  }
+                  disabled={isRunning}
+                  className="w-full text-xs border border-cos-border rounded-cos-sm
+                             bg-cos-surface text-cos-ink px-2 py-1.5
+                             focus:outline-none focus:border-cos-accent
+                             disabled:opacity-50 font-cos-body"
+                >
+                  <option value="">{t('creator-os.auto-model')}</option>
+                  {models.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.displayName || m.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )
         })}
@@ -98,7 +151,7 @@ function ProductSetPage() {
             className="border border-cos-error text-cos-error px-6 py-3
                        rounded-cos-md font-medium hover:bg-cos-error hover:text-white transition-colors"
           >
-            Cancel All
+            {t('creator-os.cancel-all')}
           </button>
         )}
       </div>
