@@ -6,6 +6,8 @@ import { resolveModelCapabilities } from '@shared/utils/model-capabilities'
 import { db } from '../db'
 import { models, providers } from '../db/schema'
 import { getGenerationQueue } from './queue'
+import { getProviderRegistry } from './image-providers'
+import type { ProviderGenerationMode } from '@shared/types/image-provider'
 
 const JIMENG_MODEL_ALIASES: Record<string, string> = {
   'jimeng-i2v-first-v30': 'jimeng-i2v-s2-pro'
@@ -98,6 +100,12 @@ export async function createRoutedGenerationTask(
     console.warn('[GenerationRouter] Aliyun provider but unsupported model:', resolvedParams.model)
   }
 
+  // Provider Registry 路由（新 Provider 通过工厂注册即可自动路由）
+  const registryType = resolveQueueTypeViaRegistry(providerPresetId, resolvedParams)
+  if (registryType) {
+    return queue.createTask(registryType, resolvedParams, priority)
+  }
+
   // 默认路由：根据 params 推断 type
   const type: GenerationType = inferGenerationType(resolvedParams)
   return queue.createTask(type, resolvedParams, priority)
@@ -137,4 +145,45 @@ function capabilityLabel(cap: ModelCapability): string {
     default:
       return String(cap)
   }
+}
+
+/**
+ * 使用 Provider Registry 查找匹配的 Provider 并返回推荐的队列任务类型。
+ * 这是通向 capability-based routing 的第一步 — 工厂管理的 Provider 可以覆盖默认路由。
+ */
+function resolveQueueTypeViaRegistry(
+  providerPresetId: string | null,
+  params: GenerationParams
+): GenerationType | null {
+  if (!providerPresetId) return null
+
+  const registry = getProviderRegistry()
+  const mode = inferProviderMode(params)
+  const provider = registry.findByPresetId(providerPresetId, mode)
+
+  if (!provider) return null
+
+  // 根据 Provider ID 映射到队列任务类型
+  switch (provider.providerId) {
+    case 'openai':
+      return inferGenerationType(params)
+    case 'jimeng':
+      return 'jimeng'
+    case 'aliyun':
+      if (ALIYUN_IMAGE_MODELS.has(params.model || '')) return 'aliyun-image'
+      if (ALIYUN_VIDEO_MODELS.has(params.model || '')) return 'aliyun-video'
+      return 'aliyun-image' // 默认
+    case 'fal':
+      return 'video'
+    case 'openai-audio':
+      return 'audio'
+    default:
+      return null
+  }
+}
+
+function inferProviderMode(params: GenerationParams): ProviderGenerationMode {
+  if (params.generationMode === 'audio') return 'audio'
+  if (params.generationMode === 'video') return 'video'
+  return 'image'
 }

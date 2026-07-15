@@ -17,6 +17,7 @@ import { executeJimengGeneration } from '../services/jimeng-generation'
 import { notifyQueueCompleted, notifyTaskCompleted, notifyTaskFailed } from '../services/notifications'
 import { getGenerationQueue } from '../services/queue'
 import { submitVideoGeneration } from '../services/video-generation'
+import { initProviderRegistry } from '../services/image-providers'
 import { updateTrayBadge, updateTrayTooltip } from '../tray'
 
 // 存储窗口引用用于推送进度
@@ -175,6 +176,9 @@ export function registerGenerationIpc() {
   })
 
   // 注册图像生成执行器
+  // 初始化 Provider Registry — 能力驱动路由的基础设施
+  initProviderRegistry()
+
   queue.registerExecutor('image', executeImageGeneration)
   queue.registerExecutor('video', submitVideoGeneration)
   queue.registerExecutor('audio', executeAudioGeneration)
