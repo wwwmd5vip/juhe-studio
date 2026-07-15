@@ -1,7 +1,7 @@
 import type { GenerationParams } from '@shared/types/generation'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../../db'
-import { assets, creatorTasks, deliverables, projects } from '../../db/schema'
+import { assets, creatorTasks, deliverables, models, projects } from '../../db/schema'
 import { getGenerationQueue } from '../queue'
 import type {
   BatchStatus,
@@ -14,6 +14,16 @@ import type {
 } from '@shared/types/creator-os'
 import { computeBatchStatus } from '@shared/utils/creator-os-status'
 import { validatePreflight } from './preflight'
+
+async function getDefaultImageModel(): Promise<{ id: string; providerId: string } | null> {
+  const modelRow = await db
+    .select({ id: models.id, providerId: models.providerId })
+    .from(models)
+    .where(eq(models.type, 'image'))
+    .limit(1)
+  const row = modelRow[0]
+  return row ? { id: row.id, providerId: row.providerId } : null
+}
 
 /**
  * 提交套图生成任务，同时传入每槽位的生成参数（model、providerId、prompt 等）。
@@ -180,15 +190,18 @@ export async function submitProductSet(
       } as typeof deliverables.$inferInsert)
     }
 
-    // Enqueue all tasks using the runtime queue
+    // Enqueue all tasks — auto-resolve empty model/provider
+    const defaultModel = await getDefaultImageModel()
     for (let i = 0; i < template.slots.length; i++) {
       const slot = template.slots[i]
+      const providerId = slot.providerId || defaultModel?.providerId || ''
+      const model = slot.modelId || defaultModel?.id || ''
       queue.createTask(
         'image',
         {
-          providerId: slot.providerId,
-          model: slot.modelId,
-          prompt: slot.label // placeholder — renderer will replace via product-set:submitWithParams
+          providerId,
+          model,
+          prompt: slot.label
         },
         'normal',
         { id: runtimeTaskIds[i] }
