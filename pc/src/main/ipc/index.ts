@@ -66,6 +66,7 @@ import { registerAgentSquadIpc } from './agent-squad'
 import { registerAuthIpc } from './auth'
 import { registerChatIpc } from './chat'
 import { registerComfyIpc } from './comfy'
+import { registerCanvasAgentIpc } from './canvas-agent'
 import { registerCreatorOsIpc } from './creator-os'
 import { registerEcommerceShowcaseIpc } from './ecommerce-showcase'
 import { registerEcommerceWorkflowIpc } from './ecommerce-workflow'
@@ -102,6 +103,7 @@ registerEcommerceShowcaseIpc()
 registerPromptLibraryIpc()
 registerVideoGenerationIpc()
 registerComfyIpc()
+registerCanvasAgentIpc()
 registerJuhePromptsIpc()
 registerFeedbackHandlers()
 registerCreatorOsIpc()

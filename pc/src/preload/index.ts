@@ -477,6 +477,22 @@ const api = {
     // Export
     exportDeliverables: (projectId: string, outputDir: string) =>
       ipcRenderer.invoke('deliverable:export', projectId, outputDir)
+  },
+
+  canvasAgent: {
+    // Renderer → Main
+    callTool: (documentId: string, toolName: string, args: Record<string, unknown>) =>
+      ipcRenderer.invoke('canvas-agent:call-tool', documentId, toolName, args),
+    listTools: () =>
+      ipcRenderer.invoke('canvas-agent:list-tools'),
+    pushSnapshot: (documentId: string, snapshot: unknown) =>
+      ipcRenderer.send('canvas-agent:push-snapshot', documentId, snapshot),
+    getSnapshot: (documentId: string) =>
+      ipcRenderer.invoke('canvas-agent:get-snapshot', documentId),
+    sendResult: (result: unknown) =>
+      ipcRenderer.send('canvas-agent:result', result),
+    destroySession: (documentId: string) =>
+      ipcRenderer.invoke('canvas-agent:destroy-session', documentId)
   }
 }
 
