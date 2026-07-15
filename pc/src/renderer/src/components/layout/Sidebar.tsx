@@ -42,7 +42,7 @@ const navGroups = [
     collapsible: true,
     defaultExpanded: true,
     items: [
-      { to: '/', labelKey: 'creator-os.projects', icon: ShoppingBag }
+      { to: '/projects', labelKey: 'creator-os.projects', icon: ShoppingBag }
     ]
   },
   {

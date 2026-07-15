@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
 import { ResultGrid } from '@/components/creator-os/ResultGrid'
+import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
 
 export const Route = createFileRoute('/projects/$projectId')({
   component: ProjectDetail
@@ -43,7 +44,7 @@ function ProjectDetail() {
                       border-b border-cos-border bg-cos-surface">
         <div>
           <button
-            onClick={() => navigate({ to: '/' })}
+            onClick={() => navigate({ to: '/projects' })}
             className="text-cos-ink-muted hover:text-cos-ink text-sm"
           >
             ← {t('creator-os.back-to-projects')}
@@ -74,6 +75,8 @@ function ProjectDetail() {
         <AssetPanel projectId={projectId} assets={assets as any} />
         <ResultGrid projectId={projectId} />
       </div>
+
+      <QueueDrawer />
     </div>
   )
 }

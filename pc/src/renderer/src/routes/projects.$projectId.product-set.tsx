@@ -1,6 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
 
 export const Route = createFileRoute('/projects/$projectId/product-set')({
   component: ProductSetPage
@@ -107,6 +108,8 @@ function ProductSetPage() {
           {(submitMutation.error as Error).message}
         </p>
       )}
+
+      <QueueDrawer />
     </div>
   )
 }
