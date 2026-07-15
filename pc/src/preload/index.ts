@@ -369,6 +369,10 @@ const api = {
     cancelTask: (id: string) => ipcRenderer.invoke('showcase:tasks:cancel', id)
   },
 
+  productSet: {
+    generate: (req: unknown) => ipcRenderer.invoke('ecommerce:product-set:generate', req)
+  },
+
   // Auth — Juhe Management
   auth: {
     login: (username: string, password: string, remember: boolean, captchaId?: string, captchaCode?: string) =>
@@ -486,6 +490,11 @@ const api = {
     update: (id: string, data: unknown) => ipcRenderer.invoke('brand-kit:update', id, data),
     delete: (id: string) => ipcRenderer.invoke('brand-kit:delete', id),
     buildPrompt: (id: string) => ipcRenderer.invoke('brand-kit:build-prompt', id)
+  },
+
+  shortVideo: {
+    generateScript: (req: unknown) =>
+      ipcRenderer.invoke('short-video:generate-script', req)
   },
 
   canvasAgent: {

@@ -69,6 +69,7 @@ import { registerComfyIpc } from './comfy'
 import { registerBrandKitIpc } from './brand-kit'
 import { registerCanvasAgentIpc } from './canvas-agent'
 import { registerCreatorOsIpc } from './creator-os'
+import { registerEcommerceIpc } from './ecommerce'
 import { registerEcommerceShowcaseIpc } from './ecommerce-showcase'
 import { registerEcommerceWorkflowIpc } from './ecommerce-workflow'
 import { registerFeedbackHandlers } from './feedback'
@@ -83,6 +84,7 @@ import { registerProviderIpc } from './providers'
 import { registerQuickPhrasesIpc } from './quick-phrases'
 import { registerSkillsIpc } from './skills'
 import { registerVideoGenerationIpc } from './video-generation'
+import { registerShortVideoScriptIpc } from './short-video-script'
 import { registerVideoComposeIpc } from './video-compose'
 import { registerWebSearchIpc } from './websearch'
 
@@ -101,10 +103,12 @@ registerMcpIpc()
 registerAgentSquadIpc()
 registerAuthIpc()
 registerEcommerceWorkflowIpc()
+registerEcommerceIpc()
 registerEcommerceShowcaseIpc()
 registerPromptLibraryIpc()
 registerVideoGenerationIpc()
 registerVideoComposeIpc()
+registerShortVideoScriptIpc()
 registerComfyIpc()
 registerBrandKitIpc()
 registerCanvasAgentIpc()
