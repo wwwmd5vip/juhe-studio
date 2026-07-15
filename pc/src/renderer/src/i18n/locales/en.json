@@ -2975,6 +2975,15 @@
     "delete-confirm-title": "Delete Project",
     "rename-project": "Rename",
     "project-not-found": "Project not found",
-    "retry-slot": "Retry"
+    "retry-slot": "Retry",
+    "slot-prompt-placeholder": "Custom prompt...",
+    "drag-images-hint": "Drag images here",
+    "delete-asset": "Delete",
+    "status-idle": "Ready",
+    "status-submitting": "Submitting...",
+    "status-processing": "Generating...",
+    "status-completed": "Done",
+    "status-partial": "Partial results",
+    "status-failed": "Failed"
   }
 }

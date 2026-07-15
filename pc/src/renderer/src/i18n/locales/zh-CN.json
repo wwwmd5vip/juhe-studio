@@ -3003,6 +3003,15 @@
     "delete-confirm-title": "删除项目",
     "rename-project": "重命名",
     "project-not-found": "项目未找到",
-    "retry-slot": "重试"
+    "retry-slot": "重试",
+    "slot-prompt-placeholder": "自定义提示词...",
+    "drag-images-hint": "拖拽图片到此处",
+    "delete-asset": "删除",
+    "status-idle": "就绪",
+    "status-submitting": "提交中...",
+    "status-processing": "生成中...",
+    "status-completed": "完成",
+    "status-partial": "部分完成",
+    "status-failed": "失败"
   }
 }

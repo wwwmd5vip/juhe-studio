@@ -44,14 +44,20 @@ export function ResultGrid({ projectId }: ResultGridProps) {
       {deliverables.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-cos-ink-muted">
           <ImageIcon className="w-10 h-10 mb-3 opacity-30" />
-          <p className="text-sm">No results yet</p>
-          <p className="text-xs mt-1">Go to Product Set to generate images</p>
+          <p className="text-sm">{t('creator-os.no-projects')}</p>
+          <p className="text-xs mt-1">{t('creator-os.no-projects-hint')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => {
             const del = (deliverables as any[]).find((d: any) => d.slotIndex === i)
             const hasResult = del?.versionFilePath
+            const isFailed = del?.taskRuntimeStatus === 'failed'
+            const isPending =
+              del?.taskRuntimeStatus === 'pending' ||
+              del?.taskRuntimeStatus === 'submitting' ||
+              del?.taskRuntimeStatus === 'processing'
+
             return (
               <div
                 key={i}
@@ -59,14 +65,35 @@ export function ResultGrid({ projectId }: ResultGridProps) {
                            rounded-cos-md overflow-hidden group"
               >
                 {hasResult ? (
-                  <img
-                    src={`juhe-image://${del.versionFilePath}`}
-                    alt={labels[i]}
-                    className="w-full h-full object-cover"
-                    onError={(e: any) => {
-                      e.target.style.display = 'none'
-                    }}
-                  />
+                  <>
+                    <img
+                      src={`juhe-image://${del.versionFilePath}`}
+                      alt={labels[i]}
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => {
+                        e.target.style.display = 'none'
+                      }}
+                    />
+                    {/* Completed badge */}
+                    <div className="absolute top-2 left-2 bg-cos-success/90 text-white
+                                    text-[10px] px-1.5 py-0.5 rounded-cos-sm">
+                      ✓
+                    </div>
+                  </>
+                ) : isPending ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <span className="text-cos-accent text-xl animate-pulse mb-1">●</span>
+                    <span className="text-[10px] text-cos-ink-muted">
+                      {labels[i]}
+                    </span>
+                  </div>
+                ) : isFailed ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <span className="text-cos-error text-xl mb-1">✗</span>
+                    <span className="text-[10px] text-cos-ink-muted">
+                      {labels[i]}
+                    </span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full">
                     <ImageIcon className="w-6 h-6 text-cos-ink-muted opacity-30 mb-1" />
@@ -76,7 +103,7 @@ export function ResultGrid({ projectId }: ResultGridProps) {
                   </div>
                 )}
 
-                {/* Label overlay */}
+                {/* Label overlay on hover */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t
                                 from-cos-ink/70 to-transparent p-2 opacity-0
                                 group-hover:opacity-100 transition-opacity">

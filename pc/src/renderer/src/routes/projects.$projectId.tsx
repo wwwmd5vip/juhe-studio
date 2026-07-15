@@ -57,13 +57,9 @@ function ProjectDetail() {
     )
   }
 
-  const statusMap: Record<string, string> = {
-    idle: 'Ready',
-    submitting: 'Submitting...',
-    processing: 'Generating...',
-    completed: 'Done',
-    partial: 'Partial results',
-    failed: 'Failed'
+  const getStatusLabel = (s: string): string => {
+    const key = `creator-os.status-${s}` as const
+    return t(key as any)
   }
 
   const startRename = () => {
@@ -119,7 +115,7 @@ function ProjectDetail() {
             )}
             <span className="text-xs px-2 py-0.5 rounded-full bg-cos-bg-alt
                              text-cos-ink-secondary">
-              {statusMap[project.batchStatus || 'idle']}
+              {getStatusLabel(project.batchStatus || 'idle')}
             </span>
           </div>
         </div>

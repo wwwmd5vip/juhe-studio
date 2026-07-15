@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Upload } from 'lucide-react'
+import { Upload, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 interface AssetPanelProps {
@@ -18,7 +18,6 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const uploadRef = useRef<HTMLDivElement>(null)
 
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['creator-os', 'assets', projectId] })
@@ -36,17 +35,25 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
     [projectId, invalidate]
   )
 
+  const deleteAsset = useCallback(
+    async (assetId: string) => {
+      try {
+        await (window.api as any).creatorOs.deleteAsset(assetId)
+        invalidate()
+      } catch (err) {
+        console.error('Delete failed:', err)
+      }
+    },
+    [invalidate]
+  )
+
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files
       if (!files) return
       for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        // In Electron, file.path gives the absolute path
-        const path = (file as any).path
-        if (path) {
-          await importFile(path)
-        }
+        const path = (files[i] as any).path
+        if (path) await importFile(path)
       }
       e.target.value = ''
     },
@@ -56,12 +63,9 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       e.preventDefault()
-      const files = e.dataTransfer.files
-      for (let i = 0; i < files.length; i++) {
-        const path = (files[i] as any).path
-        if (path) {
-          await importFile(path)
-        }
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        const path = (e.dataTransfer.files[i] as any).path
+        if (path) await importFile(path)
       }
     },
     [importFile]
@@ -76,6 +80,7 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
 
   return (
     <div className="w-60 border-r border-cos-border bg-cos-surface flex flex-col shrink-0">
+      {/* Header */}
       <div className="p-3 border-b border-cos-border">
         <h3 className="font-cos-heading text-xs text-cos-ink-secondary uppercase tracking-wide">
           {t('creator-os.asset-panel')}
@@ -87,7 +92,6 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
 
       {/* Drop zone */}
       <div
-        ref={uploadRef}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onClick={() => fileInputRef.current?.click()}
@@ -111,25 +115,36 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
       <div className="flex-1 overflow-y-auto px-3 pb-3">
         {sourceAssets.length === 0 ? (
           <p className="text-xs text-cos-ink-muted text-center mt-8">
-            Drag images here
+            {t('creator-os.drag-images-hint')}
           </p>
         ) : (
           <div className="space-y-2">
             {sourceAssets.map((a) => (
               <div
                 key={a.id}
-                className="bg-cos-bg-alt rounded-cos-sm overflow-hidden"
+                className="bg-cos-bg-alt rounded-cos-sm overflow-hidden group relative"
               >
                 <img
                   src={`juhe-image://${a.filePath}`}
                   alt=""
                   className="w-full h-24 object-cover"
-                  onError={(e) => {
-                    // Fallback: show filename
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
+                  onError={(e: any) => {
+                    e.target.style.display = 'none'
                   }}
                 />
+                {/* Delete button on hover */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteAsset(a.id)
+                  }}
+                  className="absolute top-1 right-1 bg-cos-ink/60 hover:bg-cos-error
+                             text-white rounded-cos-sm p-1 opacity-0
+                             group-hover:opacity-100 transition-opacity"
+                  title={t('creator-os.delete-asset')}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
                 <p className="text-[10px] text-cos-ink-muted p-1.5 truncate">
                   {a.filePath.split('/').pop()}
                 </p>
