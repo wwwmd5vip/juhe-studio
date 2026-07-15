@@ -40,16 +40,16 @@ export function ExportToolbar({ projectId }: ExportToolbarProps) {
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-cos-surface rounded-cos-lg shadow-cos-overlay p-6 w-96">
             <h2 className="font-cos-heading text-lg text-cos-ink mb-4">
-              {t('creator-os.export-selected')}
+              {t('creator-os.export-dialog-title')}
             </h2>
             <p className="text-sm text-cos-ink-secondary mb-4">
-              Select destination folder for your deliverable files.
+              {t('creator-os.export-dialog-desc')}
             </p>
             <div className="flex gap-2 mb-4">
               <input
                 value={outputDir}
                 onChange={(e) => setOutputDir(e.target.value)}
-                placeholder="/path/to/export"
+                placeholder={t('creator-os.export-path-placeholder')}
                 className="flex-1 border border-cos-border rounded-cos-md px-3 py-2
                            text-sm text-cos-ink font-cos-body focus:outline-none
                            focus:border-cos-accent"
@@ -60,7 +60,7 @@ export function ExportToolbar({ projectId }: ExportToolbarProps) {
                 onClick={() => setShowDialog(false)}
                 className="text-cos-ink-secondary hover:text-cos-ink text-sm"
               >
-                Cancel
+                {t('creator-os.export-cancel')}
               </button>
               <button
                 onClick={() => {
@@ -72,7 +72,9 @@ export function ExportToolbar({ projectId }: ExportToolbarProps) {
                 className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
                            rounded-cos-md text-sm disabled:opacity-50"
               >
-                {exportMutation.isPending ? 'Exporting...' : 'Export'}
+                {exportMutation.isPending
+                  ? t('creator-os.export-exporting')
+                  : t('creator-os.export-confirm')}
               </button>
             </div>
           </div>

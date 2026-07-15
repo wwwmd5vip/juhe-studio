@@ -2991,6 +2991,12 @@
     "slot-packaging": "包装图",
     "select-model": "模型",
     "auto-model": "自动选择",
-    "cancel-all": "取消全部"
+    "cancel-all": "取消全部",
+    "export-dialog-title": "导出已选",
+    "export-dialog-desc": "选择导出产物的目标文件夹。",
+    "export-path-placeholder": "/path/to/export",
+    "export-cancel": "取消",
+    "export-confirm": "导出",
+    "export-exporting": "导出中..."
   }
 }

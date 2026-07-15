@@ -2963,6 +2963,12 @@
     "slot-packaging": "Packaging",
     "select-model": "Model",
     "auto-model": "Auto (default)",
-    "cancel-all": "Cancel All"
+    "cancel-all": "Cancel All",
+    "export-dialog-title": "Export Selected",
+    "export-dialog-desc": "Select destination folder for your deliverable files.",
+    "export-path-placeholder": "/path/to/export",
+    "export-cancel": "Cancel",
+    "export-confirm": "Export",
+    "export-exporting": "Exporting..."
   }
 }
