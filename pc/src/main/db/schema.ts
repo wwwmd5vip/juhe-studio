@@ -359,6 +359,7 @@ export const projects = sqliteTable(
     description: text('description'),
     batchStatus: text('batch_status').default('idle'),
     batchError: text('batch_error'),
+    brandKitId: text('brand_kit_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -448,6 +449,22 @@ export const deliverables = sqliteTable(
   (table) => [
     index('deliverables_project_idx').on(table.projectId)
   ]
+)
+
+// ==================== Brand Kits ====================
+export const brandKits = sqliteTable(
+  'brand_kits',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    primaryColor: text('primary_color').notNull().default('#FF5733'),
+    secondaryColor: text('secondary_color').default('#333333'),
+    logoPath: text('logo_path'),
+    fontFamily: text('font_family').default('Inter'),
+    styleDescription: text('style_description'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  }
 )
 
 // ==================== Relations ====================

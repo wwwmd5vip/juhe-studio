@@ -108,6 +108,18 @@ export interface ProductSetTemplate {
 
 // ── Deliverable ──
 
+export interface BrandKit {
+  id: string
+  name: string
+  primaryColor: string
+  secondaryColor: string | null
+  logoPath: string | null
+  fontFamily: string | null
+  styleDescription: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Deliverable {
   id: string
   projectId: string

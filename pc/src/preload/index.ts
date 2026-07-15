@@ -479,6 +479,15 @@ const api = {
       ipcRenderer.invoke('deliverable:export', projectId, outputDir)
   },
 
+  brandKit: {
+    list: () => ipcRenderer.invoke('brand-kit:list'),
+    get: (id: string) => ipcRenderer.invoke('brand-kit:get', id),
+    create: (data: unknown) => ipcRenderer.invoke('brand-kit:create', data),
+    update: (id: string, data: unknown) => ipcRenderer.invoke('brand-kit:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('brand-kit:delete', id),
+    buildPrompt: (id: string) => ipcRenderer.invoke('brand-kit:build-prompt', id)
+  },
+
   canvasAgent: {
     // Renderer → Main
     callTool: (documentId: string, toolName: string, args: Record<string, unknown>) =>
