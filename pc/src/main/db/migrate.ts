@@ -70,6 +70,78 @@ export async function runMigrations() {
  * 用 PRAGMA table_info 检查列是否存在，仅在缺失时 ALTER TABLE ADD COLUMN。
  */
 async function safeAddMissingColumns(): Promise<void> {
+  // 先补建可能缺失的表（处理 journal 已记录但 DDL 未执行的情况）
+  const missingTables = [
+    `CREATE TABLE IF NOT EXISTS creator_tasks (
+      id text PRIMARY KEY NOT NULL,
+      project_id text NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      runtime_task_id text NOT NULL,
+      template_slot_id text NOT NULL,
+      slot_index integer NOT NULL DEFAULT 0,
+      status text NOT NULL DEFAULT 'pending',
+      runtime_status text NOT NULL DEFAULT 'pending',
+      error_message text,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS creator_tasks_project_idx ON creator_tasks (project_id)`,
+    `CREATE INDEX IF NOT EXISTS creator_tasks_runtime_idx ON creator_tasks (runtime_task_id)`,
+    `CREATE TABLE IF NOT EXISTS versions (
+      id text PRIMARY KEY NOT NULL,
+      task_id text NOT NULL REFERENCES creator_tasks(id) ON DELETE CASCADE,
+      generation_id text,
+      version_number integer NOT NULL DEFAULT 1,
+      file_path text NOT NULL,
+      mime_type text NOT NULL DEFAULT 'image/png',
+      is_selected integer NOT NULL DEFAULT 1,
+      metadata text,
+      created_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS versions_task_idx ON versions (task_id)`,
+    `CREATE TABLE IF NOT EXISTS deliverables (
+      id text PRIMARY KEY NOT NULL,
+      project_id text NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      task_id text NOT NULL REFERENCES creator_tasks(id) ON DELETE CASCADE,
+      version_id text REFERENCES versions(id) ON DELETE SET NULL,
+      version_file_path text,
+      task_runtime_status text,
+      label text NOT NULL,
+      slot_index integer NOT NULL DEFAULT 0,
+      is_selected integer NOT NULL DEFAULT 1,
+      sort_order integer NOT NULL DEFAULT 0,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE INDEX IF NOT EXISTS deliverables_project_idx ON deliverables (project_id)`,
+    `CREATE TABLE IF NOT EXISTS brand_kits (
+      id text PRIMARY KEY NOT NULL,
+      name text NOT NULL,
+      primary_color text NOT NULL DEFAULT '#FF5733',
+      secondary_color text DEFAULT '#333333',
+      logo_path text,
+      font_family text DEFAULT 'Inter',
+      style_description text,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS workspaces (
+      id text PRIMARY KEY NOT NULL,
+      name text NOT NULL,
+      description text,
+      icon text DEFAULT 'folder',
+      color text DEFAULT '#6366f1',
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`
+  ]
+
+  for (const sql of missingTables) {
+    try {
+      await db.run(sql)
+    } catch (err) {
+      console.warn('[DB] Safe-table skipped:', (err as Error)?.message)
+    }
+  }
   // 列定义：[table, column, type_suffix]
   const columns: Array<[string, string, string]> = [
     ['generations', 'project_id', 'text REFERENCES projects(id) ON DELETE SET NULL'],
