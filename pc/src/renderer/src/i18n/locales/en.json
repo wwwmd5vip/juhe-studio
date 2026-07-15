@@ -2969,6 +2969,11 @@
     "export-path-placeholder": "/path/to/export",
     "export-cancel": "Cancel",
     "export-confirm": "Export",
-    "export-exporting": "Exporting..."
+    "export-exporting": "Exporting...",
+    "delete-project": "Delete Project",
+    "delete-confirm": "Are you sure you want to delete this project? This action cannot be undone.",
+    "delete-confirm-title": "Delete Project",
+    "rename-project": "Rename",
+    "project-not-found": "Project not found"
   }
 }

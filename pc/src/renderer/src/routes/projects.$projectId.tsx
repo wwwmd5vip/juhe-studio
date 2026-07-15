@@ -1,5 +1,6 @@
+import { useState, useRef } from 'react'
 import { createFileRoute, useParams, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
 import { ResultGrid } from '@/components/creator-os/ResultGrid'
@@ -13,6 +14,12 @@ function ProjectDetail() {
   const { projectId } = useParams({ from: '/projects/$projectId' })
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const [editing, setEditing] = useState(false)
+  const [nameValue, setNameValue] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { data: project } = useQuery({
     queryKey: ['creator-os', 'projects', projectId],
@@ -24,8 +31,30 @@ function ProjectDetail() {
     queryFn: () => (window.api as any).creatorOs.listAssets(projectId)
   })
 
+  const updateMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      (window.api as any).creatorOs.updateProject(projectId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
+      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects'] })
+      setEditing(false)
+    }
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: () => (window.api as any).creatorOs.deleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects'] })
+      navigate({ to: '/projects' })
+    }
+  })
+
   if (!project) {
-    return <div className="p-12 text-center text-cos-ink-muted">Project not found</div>
+    return (
+      <div className="p-12 text-center text-cos-ink-muted">
+        {t('creator-os.project-not-found')}
+      </div>
+    )
   }
 
   const statusMap: Record<string, string> = {
@@ -35,6 +64,21 @@ function ProjectDetail() {
     completed: 'Done',
     partial: 'Partial results',
     failed: 'Failed'
+  }
+
+  const startRename = () => {
+    setNameValue(project.name)
+    setEditing(true)
+    setTimeout(() => inputRef.current?.select(), 0)
+  }
+
+  const commitRename = () => {
+    const trimmed = nameValue.trim()
+    if (trimmed && trimmed !== project.name) {
+      updateMutation.mutate({ name: trimmed })
+    } else {
+      setEditing(false)
+    }
   }
 
   return (
@@ -50,9 +94,29 @@ function ProjectDetail() {
             ← {t('creator-os.back-to-projects')}
           </button>
           <div className="flex items-center gap-3 mt-1">
-            <h1 className="font-cos-heading text-xl text-cos-ink">
-              {project.name}
-            </h1>
+            {editing ? (
+              <input
+                ref={inputRef}
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitRename()
+                  if (e.key === 'Escape') setEditing(false)
+                }}
+                className="font-cos-heading text-xl text-cos-ink bg-transparent border-b
+                           border-cos-accent outline-none"
+              />
+            ) : (
+              <h1
+                className="font-cos-heading text-xl text-cos-ink cursor-pointer
+                           hover:text-cos-accent transition-colors"
+                onClick={startRename}
+                title={t('creator-os.rename-project')}
+              >
+                {project.name}
+              </h1>
+            )}
             <span className="text-xs px-2 py-0.5 rounded-full bg-cos-bg-alt
                              text-cos-ink-secondary">
               {statusMap[project.batchStatus || 'idle']}
@@ -60,6 +124,13 @@ function ProjectDetail() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-cos-error hover:text-cos-error/80 text-sm
+                       transition-colors"
+          >
+            {t('creator-os.delete-project')}
+          </button>
           <button
             onClick={() => navigate({ to: `/projects/${projectId}/product-set` })}
             className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
@@ -77,6 +148,38 @@ function ProjectDetail() {
       </div>
 
       <QueueDrawer />
+
+      {/* Delete confirmation dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-cos-surface rounded-cos-lg shadow-cos-overlay p-6 w-80">
+            <h2 className="font-cos-heading text-lg text-cos-ink mb-3">
+              {t('creator-os.delete-confirm-title')}
+            </h2>
+            <p className="text-sm text-cos-ink-secondary mb-6">
+              {t('creator-os.delete-confirm')}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-cos-ink-secondary hover:text-cos-ink text-sm"
+              >
+                {t('creator-os.export-cancel')}
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending}
+                className="bg-cos-error hover:bg-cos-error/80 text-white px-4 py-2
+                           rounded-cos-md text-sm disabled:opacity-50"
+              >
+                {deleteMutation.isPending
+                  ? t('creator-os.export-exporting')
+                  : t('creator-os.delete-project')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

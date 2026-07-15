@@ -2997,6 +2997,11 @@
     "export-path-placeholder": "/path/to/export",
     "export-cancel": "取消",
     "export-confirm": "导出",
-    "export-exporting": "导出中..."
+    "export-exporting": "导出中...",
+    "delete-project": "删除项目",
+    "delete-confirm": "确定要删除此项目吗？此操作不可撤销。",
+    "delete-confirm-title": "删除项目",
+    "rename-project": "重命名",
+    "project-not-found": "项目未找到"
   }
 }
