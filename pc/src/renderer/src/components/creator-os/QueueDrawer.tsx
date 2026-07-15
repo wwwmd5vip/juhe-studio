@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, X, CheckCircle2, AlertCircle } from 'lucide-react'
 import type { GenerationTask } from '@shared/types/generation'
 
-interface QueueDrawerProps {
-  /** Only show when there are active tasks */
-}
-
-export function QueueDrawer({}: QueueDrawerProps) {
+export function QueueDrawer() {
   const [open, setOpen] = useState(false)
   const [tasks, setTasks] = useState<GenerationTask[]>([])
 
