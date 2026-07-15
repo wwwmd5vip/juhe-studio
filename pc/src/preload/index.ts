@@ -373,6 +373,14 @@ const api = {
     generate: (req: unknown) => ipcRenderer.invoke('ecommerce:product-set:generate', req)
   },
 
+  modelCapability: {
+    detect: (modelId: string, providerId?: string) =>
+      ipcRenderer.invoke('model-capability:detect', modelId, providerId),
+    detectMultiple: (models: Array<{ modelId: string; providerId: string }>) =>
+      ipcRenderer.invoke('model-capability:detect-multiple', models),
+    clearCache: () => ipcRenderer.invoke('model-capability:clear-cache')
+  },
+
   // Auth — Juhe Management
   auth: {
     login: (username: string, password: string, remember: boolean, captchaId?: string, captchaCode?: string) =>

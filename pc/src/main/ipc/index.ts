@@ -77,6 +77,7 @@ import { registerGenerationIpc } from './generation'
 import { registerImageProcessIpc } from './image-processing'
 import { registerJuhePromptsIpc } from './juhe-prompts'
 import { registerMcpIpc } from './mcp'
+import { registerModelCapabilityIpc } from './model-capability'
 import { registerMemoryIpc } from './memory'
 import { registerPromptIpc } from './prompt'
 import { registerPromptLibraryIpc } from './prompt-library'
@@ -100,6 +101,7 @@ registerWebSearchIpc()
 registerSkillsIpc()
 registerMemoryIpc()
 registerMcpIpc()
+registerModelCapabilityIpc()
 registerAgentSquadIpc()
 registerAuthIpc()
 registerEcommerceWorkflowIpc()
