@@ -82,6 +82,7 @@ import { registerProviderIpc } from './providers'
 import { registerQuickPhrasesIpc } from './quick-phrases'
 import { registerSkillsIpc } from './skills'
 import { registerVideoGenerationIpc } from './video-generation'
+import { registerVideoComposeIpc } from './video-compose'
 import { registerWebSearchIpc } from './websearch'
 
 // Register provider-specific IPC handlers
@@ -102,6 +103,7 @@ registerEcommerceWorkflowIpc()
 registerEcommerceShowcaseIpc()
 registerPromptLibraryIpc()
 registerVideoGenerationIpc()
+registerVideoComposeIpc()
 registerComfyIpc()
 registerCanvasAgentIpc()
 registerJuhePromptsIpc()

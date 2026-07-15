@@ -493,6 +493,17 @@ const api = {
       ipcRenderer.send('canvas-agent:result', result),
     destroySession: (documentId: string) =>
       ipcRenderer.invoke('canvas-agent:destroy-session', documentId)
+  },
+
+  ffmpeg: {
+    detect: () => ipcRenderer.invoke('ffmpeg:detect'),
+    compose: (req: unknown) => ipcRenderer.invoke('ffmpeg:compose', req),
+    getDuration: (filePath: string) => ipcRenderer.invoke('ffmpeg:duration', filePath),
+    onProgress: (callback: (p: unknown) => void) => {
+      const handler = (_event: unknown, progress: unknown) => callback(progress)
+      ipcRenderer.on('ffmpeg:progress', handler)
+      return () => ipcRenderer.removeListener('ffmpeg:progress', handler)
+    }
   }
 }
 

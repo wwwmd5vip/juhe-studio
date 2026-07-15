@@ -8,6 +8,7 @@ import { models, providers } from '../db/schema'
 import { getGenerationQueue } from './queue'
 import { getProviderRegistry } from './image-providers'
 import type { ProviderGenerationMode } from '@shared/types/image-provider'
+import { isCircuitOpen, isRateLimited } from './provider-health'
 
 const JIMENG_MODEL_ALIASES: Record<string, string> = {
   'jimeng-i2v-first-v30': 'jimeng-i2v-s2-pro'
@@ -76,6 +77,16 @@ export async function createRoutedGenerationTask(
       providerPresetId = providerResult[0]?.presetId || null
     } catch (err) {
       console.warn('[GenerationRouter] Failed to query provider presetId:', err)
+    }
+  }
+
+  // Provider 健康检查：熔断和限流
+  if (resolvedParams.providerId) {
+    if (isCircuitOpen(resolvedParams.providerId)) {
+      throw new Error(`Provider "${resolvedParams.providerId}" is temporarily unavailable (circuit open)`)
+    }
+    if (isRateLimited(resolvedParams.providerId)) {
+      throw new Error(`Provider "${resolvedParams.providerId}" rate limit exceeded, please try again later`)
     }
   }
 
