@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../../db'
-import { deliverables } from '../../db/schema'
+import { deliverables, versions } from '../../db/schema'
 import type { Deliverable } from '@shared/types/creator-os'
 
 export async function materializeDeliverable(
@@ -24,15 +24,29 @@ export async function materializeDeliverable(
     updatedAt: now
   }
   await db.insert(deliverables).values(record)
-  return record as unknown as Deliverable
+  return { ...record, versionFilePath: null } as unknown as Deliverable
 }
 
 export async function getDeliverablesForProject(projectId: string): Promise<Deliverable[]> {
-  return (await db
-    .select()
+  const rows = await db
+    .select({
+      id: deliverables.id,
+      projectId: deliverables.projectId,
+      taskId: deliverables.taskId,
+      versionId: deliverables.versionId,
+      versionFilePath: versions.filePath,
+      label: deliverables.label,
+      slotIndex: deliverables.slotIndex,
+      isSelected: deliverables.isSelected,
+      sortOrder: deliverables.sortOrder,
+      createdAt: deliverables.createdAt,
+      updatedAt: deliverables.updatedAt
+    })
     .from(deliverables)
+    .leftJoin(versions, eq(deliverables.versionId, versions.id))
     .where(eq(deliverables.projectId, projectId))
-    .orderBy(deliverables.sortOrder)) as unknown as Deliverable[]
+    .orderBy(deliverables.sortOrder)
+  return rows as unknown as Deliverable[]
 }
 
 export async function updateDeliverable(

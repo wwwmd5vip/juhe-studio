@@ -27,7 +27,7 @@ export function ResultGrid({ projectId }: ResultGridProps) {
   ]
 
   const completedCount = (deliverables as any[]).filter(
-    (d: any) => d.versionId
+    (d: any) => d.versionFilePath
   ).length
 
   return (
@@ -51,7 +51,7 @@ export function ResultGrid({ projectId }: ResultGridProps) {
         <div className="grid grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => {
             const del = (deliverables as any[]).find((d: any) => d.slotIndex === i)
-            const hasResult = del?.versionId
+            const hasResult = del?.versionFilePath
             return (
               <div
                 key={i}
@@ -60,7 +60,7 @@ export function ResultGrid({ projectId }: ResultGridProps) {
               >
                 {hasResult ? (
                   <img
-                    src={`juhe-image://${del.versionId}`}
+                    src={`juhe-image://${del.versionFilePath}`}
                     alt={labels[i]}
                     className="w-full h-full object-cover"
                     onError={(e: any) => {
