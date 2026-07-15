@@ -381,6 +381,16 @@ const api = {
     clearCache: () => ipcRenderer.invoke('model-capability:clear-cache')
   },
 
+  workspace: {
+    list: () => ipcRenderer.invoke('workspace:list'),
+    get: (id: string) => ipcRenderer.invoke('workspace:get', id),
+    create: (data: unknown) => ipcRenderer.invoke('workspace:create', data),
+    update: (id: string, data: unknown) => ipcRenderer.invoke('workspace:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('workspace:delete', id),
+    stats: (id: string) => ipcRenderer.invoke('workspace:stats', id),
+    uncategorizedCount: () => ipcRenderer.invoke('workspace:uncategorized-count')
+  },
+
   // Auth — Juhe Management
   auth: {
     login: (username: string, password: string, remember: boolean, captchaId?: string, captchaCode?: string) =>

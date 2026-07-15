@@ -54,6 +54,7 @@ export const workflows = sqliteTable(
     viewMode: text('view_mode').default('smart'),
     version: integer('version').default(1),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).default(false),
+    workspaceId: text('workspace_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -99,6 +100,7 @@ export const promptTemplates = sqliteTable(
     aspectRatio: text('aspect_ratio'),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).default(false),
     usageCount: integer('usage_count').default(0),
+    workspaceId: text('workspace_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -152,6 +154,7 @@ export const chatSessions = sqliteTable(
     modelId: text('model_id'),
     systemPrompt: text('system_prompt'),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).default(false),
+    workspaceId: text('workspace_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -235,6 +238,7 @@ export const skills = sqliteTable(
     metadata: text('metadata', { mode: 'json' }),
     icon: text('icon'),
     orderKey: integer('order_key').default(0),
+    workspaceId: text('workspace_id'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
@@ -271,6 +275,9 @@ export const memories = sqliteTable(
     // Source
     sourceType: text('source_type').default('chat'), // 'chat' | 'user' | 'system' | 'import'
     sourceId: text('source_id'), // messageId or null
+
+    // Workspace
+    workspaceId: text('workspace_id'),
 
     // Timestamps
     createdAt: text('created_at').notNull(),
@@ -462,6 +469,20 @@ export const brandKits = sqliteTable(
     logoPath: text('logo_path'),
     fontFamily: text('font_family').default('Inter'),
     styleDescription: text('style_description'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  }
+)
+
+// ==================== Workspaces ====================
+export const workspaces = sqliteTable(
+  'workspaces',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    icon: text('icon').default('folder'),
+    color: text('color').default('#6366f1'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   }

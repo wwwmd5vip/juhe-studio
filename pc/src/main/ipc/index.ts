@@ -80,6 +80,7 @@ import { registerMcpIpc } from './mcp'
 import { registerModelCapabilityIpc } from './model-capability'
 import { registerMemoryIpc } from './memory'
 import { registerPromptIpc } from './prompt'
+import { registerPromptImportExportIpc } from './prompt-import-export'
 import { registerPromptLibraryIpc } from './prompt-library'
 import { registerProviderIpc } from './providers'
 import { registerQuickPhrasesIpc } from './quick-phrases'
@@ -87,6 +88,7 @@ import { registerSkillsIpc } from './skills'
 import { registerVideoGenerationIpc } from './video-generation'
 import { registerShortVideoScriptIpc } from './short-video-script'
 import { registerVideoComposeIpc } from './video-compose'
+import { registerWorkspaceIpc } from './workspace'
 import { registerWebSearchIpc } from './websearch'
 
 // Register provider-specific IPC handlers
@@ -94,9 +96,11 @@ registerProviderIpc()
 registerGenerationIpc()
 registerChatIpc()
 registerPromptIpc()
+registerPromptImportExportIpc()
 registerImageProcessIpc()
 registerNotificationIpc()
 registerQuickPhrasesIpc()
+registerWorkspaceIpc()
 registerWebSearchIpc()
 registerSkillsIpc()
 registerMemoryIpc()
