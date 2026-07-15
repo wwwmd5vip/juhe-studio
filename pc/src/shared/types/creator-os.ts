@@ -114,6 +114,7 @@ export interface Deliverable {
   taskId: string
   versionId: string | null
   versionFilePath: string | null
+  taskRuntimeStatus: string | null
   label: string
   slotIndex: number
   isSelected: boolean

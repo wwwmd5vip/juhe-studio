@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { RefreshCw } from 'lucide-react'
 import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
 import type { DbModel } from '@shared/types/provider'
 
@@ -57,6 +58,15 @@ function ProductSetPage() {
     }
   })
 
+  const retryMutation = useMutation({
+    mutationFn: (taskId: string) =>
+      (window.api as any).creatorOs.retryProductSet(projectId, [taskId]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
+      queryClient.invalidateQueries({ queryKey: ['creator-os', 'deliverables', projectId] })
+    }
+  })
+
   const cancelMutation = useMutation({
     mutationFn: () =>
       (window.api as any).creatorOs.cancelProductSet(projectId),
@@ -86,25 +96,52 @@ function ProductSetPage() {
         </p>
       )}
 
-      {/* 8-slot grid with model selectors */}
+      {/* 8-slot grid with model selectors and retry */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {Array.from({ length: 8 }).map((_, i) => {
           const del = (deliverables as any[]).find((d: any) => d.slotIndex === i)
+          const isOk = del?.versionFilePath
+          const isFailed = del?.taskRuntimeStatus === 'failed'
+          const isPending =
+            del?.taskRuntimeStatus === 'pending' || del?.taskRuntimeStatus === 'submitting'
+
           return (
             <div
               key={i}
               className="bg-cos-bg-alt border border-cos-border rounded-cos-md
-                         overflow-hidden flex flex-col"
+                         overflow-hidden flex flex-col relative"
             >
               {/* Slot preview area */}
               <div className="aspect-square flex flex-col items-center justify-center text-cos-ink-muted">
                 <span className="text-xs font-cos-heading mb-1">{slotLabels[i]}</span>
-                {del ? (
+                {isOk ? (
                   <span className="text-cos-success text-lg">✓</span>
+                ) : isPending ? (
+                  <span className="text-cos-accent text-lg animate-pulse">●</span>
+                ) : isFailed ? (
+                  <span className="text-cos-error text-lg">✗</span>
                 ) : (
                   <span className="text-cos-ink-muted text-lg">—</span>
                 )}
               </div>
+
+              {/* Retry button for failed slots */}
+              {isFailed && del && (
+                <div className="px-2 pb-1">
+                  <button
+                    onClick={() => retryMutation.mutate(del.taskId)}
+                    disabled={retryMutation.isPending}
+                    className="w-full flex items-center justify-center gap-1
+                               text-cos-error hover:text-cos-error/80
+                               text-xs py-1.5 rounded-cos-sm
+                               border border-cos-error/30 hover:border-cos-error/50
+                               transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    {t('creator-os.retry-slot')}
+                  </button>
+                </div>
+              )}
 
               {/* Model selector per slot */}
               <div className="px-2 pb-2">
@@ -159,6 +196,11 @@ function ProductSetPage() {
       {submitMutation.isError && (
         <p className="mt-4 text-cos-error text-sm text-center">
           {(submitMutation.error as Error).message}
+        </p>
+      )}
+      {retryMutation.isError && (
+        <p className="mt-2 text-cos-error text-sm text-center">
+          {(retryMutation.error as Error).message}
         </p>
       )}
 

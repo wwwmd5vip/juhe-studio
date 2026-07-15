@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../../db'
-import { deliverables, versions } from '../../db/schema'
+import { creatorTasks, deliverables, versions } from '../../db/schema'
 import type { Deliverable } from '@shared/types/creator-os'
 
 export async function materializeDeliverable(
@@ -24,7 +24,7 @@ export async function materializeDeliverable(
     updatedAt: now
   }
   await db.insert(deliverables).values(record)
-  return { ...record, versionFilePath: null } as unknown as Deliverable
+  return { ...record, versionFilePath: null, taskRuntimeStatus: null } as unknown as Deliverable
 }
 
 export async function getDeliverablesForProject(projectId: string): Promise<Deliverable[]> {
@@ -35,6 +35,7 @@ export async function getDeliverablesForProject(projectId: string): Promise<Deli
       taskId: deliverables.taskId,
       versionId: deliverables.versionId,
       versionFilePath: versions.filePath,
+      taskRuntimeStatus: creatorTasks.runtimeStatus,
       label: deliverables.label,
       slotIndex: deliverables.slotIndex,
       isSelected: deliverables.isSelected,
@@ -44,6 +45,7 @@ export async function getDeliverablesForProject(projectId: string): Promise<Deli
     })
     .from(deliverables)
     .leftJoin(versions, eq(deliverables.versionId, versions.id))
+    .leftJoin(creatorTasks, eq(deliverables.taskId, creatorTasks.id))
     .where(eq(deliverables.projectId, projectId))
     .orderBy(deliverables.sortOrder)
   return rows as unknown as Deliverable[]
