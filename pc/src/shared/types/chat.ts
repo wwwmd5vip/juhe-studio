@@ -221,7 +221,18 @@ export interface ChatStreamChunk {
   thinkingDelta?: string
   finishReason?: string
   usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-  error?: SerializedError // 流式过程中的错误事件
+  error?: SerializedError
+  toolCall?: {
+    id: string
+    name: string
+    arguments: Record<string, unknown>
+  }
+  toolResult?: {
+    id: string
+    name: string
+    result: string
+    error?: boolean
+  }
 }
 
 // ==================== 请求类型 ====================
@@ -241,6 +252,8 @@ export interface SendMessageRequest {
   systemPrompt?: string
   attachments?: Array<{ type: string; url: string; name?: string }>
   messageId?: string
+  /** 启用生成工具（generate_image, generate_video, generate_product_set） */
+  enableGenerationTools?: boolean
 }
 
 export interface ChatMessageForAI {

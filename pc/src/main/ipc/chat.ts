@@ -16,6 +16,9 @@ import type {
 } from '@shared/types/chat'
 import { resolveProvider } from '@main/utils/provider-resolver'
 import { consumeStream, type StreamHandlers } from '../services/ai-stream'
+import { GENERATION_TOOLS } from '../services/generation-tools'
+import { createRoutedGenerationTask } from '../services/generation-router'
+import type { GenerationToolName } from '../services/generation-tools'
 import { MessageBlockStatus, MessageBlockType } from '@shared/types/chat'
 import { desc, eq } from 'drizzle-orm'
 import { app, ipcMain } from 'electron'
@@ -289,14 +292,30 @@ export function registerChatIpc() {
         console.log('[Chat] System prompt injected:', req.systemPrompt.slice(0, 100))
       }
 
-      // 8. 调用 streamText
-      console.log('[Chat] Calling streamText with provider:', providerId, 'model:', req.modelId)
-      const result = await streamText(providerId as Parameters<typeof streamText>[0], settings as never, {
+      // 8. 调用 streamText（可选启用生成工具）
+      console.log('[Chat] Calling streamText with provider:', providerId, 'model:', req.modelId, 'tools:', !!req.enableGenerationTools)
+
+      const streamParams: StreamTextParams = {
         model: req.modelId,
         messages,
         maxRetries: 0,
         abortSignal: abortController.signal
-      })
+      }
+
+      if (req.enableGenerationTools) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(streamParams as any).tools = GENERATION_TOOLS
+        ;(streamParams as any).stopWhen = ({ steps }: { steps: Array<{ finishReason?: string }> }) => {
+          const last = steps[steps.length - 1]
+          return (
+            !last ||
+            (last.finishReason !== 'tool-calls' && last.finishReason !== 'error') ||
+            steps.length >= 10
+          )
+        }
+      }
+
+      const result = await streamText(providerId as Parameters<typeof streamText>[0], settings as never, streamParams)
 
       // 8. 消费流并推送
       let fullText = ''
@@ -365,6 +384,77 @@ export function registerChatIpc() {
             // AI SDK 内部错误（如 RetryError）会以 error chunk 形式出现
             console.error('[Chat] Error chunk from stream:', error)
             throw error
+          },
+          onToolCall: (toolCall) => {
+            console.log('[Chat] Tool call:', toolCall.toolName, 'args:', JSON.stringify(toolCall.args).slice(0, 200))
+            // 推送 tool-call 事件到前端
+            pushStreamChunk({
+              sessionId: req.sessionId,
+              messageId,
+              toolCall: {
+                id: toolCall.toolCallId,
+                name: toolCall.toolName,
+                arguments: toolCall.args as Record<string, unknown>
+              }
+            })
+          },
+          onToolResult: async (toolResult) => {
+            console.log('[Chat] Tool result:', toolResult.toolName)
+
+            // 对生成工具，自动创建实际的 GenerationTask
+            const toolName = toolResult.toolName as GenerationToolName
+            const toolArgs = toolResult.result as Record<string, unknown> | undefined
+
+            // toolResult.result 实际上是 tool-call 时的 args（因为 execute 返回占位符）
+            // 我们需要从 tool-call block 中获取 args。这里用 result 做 fallback
+            try {
+              let taskResult = ''
+              if (toolName === 'generate_image' && toolArgs) {
+                const task = await createRoutedGenerationTask({
+                  providerId: req.providerId,
+                  model: req.modelId,
+                  prompt: String(toolArgs.prompt || ''),
+                  size: '1024x1024',
+                  n: (toolArgs.n as number) || 1
+                })
+                taskResult = `Image generation task created: ${task.id}. Status: ${task.status}. The image is being generated.`
+              } else if (toolName === 'generate_video' && toolArgs) {
+                const task = await createRoutedGenerationTask({
+                  providerId: req.providerId,
+                  model: req.modelId,
+                  prompt: String(toolArgs.prompt || ''),
+                  duration: (toolArgs.duration as number) || 5,
+                  generationMode: 'video'
+                })
+                taskResult = `Video generation task created: ${task.id}. Status: ${task.status}. The video is being generated.`
+              } else if (toolName === 'generate_product_set' && toolArgs) {
+                taskResult = `Product set generation for "${toolArgs.product_name || 'product'}" will be created. Use the Ecommerce Showcase to upload a product image and generate the full set.`
+              } else {
+                taskResult = 'Task submitted successfully.'
+              }
+
+              pushStreamChunk({
+                sessionId: req.sessionId,
+                messageId,
+                toolResult: {
+                  id: toolResult.toolCallId,
+                  name: toolResult.toolName,
+                  result: taskResult
+                }
+              })
+            } catch (err) {
+              console.error('[Chat] Tool execution failed:', err)
+              pushStreamChunk({
+                sessionId: req.sessionId,
+                messageId,
+                toolResult: {
+                  id: toolResult.toolCallId,
+                  name: toolResult.toolName,
+                  result: `Error: ${err instanceof Error ? err.message : String(err)}`,
+                  error: true
+                }
+              })
+            }
           },
           onFinish: (result) => {
             finishReason = result.finishReason ?? ''

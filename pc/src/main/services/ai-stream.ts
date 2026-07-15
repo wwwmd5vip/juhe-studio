@@ -7,6 +7,8 @@
 export interface StreamHandlers {
   onText?: (delta: string) => void
   onReasoning?: (delta: string) => void
+  onToolCall?: (toolCall: { toolCallId: string; toolName: string; args: unknown }) => void
+  onToolResult?: (toolResult: { toolCallId: string; toolName: string; result: unknown }) => void
   onError?: (error: unknown) => void
   onFinish?: (result: { usage?: unknown; finishReason?: string }) => void
 }
@@ -34,6 +36,20 @@ export async function consumeStream(
         if (chunk.text) {
           handlers.onReasoning?.(chunk.text)
         }
+        break
+      case 'tool-call':
+        handlers.onToolCall?.({
+          toolCallId: (chunk as { toolCallId?: string }).toolCallId || '',
+          toolName: (chunk as { toolName?: string }).toolName || '',
+          args: (chunk as { input?: unknown }).input
+        })
+        break
+      case 'tool-result':
+        handlers.onToolResult?.({
+          toolCallId: (chunk as { toolCallId?: string }).toolCallId || '',
+          toolName: (chunk as { toolName?: string }).toolName || '',
+          result: (chunk as { output?: unknown }).output
+        })
         break
       case 'error':
         handlers.onError?.(chunk.error)
@@ -67,4 +83,8 @@ interface StreamChunk {
   error?: unknown
   totalUsage?: unknown
   finishReason?: string
+  toolCallId?: string
+  toolName?: string
+  input?: unknown
+  output?: unknown
 }
