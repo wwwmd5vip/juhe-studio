@@ -3012,6 +3012,9 @@
     "status-processing": "生成中...",
     "status-completed": "完成",
     "status-partial": "部分完成",
-    "status-failed": "失败"
+    "status-failed": "失败",
+    "project-name-placeholder": "项目名称",
+    "create-project-cancel": "取消",
+    "create-project-create": "创建"
   }
 }

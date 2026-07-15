@@ -2984,6 +2984,9 @@
     "status-processing": "Generating...",
     "status-completed": "Done",
     "status-partial": "Partial results",
-    "status-failed": "Failed"
+    "status-failed": "Failed",
+    "project-name-placeholder": "Project name",
+    "create-project-cancel": "Cancel",
+    "create-project-create": "Create"
   }
 }

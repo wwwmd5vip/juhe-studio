@@ -15,15 +15,27 @@ interface ProjectCardProps {
 
 function ProjectCard({ project }: ProjectCardProps) {
   const navigate = useNavigate()
-  const statusMap: Record<string, { label: string; className: string }> = {
-    idle: { label: 'Ready', className: 'bg-cos-accent-muted text-cos-ink' },
-    submitting: { label: 'Submitting', className: 'bg-cos-info text-white' },
-    processing: { label: 'Generating', className: 'bg-cos-info text-white' },
-    completed: { label: 'Done', className: 'bg-cos-success text-white' },
-    partial: { label: 'Partial', className: 'bg-cos-warning text-white' },
-    failed: { label: 'Failed', className: 'bg-cos-error text-white' }
+  const { t } = useTranslation()
+
+  const getStatusBadge = (s: string): { label: string; className: string } => {
+    const key = `creator-os.status-${s || 'idle'}`
+    const base = 'text-xs px-2 py-0.5 rounded-full'
+    switch (s) {
+      case 'submitting':
+      case 'processing':
+        return { label: t(key as any), className: `${base} bg-cos-info text-white` }
+      case 'completed':
+        return { label: t(key as any), className: `${base} bg-cos-success text-white` }
+      case 'partial':
+        return { label: t(key as any), className: `${base} bg-cos-warning text-white` }
+      case 'failed':
+        return { label: t(key as any), className: `${base} bg-cos-error text-white` }
+      default:
+        return { label: t(key as any), className: `${base} bg-cos-accent-muted text-cos-ink` }
+    }
   }
-  const badge = statusMap[project.batchStatus || 'idle'] || statusMap.idle
+
+  const badge = getStatusBadge(project.batchStatus || 'idle')
 
   return (
     <div
@@ -36,9 +48,7 @@ function ProjectCard({ project }: ProjectCardProps) {
         <h3 className="font-cos-heading text-cos-ink text-lg leading-snug">
           {project.name}
         </h3>
-        <span className={`text-xs px-2 py-0.5 rounded-full ${badge.className}`}>
-          {badge.label}
-        </span>
+        <span className={badge.className}>{badge.label}</span>
       </div>
       {project.description && (
         <p className="text-cos-ink-secondary text-sm line-clamp-2 mb-3">
@@ -104,15 +114,15 @@ export function ProjectList() {
             <input
               autoFocus
               value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => {
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && name.trim()) {
                   createMutation.mutate(name.trim())
                   setShowCreate(false)
                   setName('')
                 }
               }}
-              placeholder="Project name"
+              placeholder={t('creator-os.project-name-placeholder')}
               className="w-full border border-cos-border rounded-cos-md px-3 py-2
                          text-cos-ink font-cos-body focus:outline-none focus:border-cos-accent mb-4"
             />
@@ -121,7 +131,7 @@ export function ProjectList() {
                 onClick={() => { setShowCreate(false); setName('') }}
                 className="text-cos-ink-secondary hover:text-cos-ink"
               >
-                Cancel
+                {t('creator-os.create-project-cancel')}
               </button>
               <button
                 onClick={() => {
@@ -135,7 +145,7 @@ export function ProjectList() {
                 className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
                            rounded-cos-md disabled:opacity-50"
               >
-                Create
+                {t('creator-os.create-project-create')}
               </button>
             </div>
           </div>
