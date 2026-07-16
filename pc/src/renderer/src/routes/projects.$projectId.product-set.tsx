@@ -42,12 +42,12 @@ function ProductSetPage() {
 
   const { data: models = [] } = useQuery<DbModel[]>({
     queryKey: ['db', 'models', 'image'],
-    queryFn: () => (window.api as any).models.list({ type: 'image' }),
+    queryFn: () => (window.api as any).db.models.list({ type: 'image' }),
     staleTime: 60_000
   })
 
   const submitMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const slotParams: Record<string, { prompt: string; model?: string; providerId?: string }> = {}
       for (let i = 0; i < SLOT_COUNT; i++) {
         const modelId = slotModels[i]
@@ -63,7 +63,13 @@ function ProductSetPage() {
           slotParams[String(i)] = { prompt }
         }
       }
-      return (window.api as any).creatorOs.submitProductSetWithParams(projectId, slotParams)
+      console.log('[ProductSet] Submitting with slotParams:', slotParams)
+      const result = await (window.api as any).creatorOs.submitProductSetWithParams(projectId, slotParams)
+      console.log('[ProductSet] Submit result:', result)
+      if (!result?.ok) {
+        throw new Error(result?.error || 'Submission failed')
+      }
+      return result
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })

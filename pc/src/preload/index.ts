@@ -1,5 +1,5 @@
 import { electronAPI } from '@electron-toolkit/preload'
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { ECOMMERCE_WORKFLOW_STREAM_CHANNEL } from '../shared/ecommerce-workflow/constants'
 import type {
   GenerateImagesInput,
@@ -34,6 +34,11 @@ const api = {
     maximize: () => ipcRenderer.invoke('window:maximize'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized')
+  },
+
+  // File path resolution (Electron 41+ File.path is deprecated)
+  file: {
+    getPathForFile: (file: File) => webUtils.getPathForFile(file)
   },
 
   // Generations

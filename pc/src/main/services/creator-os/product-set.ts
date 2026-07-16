@@ -1,5 +1,7 @@
 import type { GenerationParams } from '@shared/types/generation'
 import { and, eq } from 'drizzle-orm'
+import { existsSync, readFileSync } from 'node:fs'
+import { extname } from 'node:path'
 import { db } from '../../db'
 import { assets, creatorTasks, deliverables, models, projects } from '../../db/schema'
 import { getGenerationQueue } from '../queue'
@@ -25,6 +27,26 @@ async function getDefaultImageModel(): Promise<{ id: string; providerId: string 
   return row ? { id: row.id, providerId: row.providerId } : null
 }
 
+/** Read source assets and return them as base64 data URIs for reference image injection */
+async function readSourceAssetBase64(projectId: string): Promise<string[]> {
+  const sourceAssets = await db
+    .select({ filePath: assets.filePath })
+    .from(assets)
+    .where(and(eq(assets.projectId, projectId), eq(assets.kind, 'source')))
+  return sourceAssets
+    .filter((a) => {
+      const fp = a.filePath as string
+      return fp && existsSync(fp)
+    })
+    .map((a) => {
+      const fp = a.filePath as string
+      const ext = extname(fp).toLowerCase().slice(1) || 'png'
+      const mime = ext === 'jpg' ? 'jpeg' : ext
+      const data = readFileSync(fp).toString('base64')
+      return `data:image/${mime};base64,${data}`
+    })
+}
+
 /**
  * 提交套图生成任务，同时传入每槽位的生成参数（model、providerId、prompt 等）。
  * 这是 Creator OS 的推荐入口：renderer 收集用户配置后通过 IPC 调用。
@@ -36,17 +58,28 @@ export async function submitProductSetWithParams(
   const now = new Date().toISOString()
   const queue = getGenerationQueue()
 
+  console.log('[ProductSet] submitProductSetWithParams called:', { projectId, slotCount: Object.keys(slotParams).length })
+
   const projRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   const project = projRows[0]
-  if (!project) return { ok: false, error: 'Project not found' }
+  if (!project) {
+    console.error('[ProductSet] Project not found:', projectId)
+    return { ok: false, error: 'Project not found' }
+  }
 
   const sourceAssets = await db.select().from(assets).where(eq(assets.projectId, projectId))
+
+  // Read source assets as base64 for reference image injection
+  const referenceImages = await readSourceAssetBase64(projectId)
 
   // Validate that we have exactly 8 slots
   const slotIds = Object.keys(slotParams)
   if (slotIds.length !== 8) {
     return { ok: false, error: `Expected 8 slot params, got ${slotIds.length}` }
   }
+
+  // Resolve default model for slots that don't specify one
+  const defaultModel = await getDefaultImageModel()
 
   const runtimeTaskIds: string[] = []
 
@@ -66,6 +99,7 @@ export async function submitProductSetWithParams(
         slotIndex: i,
         status: 'pending',
         runtimeStatus: 'pending',
+        paramsJson: JSON.stringify(params),
         createdAt: now,
         updatedAt: now
       } as typeof creatorTasks.$inferInsert)
@@ -84,10 +118,22 @@ export async function submitProductSetWithParams(
       } as typeof deliverables.$inferInsert)
     }
 
-    // Enqueue with actual params
+    // Enqueue with auto-resolved model/provider + reference images
     for (let i = 0; i < slotIds.length; i++) {
       const params = slotParams[slotIds[i]]
-      queue.createTask('image', params, 'normal', { id: runtimeTaskIds[i] })
+      const resolvedParams: GenerationParams = {
+        ...params,
+        providerId: params.providerId || defaultModel?.providerId || '',
+        model: params.model || defaultModel?.id || '',
+        referenceImages: params.referenceImages && params.referenceImages.length > 0
+          ? params.referenceImages
+          : referenceImages.length > 0
+            ? referenceImages.slice(0, 4) // Use up to 4 source assets as reference
+            : undefined,
+        referenceMode: params.referenceMode || (referenceImages.length > 0 ? 'fusion' : undefined),
+        referenceWeight: params.referenceWeight ?? (referenceImages.length > 0 ? 0.6 : undefined)
+      }
+      queue.createTask('image', resolvedParams, 'normal', { id: runtimeTaskIds[i] })
     }
 
     await db
@@ -95,8 +141,10 @@ export async function submitProductSetWithParams(
       .set({ batchStatus: 'processing', updatedAt: new Date().toISOString() })
       .where(eq(projects.id, projectId))
 
+    console.log('[ProductSet] Enqueued', slotIds.length, 'tasks, runtimeTaskIds:', runtimeTaskIds)
     return { ok: true, taskCount: slotIds.length, runtimeTaskIds }
   } catch (err) {
+    console.error('[ProductSet] submitProductSetWithParams failed:', err)
     await db
       .update(projects)
       .set({ batchStatus: 'partial', batchError: String(err), updatedAt: new Date().toISOString() })
@@ -236,6 +284,7 @@ export async function retryProductSetItems(
   taskIds: string[]
 ): Promise<ProductSetRetryResult> {
   const queue = getGenerationQueue()
+  const defaultModel = await getDefaultImageModel()
   let retried = 0
   const errors: string[] = []
 
@@ -245,12 +294,23 @@ export async function retryProductSetItems(
     if (!cTask) { errors.push(`Task ${taskId} not found`); continue }
     if (cTask.runtimeStatus === 'completed') { errors.push(`Task ${taskId} already completed`); continue }
 
+    // Restore original params from paramsJson, or use defaults
+    let params: GenerationParams = { prompt: cTask.templateSlotId }
+    if (cTask.paramsJson) {
+      try {
+        params = JSON.parse(cTask.paramsJson)
+      } catch { /* use fallback */ }
+    }
+    // Auto-resolve model/provider if missing
+    if (!params.providerId) params.providerId = defaultModel?.providerId || ''
+    if (!params.model) params.model = defaultModel?.id || ''
+
     await db
       .update(creatorTasks)
       .set({ runtimeStatus: 'pending', errorMessage: null, updatedAt: new Date().toISOString() })
       .where(eq(creatorTasks.id, taskId))
 
-    queue.createTask('image', {} as GenerationParams, 'normal', { id: cTask.runtimeTaskId })
+    queue.createTask('image', params, 'normal', { id: cTask.runtimeTaskId })
     retried++
   }
 

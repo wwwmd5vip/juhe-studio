@@ -6,7 +6,7 @@
 import { app, ipcMain } from 'electron'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../db'
-import { assets, deliverables } from '../db/schema'
+import { assets } from '../db/schema'
 import type { Asset, Project } from '@shared/types/creator-os'
 import type { GenerationParams } from '@shared/types/generation'
 import { filterAllowed } from '@shared/utils/json-utils'
@@ -18,7 +18,7 @@ import {
   listProjects,
   updateProject
 } from '../services/creator-os/projects'
-import { updateDeliverable } from '../services/creator-os/deliverables'
+import { updateDeliverable, getDeliverablesForProject } from '../services/creator-os/deliverables'
 import {
   cancelProductSet,
   getBatchStatus,
@@ -72,7 +72,7 @@ ipcMain.handle('project:delete', async (_event, id: string) => {
 // ── Deliverable IPC ──
 
 ipcMain.handle('deliverable:list', async (_event, projectId: string) => {
-  return db.select().from(deliverables).where(eq(deliverables.projectId, projectId))
+  return getDeliverablesForProject(projectId)
 })
 
 ipcMain.handle('deliverable:update', async (_event, id: string, data: Record<string, unknown>) => {

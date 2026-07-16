@@ -72,6 +72,19 @@ export async function runMigrations() {
 async function safeAddMissingColumns(): Promise<void> {
   // 先补建可能缺失的表（处理 journal 已记录但 DDL 未执行的情况）
   const missingTables = [
+    // ── 0014: Creator OS base table (must precede FK-dependent tables) ──
+    `CREATE TABLE IF NOT EXISTS projects (
+      id text PRIMARY KEY NOT NULL,
+      name text NOT NULL DEFAULT 'Untitled Project',
+      description text,
+      category text NOT NULL DEFAULT 'product_set',
+      status text NOT NULL DEFAULT 'draft',
+      batch_status text DEFAULT 'idle',
+      batch_error text,
+      brand_kit_id text,
+      created_at text NOT NULL,
+      updated_at text NOT NULL
+    )`,
     // ── 0014: Creator OS tables ──
     `CREATE TABLE IF NOT EXISTS assets (
       id text PRIMARY KEY NOT NULL,
@@ -97,6 +110,7 @@ async function safeAddMissingColumns(): Promise<void> {
       status text NOT NULL DEFAULT 'pending',
       runtime_status text NOT NULL DEFAULT 'pending',
       error_message text,
+      params_json text,
       created_at text NOT NULL,
       updated_at text NOT NULL
     )`,
@@ -182,12 +196,17 @@ async function safeAddMissingColumns(): Promise<void> {
     `CREATE INDEX IF NOT EXISTS showcase_tasks_status_idx ON showcase_tasks (status)`
   ]
 
+  let tablesCreated = 0
   for (const sql of missingTables) {
     try {
       await db.run(sql)
+      tablesCreated++
     } catch (err) {
       console.warn('[DB] Safe-table skipped:', (err as Error)?.message)
     }
+  }
+  if (tablesCreated > 0) {
+    console.log(`[DB] Safe-table created/verified ${tablesCreated} tables`)
   }
   // 列定义：[table, column, type_suffix]
   const columns: Array<[string, string, string]> = [
@@ -195,6 +214,10 @@ async function safeAddMissingColumns(): Promise<void> {
     ['ecommerce_workflows', 'project_id', 'text REFERENCES projects(id) ON DELETE SET NULL'],
     ['showcase_tasks', 'project_id', 'text REFERENCES projects(id) ON DELETE SET NULL'],
     ['projects', 'brand_kit_id', 'text'],
+    ['projects', 'category', 'text NOT NULL DEFAULT \'product_set\''],
+    ['projects', 'batch_status', 'text DEFAULT \'idle\''],
+    ['projects', 'batch_error', 'text'],
+    ['creator_tasks', 'params_json', 'text'],
     ['chat_sessions', 'workspace_id', 'text'],
     ['workflows', 'workspace_id', 'text'],
     ['prompt_templates', 'workspace_id', 'text'],

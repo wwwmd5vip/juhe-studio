@@ -47,28 +47,33 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
     [invalidate]
   )
 
+  const getFilePath = useCallback((file: File): string | null => {
+    const fileApi = (window.api as unknown as { file: { getPathForFile: (f: File) => string | null } }).file
+    return fileApi.getPathForFile(file)
+  }, [])
+
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files
       if (!files) return
       for (let i = 0; i < files.length; i++) {
-        const path = (files[i] as any).path
+        const path = getFilePath(files[i])
         if (path) await importFile(path)
       }
       e.target.value = ''
     },
-    [importFile]
+    [importFile, getFilePath]
   )
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       e.preventDefault()
       for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        const path = (e.dataTransfer.files[i] as any).path
+        const path = getFilePath(e.dataTransfer.files[i])
         if (path) await importFile(path)
       }
     },
-    [importFile]
+    [importFile, getFilePath]
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

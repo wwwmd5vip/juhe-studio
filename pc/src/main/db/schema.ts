@@ -410,6 +410,7 @@ export const creatorTasks = sqliteTable(
     status: text('status').notNull().default('pending'),
     runtimeStatus: text('runtime_status').notNull().default('pending'),
     errorMessage: text('error_message'),
+    paramsJson: text('params_json'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull()
   },
