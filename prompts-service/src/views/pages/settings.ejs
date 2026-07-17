@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-gray-50">
+  <%- include('../partials/nav.ejs') %>
+  <main class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">系统设置</h1>
+    <% if (error) { %>
+      <div class="text-red-500 mb-4"><%= error %></div>
+    <% } %>
+    <form method="post" action="/admin/settings" class="bg-white p-6 rounded shadow space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">默认占位符</label>
+        <input name="default_placeholder" value="<%= settings.default_placeholder %>" class="w-full border p-2 rounded">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <h2 class="col-span-full font-semibold">默认 Provider 配置</h2>
+        <div>
+          <label class="block text-sm font-medium mb-1">Base URL</label>
+          <input name="default_provider_config_base_url" type="url" value="<%= settings.default_provider_config.base_url || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">API Key</label>
+          <input name="default_provider_config_api_key" type="password" value="<%= settings.default_provider_config.api_key || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Model</label>
+          <input name="default_provider_config_model" value="<%= settings.default_provider_config.model || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Size</label>
+          <input name="default_provider_config_size" value="<%= settings.default_provider_config.size || '' %>" class="w-full border p-2 rounded" placeholder="1024x1024" pattern="^\d+x\d+$">
+        </div>
+        <div class="col-span-full md:col-span-1">
+          <label class="block text-sm font-medium mb-1">Response Format</label>
+          <select name="default_provider_config_response_format" class="w-full border p-2 rounded">
+            <option value="">-</option>
+            <option value="url" <%= settings.default_provider_config.response_format === 'url' ? 'selected' : '' %>>url</option>
+            <option value="b64_json" <%= settings.default_provider_config.response_format === 'b64_json' ? 'selected' : '' %>>b64_json</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">默认并发数</label>
+          <input name="default_concurrency" type="number" min="1" max="10" value="<%= settings.default_concurrency %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">最大任务大小</label>
+          <input name="max_job_size" type="number" min="1" max="2000" value="<%= settings.max_job_size %>" class="w-full border p-2 rounded">
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
+      </div>
+    </form>
+  </main>
+</div>

@@ -1,0 +1,76 @@
+<div class="min-h-screen bg-gray-50">
+  <%- include('../partials/nav.ejs') %>
+  <main class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">编辑提示词 #<%= prompt.id %></h1>
+    <% if (error) { %>
+      <div class="text-red-500 mb-4"><%= error %></div>
+    <% } %>
+    <form method="post" action="/admin/prompts/<%= prompt.id %>/edit" class="bg-white p-6 rounded shadow space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">标题</label>
+        <input name="title" value="<%= prompt.title || '' %>" class="w-full border p-2 rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">内容 *</label>
+        <textarea name="content" rows="5" class="w-full border p-2 rounded" required><%= prompt.content %></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">反向提示词</label>
+        <textarea name="negative_prompt" rows="2" class="w-full border p-2 rounded"><%= prompt.negative_prompt || '' %></textarea>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">分类</label>
+          <input name="category" value="<%= prompt.category || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">风格</label>
+          <input name="style" value="<%= prompt.style || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">原始风格</label>
+          <input name="original_style" value="<%= prompt.original_style || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">场景</label>
+          <input name="scene" value="<%= prompt.scene || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">图片类型</label>
+          <input name="image_type" value="<%= prompt.image_type || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">产品分类</label>
+          <input name="product_category" value="<%= prompt.product_category || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">来源平台</label>
+          <input name="platform_source" value="<%= prompt.platform_source || '' %>" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">来源链接</label>
+          <input name="source_url" value="<%= prompt.source_url || '' %>" class="w-full border p-2 rounded">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">备注</label>
+        <input name="remark" value="<%= prompt.remark || '' %>" class="w-full border p-2 rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">标签</label>
+        <input name="tags" value="<%= prompt.tags || '' %>" class="w-full border p-2 rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">状态</label>
+        <select name="is_enabled" class="w-full border p-2 rounded">
+          <option value="1" <%= prompt.is_enabled ? 'selected' : '' %>>启用</option>
+          <option value="0" <%= !prompt.is_enabled ? 'selected' : '' %>>禁用</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-3">
+        <a href="/admin/prompts" class="px-4 py-2 text-gray-600 hover:text-gray-900">返回</a>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
+      </div>
+    </form>
+  </main>
+</div>
