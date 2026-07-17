@@ -5,10 +5,10 @@ export interface DirectorDeskRecord {
   updatedAt: string;
 }
 
-const DIRECTOR_DESK_REGISTRY_KEY = "standalone-3d-director-desk-registry-v1";
-const ACTIVE_DIRECTOR_DESK_ID_KEY = "standalone-3d-director-desk-active-id-v1";
+const DIRECTOR_DESK_REGISTRY_KEY = "juhe-studio-director-3d-registry-v1";
+const ACTIVE_DIRECTOR_DESK_ID_KEY = "juhe-studio-director-3d-active-id-v1";
 const DIRECTOR_DESK_ID_PREFIX = "desk_";
-const LEGACY_DIRECTOR_SCENE_STORAGE_KEY = "storyai-3d-director-desk-demo";
+const LEGACY_DIRECTOR_SCENE_STORAGE_KEY = "juhe-studio-director-3d-scene";
 const LEGACY_DIRECTOR_SCENE_STORAGE_KEY_PREFIX = `${LEGACY_DIRECTOR_SCENE_STORAGE_KEY}:`;
 
 function getStorageSafe() {
