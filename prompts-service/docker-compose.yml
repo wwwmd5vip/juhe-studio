@@ -1,0 +1,27 @@
+services:
+  prompts-service:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./prompts-source:/app/prompts-source:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATA_DIR=/app/data
+      - UPLOAD_DIR=/app/uploads
+      - PROMPTS_SOURCE_DIR=/app/prompts-source
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DEFAULT_GENERATION_CONCURRENCY=2
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
