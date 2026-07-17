@@ -2957,7 +2957,17 @@
     "capture": {
       "previewTitle": "Capture Preview",
       "close": "Close",
-      "download": "Download"
+      "download": "Download",
+      "currentView": "Current View Capture",
+      "fourView": "Four-Way Capture",
+      "twelveView": "Twelve-Way Capture",
+      "exportProjectJson": "Export Project JSON",
+      "importProjectJson": "Import Project JSON",
+      "saveLatestSnapshot": "Save Latest Snapshot",
+      "restoreLatestSnapshot": "Restore Latest Snapshot",
+      "saveFailed": "Failed to save {{count}} captures",
+      "saveSuccess": "Saved {{count}} captures to project assets",
+      "captureFailed": "Capture failed"
     },
     "cameras": "Cameras",
     "selectCharacter": "Select a character",

@@ -1,5 +1,6 @@
 import { Camera, Download, Eye, Images, Pause, Play, Plus, Route, Send, Trash2, Waypoints, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   InspectorAxisGroup,
   InspectorPanel,
@@ -15,6 +16,7 @@ import { getDirectorObjectFocusTarget, isCameraFocusableObject } from "../schema
 import type { DirectorCameraCapture } from "../schema/directorProject";
 import { getCameraMotionPath } from "../schema/cameraMotion";
 import { useDirectorStore } from "../store/directorStore";
+import { CapturePreviewModal } from "./CapturePreviewModal";
 
 const VIEWER_ZOOM_MIN = 0.25;
 const VIEWER_ZOOM_MAX = 5;
@@ -33,8 +35,11 @@ function replaceAxis(tuple: [number, number, number], axis: 0 | 1 | 2, value: nu
 }
 
 export function CameraPanel() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"properties" | "motion" | "captures">("properties");
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const [captureStatus, setCaptureStatus] = useState<string | null>(null);
+  const [previewCaptures, setPreviewCaptures] = useState<Array<{ dataUrl: string; fileName: string; error?: string }>>([]);
   const [hoveredCaptureId, setHoveredCaptureId] = useState<string | null>(null);
   const [viewerCapture, setViewerCapture] = useState<DirectorCameraCapture | null>(null);
   const [viewerScale, setViewerScale] = useState(1);
@@ -164,17 +169,24 @@ export function CameraPanel() {
     setViewerScale((currentScale) => clampViewerScale(Number(updater(currentScale).toFixed(2))));
   }, [clampViewerScale]);
 
-  const sendCaptureToCanvas = useCallback((capture: DirectorCameraCapture) => {
-    postDirectorDeskCapturesToHost([
+  const sendCaptureToCanvas = useCallback(async (capture: DirectorCameraCapture) => {
+    const saved = await postDirectorDeskCapturesToHost([
       {
         dataUrl: capture.dataUrl,
         fileName: `${capture.name}.png`,
       },
     ]);
-  }, []);
+    const failures = saved.filter((r) => r.error || !r.asset);
+    if (failures.length > 0) {
+      setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+      setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+    } else {
+      setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+    }
+  }, [t]);
 
-  const sendAllCapturesToCanvas = useCallback(() => {
-    postDirectorDeskCapturesToHost(
+  const sendAllCapturesToCanvas = useCallback(async () => {
+    const saved = await postDirectorDeskCapturesToHost(
       cameraCaptureGroups.flatMap((group) =>
         group.captures.map((capture) => ({
           dataUrl: capture.dataUrl,
@@ -182,7 +194,14 @@ export function CameraPanel() {
         }))
       )
     );
-  }, [cameraCaptureGroups]);
+    const failures = saved.filter((r) => r.error || !r.asset);
+    if (failures.length > 0) {
+      setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+      setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+    } else {
+      setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+    }
+  }, [cameraCaptureGroups, t]);
 
   async function handleCameraCapture() {
     try {
@@ -395,7 +414,7 @@ export function CameraPanel() {
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
-                      sendCaptureToCanvas(capture);
+                      void sendCaptureToCanvas(capture);
                     }}
                   >
                     <Send aria-hidden="true" size={14} strokeWidth={1.9} />
@@ -479,7 +498,7 @@ export function CameraPanel() {
         <button
           className="camera-capture-send-all viewport-toolbar-crowd-confirm"
           type="button"
-          onClick={sendAllCapturesToCanvas}
+          onClick={() => void sendAllCapturesToCanvas()}
         >
           <Send aria-hidden="true" data-testid="camera-capture-send-icon" size={14} strokeWidth={1.9} />
           <span>发送到画布</span>
@@ -829,6 +848,7 @@ export function CameraPanel() {
               <span>当前机位截图</span>
             </button>
             {captureError ? <p>{captureError}</p> : null}
+            {captureStatus ? <p>{captureStatus}</p> : null}
             {renderCurrentCameraCaptureGrid()}
           </InspectorSection>
         </>
@@ -837,10 +857,16 @@ export function CameraPanel() {
       ) : (
         <div className="camera-capture-tab">
           {captureError ? <p>{captureError}</p> : null}
+          {captureStatus ? <p>{captureStatus}</p> : null}
           {renderAllCameraCaptures()}
         </div>
       )}
       {renderViewer()}
+      <CapturePreviewModal
+        isOpen={previewCaptures.length > 0}
+        captures={previewCaptures}
+        onClose={() => setPreviewCaptures([])}
+      />
     </InspectorPanel>
   );
 }

@@ -2985,7 +2985,17 @@
     "capture": {
       "previewTitle": "截图预览",
       "close": "关闭",
-      "download": "下载"
+      "download": "下载",
+      "currentView": "当前视角截图",
+      "fourView": "四方位截图",
+      "twelveView": "十二方位截图",
+      "exportProjectJson": "导出工程 JSON",
+      "importProjectJson": "导入工程 JSON",
+      "saveLatestSnapshot": "保存最近工程",
+      "restoreLatestSnapshot": "恢复最近工程",
+      "saveFailed": "保存失败 {{count}} 张",
+      "saveSuccess": "已保存 {{count}} 张到项目素材",
+      "captureFailed": "截图失败"
     },
     "cameras": "机位列表",
     "selectCharacter": "请选择角色",

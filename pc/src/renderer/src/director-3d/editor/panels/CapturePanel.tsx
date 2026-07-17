@@ -1,12 +1,17 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { requestViewportCapture } from "../io/captureBridge";
 import { serializeProject } from "../io/exportProjectJson";
 import { parseProject } from "../io/importProjectJson";
-import { downloadCaptureResults } from "../io/screenshotExport";
+import { buildCaptureFileName } from "../io/screenshotExport";
+import { postDirectorDeskCapturesToHost } from "../io/hostBridge";
 import { useDirectorStore } from "../store/directorStore";
+import { CapturePreviewModal } from "./CapturePreviewModal";
 
 export function CapturePanel() {
+  const { t } = useTranslation();
   const [captureStatus, setCaptureStatus] = useState<string | null>(null);
+  const [previewCaptures, setPreviewCaptures] = useState<Array<{ dataUrl: string; fileName: string; error?: string }>>([]);
   const project = useDirectorStore((state) => state.project);
   const replaceProject = useDirectorStore((state) => state.replaceProject);
   const saveLatestSnapshot = useDirectorStore((state) => state.saveLatestSnapshot);
@@ -18,24 +23,34 @@ export function CapturePanel() {
         preset,
         source: "capture-panel",
       });
-      const count = downloadCaptureResults(results);
-      setCaptureStatus(`已导出 ${count} 张截图`);
+      const captures = results.map((result, index) => ({
+        dataUrl: result.dataUrl,
+        fileName: buildCaptureFileName(result, index),
+      }));
+      const saved = await postDirectorDeskCapturesToHost(captures);
+      const failures = saved.filter((r) => r.error || !r.asset);
+      if (failures.length > 0) {
+        setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+        setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+      } else {
+        setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+      }
     } catch (error) {
-      setCaptureStatus(error instanceof Error ? error.message : "截图失败");
+      setCaptureStatus(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
     }
   }
 
   return (
     <section className="panel-card">
-      <h2>截图</h2>
+      <h2>{t("director3d.captures")}</h2>
       <button className="capture-action" type="button" onClick={() => void handleCapture("current")}>
-        当前视角截图
+        {t("director3d.capture.currentView")}
       </button>
       <button className="capture-action" type="button" onClick={() => void handleCapture("four")}>
-        四方位截图
+        {t("director3d.capture.fourView")}
       </button>
       <button className="capture-action" type="button" onClick={() => void handleCapture("twelve")}>
-        十二方位截图
+        {t("director3d.capture.twelveView")}
       </button>
       {captureStatus ? <p className="capture-status">{captureStatus}</p> : null}
       <button
@@ -47,11 +62,11 @@ export function CapturePanel() {
           window.open(url, "_blank");
         }}
       >
-        导出工程 JSON
+        {t("director3d.capture.exportProjectJson")}
       </button>
       <input
         className="ui-field"
-        aria-label="导入工程 JSON"
+        aria-label={t("director3d.capture.importProjectJson")}
         accept="application/json"
         type="file"
         onChange={async (event) => {
@@ -61,11 +76,16 @@ export function CapturePanel() {
         }}
       />
       <button className="capture-action" type="button" onClick={saveLatestSnapshot}>
-        保存最近工程
+        {t("director3d.capture.saveLatestSnapshot")}
       </button>
       <button className="capture-action" type="button" onClick={restoreLatestSnapshot}>
-        恢复最近工程
+        {t("director3d.capture.restoreLatestSnapshot")}
       </button>
+      <CapturePreviewModal
+        isOpen={previewCaptures.length > 0}
+        captures={previewCaptures}
+        onClose={() => setPreviewCaptures([])}
+      />
     </section>
   );
 }
