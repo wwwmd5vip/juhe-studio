@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { createFileRoute, useParams, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
@@ -127,13 +127,14 @@ function ProjectDetail() {
           >
             {t('creator-os.delete-project')}
           </button>
-          <button
-            onClick={() => navigate({ to: `/projects/${projectId}/product-set` })}
+          <Link
+            to="/projects/$projectId/product-set"
+            params={{ projectId }}
             className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
                        rounded-cos-md font-medium transition-colors"
           >
             {t('creator-os.product-set')}
-          </button>
+          </Link>
         </div>
       </div>
 
