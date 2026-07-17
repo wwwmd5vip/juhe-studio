@@ -1,9 +1,16 @@
 import { useState } from 'react'
-import { createFileRoute, useParams } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { RefreshCw, Image as ImageIcon } from 'lucide-react'
+import { RefreshCw, Image as ImageIcon, AlertCircle } from 'lucide-react'
 import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
+import {
+  useProject,
+  useProjectDeliverables,
+  useImageModels,
+  useSubmitProductSet,
+  useRetryProductSet,
+  useCancelProductSet
+} from '@/hooks/useCreatorOs'
 import type { DbModel } from '@shared/types/provider'
 
 export const Route = createFileRoute('/projects/$projectId/product-set')({
@@ -22,101 +29,87 @@ const SLOT_LABEL_KEYS = [
 function ProductSetPage() {
   const { projectId } = useParams({ from: '/projects/$projectId/product-set' })
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
 
   const [slotModels, setSlotModels] = useState<Record<number, string>>({})
   const [slotPrompts, setSlotPrompts] = useState<Record<number, string>>({})
 
   const slotLabels = SLOT_LABEL_KEYS.map((k) => t(k))
 
-  const { data: project } = useQuery({
-    queryKey: ['creator-os', 'projects', projectId],
-    queryFn: () => (window.api as any).creatorOs.getProject(projectId)
-  })
+  const { data: project } = useProject(projectId)
+  const { data: deliverables = [] } = useProjectDeliverables(projectId, { refetchInterval: 3000 })
+  const { data: models = [], isLoading: modelsLoading } = useImageModels()
 
-  const { data: deliverables = [] } = useQuery({
-    queryKey: ['creator-os', 'deliverables', projectId],
-    queryFn: () => (window.api as any).creatorOs.listDeliverables(projectId),
-    refetchInterval: 3000
-  })
-
-  const { data: models = [] } = useQuery<DbModel[]>({
-    queryKey: ['db', 'models', 'image'],
-    queryFn: () => (window.api as any).db.models.list({ type: 'image' }),
-    staleTime: 60_000
-  })
+  const submitMutation = useSubmitProductSet(projectId)
+  const retryMutation = useRetryProductSet(projectId)
+  const cancelMutation = useCancelProductSet(projectId)
 
   const hasImageModel = models.length > 0
-
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      if (!hasImageModel) {
-        throw new Error('没有可用的图片模型。请先在「设置 → 模型/provider」中添加一个 image 类型的模型，或登录 Juhe Management 同步模型。')
-      }
-      const slotParams: Record<string, { prompt: string; model?: string; providerId?: string }> = {}
-      for (let i = 0; i < SLOT_COUNT; i++) {
-        const modelId = slotModels[i]
-        const prompt = slotPrompts[i]?.trim() || slotLabels[i]
-        if (modelId) {
-          const m = models.find((x: DbModel) => x.id === modelId)
-          slotParams[String(i)] = {
-            prompt,
-            model: m?.id,
-            providerId: m?.providerId
-          }
-        } else {
-          slotParams[String(i)] = { prompt }
-        }
-      }
-      console.log('[ProductSet] Submitting with slotParams:', slotParams)
-      const result = await (window.api as any).creatorOs.submitProductSetWithParams(projectId, slotParams)
-      console.log('[ProductSet] Submit result:', result)
-      if (!result?.ok) {
-        throw new Error(result?.error || 'Submission failed')
-      }
-      return result
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'deliverables', projectId] })
-    }
-  })
-
-  const retryMutation = useMutation({
-    mutationFn: (taskId: string) =>
-      (window.api as any).creatorOs.retryProductSet(projectId, [taskId]),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'deliverables', projectId] })
-    }
-  })
-
-  const cancelMutation = useMutation({
-    mutationFn: () =>
-      (window.api as any).creatorOs.cancelProductSet(projectId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'deliverables', projectId] })
-    }
-  })
-
   const isRunning = project?.batchStatus === 'processing' || project?.batchStatus === 'submitting'
+
+  const handleSubmit = () => {
+    if (!hasImageModel) {
+      submitMutation.mutate({})
+      return
+    }
+
+    const slotParams: Record<string, { prompt: string; model?: string; providerId?: string }> = {}
+    for (let i = 0; i < SLOT_COUNT; i++) {
+      const modelId = slotModels[i]
+      const prompt = slotPrompts[i]?.trim() || slotLabels[i]
+      if (modelId) {
+        const m = models.find((x: DbModel) => x.id === modelId)
+        slotParams[String(i)] = {
+          prompt,
+          model: m?.id,
+          providerId: m?.providerId
+        }
+      } else {
+        slotParams[String(i)] = { prompt }
+      }
+    }
+    submitMutation.mutate(slotParams)
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-8 py-10">
-      <h1 className="font-cos-heading text-2xl text-cos-ink mb-2">
-        {t('creator-os.product-set')}
-      </h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="font-cos-heading text-2xl text-cos-ink">
+          {t('creator-os.product-set')}
+        </h1>
+        <Link
+          to="/projects/$projectId"
+          params={{ projectId }}
+          className="text-cos-ink-muted hover:text-cos-ink text-sm"
+        >
+          ← {t('creator-os.back-to-project')}
+        </Link>
+      </div>
       {project && (
         <p className="text-cos-ink-secondary mb-6">
           {project.name} · {project.batchStatus || 'idle'}
         </p>
       )}
 
-      {/* 8-slot grid with prompts, model selectors, thumbnails, and retry */}
+      {/* Model availability banner */}
+      {!modelsLoading && !hasImageModel && (
+        <div className="mb-6 p-4 rounded-cos-md bg-cos-error/10 border border-cos-error/30
+                        flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-cos-error shrink-0 mt-0.5" />
+          <div>
+            <p className="text-cos-error text-sm font-medium">
+              没有可用的图片模型
+            </p>
+            <p className="text-cos-error/80 text-xs mt-1">
+              请先在「设置 → Provider/模型」中添加 image 模型，或登录 Juhe Management 同步模型。
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 8-slot grid */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {Array.from({ length: SLOT_COUNT }).map((_, i) => {
-          const del = (deliverables as any[]).find((d: any) => d.slotIndex === i)
+          const del = deliverables.find((d: any) => d.slotIndex === i)
           const isOk = del?.versionFilePath
           const isFailed = del?.taskRuntimeStatus === 'failed'
           const isPending =
@@ -128,7 +121,7 @@ function ProductSetPage() {
               className="bg-cos-bg-alt border border-cos-border rounded-cos-md
                          overflow-hidden flex flex-col"
             >
-              {/* Slot preview: thumbnail or status icon */}
+              {/* Slot preview */}
               <div className="aspect-square relative bg-cos-bg-alt">
                 {isOk ? (
                   <img
@@ -154,7 +147,6 @@ function ProductSetPage() {
                   </div>
                 )}
 
-                {/* Status overlay badge */}
                 {isOk && (
                   <div className="absolute top-2 left-2 bg-cos-success/90 text-white
                                   text-[10px] px-1.5 py-0.5 rounded-cos-sm">
@@ -188,7 +180,7 @@ function ProductSetPage() {
                   onChange={(e) =>
                     setSlotModels((prev) => ({ ...prev, [i]: e.target.value }))
                   }
-                  disabled={isRunning}
+                  disabled={isRunning || modelsLoading}
                   className="w-full text-xs border border-cos-border rounded-cos-sm
                              bg-cos-surface text-cos-ink px-2 py-1
                              focus:outline-none focus:border-cos-accent
@@ -207,7 +199,7 @@ function ProductSetPage() {
               {isFailed && del && (
                 <div className="px-2 pt-1 pb-2">
                   <button
-                    onClick={() => retryMutation.mutate(del.taskId)}
+                    onClick={() => retryMutation.mutate([del.taskId])}
                     disabled={retryMutation.isPending}
                     className="w-full flex items-center justify-center gap-1
                                text-cos-error hover:text-cos-error/80
@@ -221,7 +213,6 @@ function ProductSetPage() {
                 </div>
               )}
 
-              {/* Spacer when no retry button */}
               {!isFailed && <div className="pb-2" />}
             </div>
           )
@@ -229,45 +220,49 @@ function ProductSetPage() {
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={() => submitMutation.mutate()}
-          disabled={isRunning}
-          className="bg-cos-accent hover:bg-cos-accent-hover text-white px-6 py-3
-                     rounded-cos-md font-medium disabled:opacity-50 transition-colors"
-        >
-          {isRunning ? t('creator-os.generating') : t('creator-os.generate-all')}
-        </button>
-        {isRunning && (
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex justify-center gap-4">
           <button
-            onClick={() => cancelMutation.mutate()}
-            className="border border-cos-error text-cos-error px-6 py-3
-                       rounded-cos-md font-medium hover:bg-cos-error hover:text-white transition-colors"
+            onClick={handleSubmit}
+            disabled={isRunning || modelsLoading}
+            className="bg-cos-accent hover:bg-cos-accent-hover text-white px-6 py-3
+                       rounded-cos-md font-medium disabled:opacity-50 transition-colors"
           >
-            {t('creator-os.cancel-all')}
+            {isRunning ? t('creator-os.generating') : t('creator-os.generate-all')}
           </button>
+          {isRunning && (
+            <button
+              onClick={() => cancelMutation.mutate()}
+              className="border border-cos-error text-cos-error px-6 py-3
+                         rounded-cos-md font-medium hover:bg-cos-error hover:text-white transition-colors"
+            >
+              {t('creator-os.cancel-all')}
+            </button>
+          )}
+        </div>
+
+        {submitMutation.isError && (
+          <p className="text-cos-error text-sm text-center">
+            {submitMutation.error instanceof Error
+              ? submitMutation.error.message
+              : String(submitMutation.error)}
+          </p>
+        )}
+        {retryMutation.isError && (
+          <p className="text-cos-error text-sm text-center">
+            {retryMutation.error instanceof Error
+              ? retryMutation.error.message
+              : String(retryMutation.error)}
+          </p>
+        )}
+        {cancelMutation.isError && (
+          <p className="text-cos-error text-sm text-center">
+            {cancelMutation.error instanceof Error
+              ? cancelMutation.error.message
+              : String(cancelMutation.error)}
+          </p>
         )}
       </div>
-
-      {!hasImageModel && !isRunning && (
-        <p className="mt-4 text-cos-error text-sm text-center">
-          没有可用的图片模型。请先在「设置 → Provider/模型」中添加 image 模型，或登录 Juhe Management 同步模型。
-        </p>
-      )}
-      {submitMutation.isError && (
-        <p className="mt-4 text-cos-error text-sm text-center">
-          {submitMutation.error instanceof Error
-            ? submitMutation.error.message
-            : String(submitMutation.error)}
-        </p>
-      )}
-      {retryMutation.isError && (
-        <p className="mt-2 text-cos-error text-sm text-center">
-          {retryMutation.error instanceof Error
-            ? retryMutation.error.message
-            : String(retryMutation.error)}
-        </p>
-      )}
 
       <QueueDrawer />
     </div>

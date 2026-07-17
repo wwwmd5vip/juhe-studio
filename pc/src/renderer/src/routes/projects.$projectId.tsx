@@ -1,10 +1,15 @@
 import { useState, useRef } from 'react'
-import { createFileRoute, Link, useParams, useNavigate } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
 import { ResultGrid } from '@/components/creator-os/ResultGrid'
 import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
+import {
+  useProject,
+  useProjectAssets,
+  useUpdateProject,
+  useDeleteProject
+} from '@/hooks/useCreatorOs'
 
 export const Route = createFileRoute('/projects/$projectId')({
   component: ProjectDetail
@@ -13,46 +18,21 @@ export const Route = createFileRoute('/projects/$projectId')({
 function ProjectDetail() {
   const { projectId } = useParams({ from: '/projects/$projectId' })
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const [editing, setEditing] = useState(false)
   const [nameValue, setNameValue] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const { data: project } = useQuery({
-    queryKey: ['creator-os', 'projects', projectId],
-    queryFn: () => (window.api as any).creatorOs.getProject(projectId)
-  })
+  const { data: project, isLoading } = useProject(projectId)
+  const { data: assets = [] } = useProjectAssets(projectId)
+  const updateMutation = useUpdateProject(projectId)
+  const deleteMutation = useDeleteProject()
 
-  const { data: assets = [] } = useQuery({
-    queryKey: ['creator-os', 'assets', projectId],
-    queryFn: () => (window.api as any).creatorOs.listAssets(projectId)
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
-      (window.api as any).creatorOs.updateProject(projectId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects'] })
-      setEditing(false)
-    }
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: () => (window.api as any).creatorOs.deleteProject(projectId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects'] })
-      navigate({ to: '/projects' })
-    }
-  })
-
-  if (!project) {
+  if (isLoading || !project) {
     return (
-      <div className="p-12 text-center text-cos-ink-muted">
-        {t('creator-os.project-not-found')}
+      <div className="h-full flex items-center justify-center text-cos-ink-muted">
+        {t('creator-os.loading-project')}
       </div>
     )
   }
@@ -71,7 +51,12 @@ function ProjectDetail() {
   const commitRename = () => {
     const trimmed = nameValue.trim()
     if (trimmed && trimmed !== project.name) {
-      updateMutation.mutate({ name: trimmed })
+      updateMutation.mutate(
+        { name: trimmed },
+        {
+          onSuccess: () => setEditing(false)
+        }
+      )
     } else {
       setEditing(false)
     }
@@ -83,12 +68,12 @@ function ProjectDetail() {
       <div className="flex items-center justify-between px-6 py-4
                       border-b border-cos-border bg-cos-surface">
         <div>
-          <button
-            onClick={() => navigate({ to: '/projects' })}
+          <Link
+            to="/projects"
             className="text-cos-ink-muted hover:text-cos-ink text-sm"
           >
             ← {t('creator-os.back-to-projects')}
-          </button>
+          </Link>
           <div className="flex items-center gap-3 mt-1">
             {editing ? (
               <input
@@ -118,6 +103,13 @@ function ProjectDetail() {
               {getStatusLabel(project.batchStatus || 'idle')}
             </span>
           </div>
+          {updateMutation.isError && (
+            <p className="text-cos-error text-xs mt-1">
+              {updateMutation.error instanceof Error
+                ? updateMutation.error.message
+                : String(updateMutation.error)}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -156,6 +148,13 @@ function ProjectDetail() {
             <p className="text-sm text-cos-ink-secondary mb-6">
               {t('creator-os.delete-confirm')}
             </p>
+            {deleteMutation.isError && (
+              <p className="text-cos-error text-sm mb-4">
+                {deleteMutation.error instanceof Error
+                  ? deleteMutation.error.message
+                  : String(deleteMutation.error)}
+              </p>
+            )}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
@@ -164,7 +163,11 @@ function ProjectDetail() {
                 {t('creator-os.export-cancel')}
               </button>
               <button
-                onClick={() => deleteMutation.mutate()}
+                onClick={() =>
+                  deleteMutation.mutate(projectId, {
+                    onSuccess: () => setShowDeleteConfirm(false)
+                  })
+                }
                 disabled={deleteMutation.isPending}
                 className="bg-cos-error hover:bg-cos-error/80 text-white px-4 py-2
                            rounded-cos-md text-sm disabled:opacity-50"

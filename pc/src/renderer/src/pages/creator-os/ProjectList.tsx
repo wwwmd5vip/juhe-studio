@@ -1,20 +1,14 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { useProjects, useCreateProject } from '@/hooks/useCreatorOs'
+import type { Project } from '@shared/types/creator-os'
 
 interface ProjectCardProps {
-  project: {
-    id: string
-    name: string
-    batchStatus: string
-    description?: string | null
-    updatedAt: string
-  }
+  project: Project
 }
 
 function ProjectCard({ project }: ProjectCardProps) {
-  const navigate = useNavigate()
   const { t } = useTranslation()
 
   const getStatusBadge = (s: string): { label: string; className: string } => {
@@ -38,11 +32,12 @@ function ProjectCard({ project }: ProjectCardProps) {
   const badge = getStatusBadge(project.batchStatus || 'idle')
 
   return (
-    <div
-      onClick={() => navigate({ to: `/projects/${project.id}` })}
-      className="bg-cos-surface border border-cos-border rounded-cos-lg p-5
+    <Link
+      to="/projects/$projectId"
+      params={{ projectId: project.id }}
+      className="block bg-cos-surface border border-cos-border rounded-cos-lg p-5
                  shadow-cos-card hover:shadow-cos-panel hover:border-cos-accent-muted
-                 cursor-pointer transition-all duration-200"
+                 transition-all duration-200"
     >
       <div className="flex items-start justify-between mb-3">
         <h3 className="font-cos-heading text-cos-ink text-lg leading-snug">
@@ -58,30 +53,31 @@ function ProjectCard({ project }: ProjectCardProps) {
       <p className="text-cos-ink-muted text-xs">
         {new Date(project.updatedAt).toLocaleDateString()}
       </p>
-    </div>
+    </Link>
   )
 }
 
 export function ProjectList() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [name, setName] = useState('')
 
-  const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['creator-os', 'projects'],
-    queryFn: () => (window.api as any).creatorOs.listProjects()
-  })
+  const { data: projects = [], isLoading } = useProjects()
+  const createMutation = useCreateProject()
 
-  const createMutation = useMutation({
-    mutationFn: (projectName: string) =>
-      (window.api as any).creatorOs.createProject({ name: projectName, category: 'product_set' }),
-    onSuccess: (project: { id: string }) => {
-      queryClient.invalidateQueries({ queryKey: ['creator-os', 'projects'] })
-      navigate({ to: `/projects/${project.id}` })
-    }
-  })
+  const handleCreate = () => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    createMutation.mutate(
+      { name: trimmed, category: 'product_set' },
+      {
+        onSuccess: () => {
+          setShowCreate(false)
+          setName('')
+        }
+      }
+    )
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-8 py-12">
@@ -116,8 +112,8 @@ export function ProjectList() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && name.trim()) {
-                  createMutation.mutate(name.trim())
+                if (e.key === 'Enter') handleCreate()
+                if (e.key === 'Escape') {
                   setShowCreate(false)
                   setName('')
                 }
@@ -126,6 +122,13 @@ export function ProjectList() {
               className="w-full border border-cos-border rounded-cos-md px-3 py-2
                          text-cos-ink font-cos-body focus:outline-none focus:border-cos-accent mb-4"
             />
+            {createMutation.isError && (
+              <p className="text-cos-error text-sm mb-3">
+                {createMutation.error instanceof Error
+                  ? createMutation.error.message
+                  : String(createMutation.error)}
+              </p>
+            )}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => { setShowCreate(false); setName('') }}
@@ -134,18 +137,14 @@ export function ProjectList() {
                 {t('creator-os.create-project-cancel')}
               </button>
               <button
-                onClick={() => {
-                  if (name.trim()) {
-                    createMutation.mutate(name.trim())
-                    setShowCreate(false)
-                    setName('')
-                  }
-                }}
-                disabled={!name.trim()}
+                onClick={handleCreate}
+                disabled={!name.trim() || createMutation.isPending}
                 className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
                            rounded-cos-md disabled:opacity-50"
               >
-                {t('creator-os.create-project-create')}
+                {createMutation.isPending
+                  ? t('creator-os.export-exporting')
+                  : t('creator-os.create-project-create')}
               </button>
             </div>
           </div>
@@ -172,7 +171,7 @@ export function ProjectList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects.map((p: any) => (
+          {projects.map((p) => (
             <ProjectCard key={p.id} project={p} />
           ))}
         </div>
