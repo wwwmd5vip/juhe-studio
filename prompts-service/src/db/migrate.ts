@@ -1,19 +1,20 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import type Database from 'better-sqlite3'
 import { db } from './connection.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const migrationsDir = path.join(__dirname, 'migrations')
 
-export function migrate() {
-  db.exec(`
+export function migrate(database: Database.Database = db) {
+  database.exec(`
     CREATE TABLE IF NOT EXISTS __migrations (
       filename TEXT PRIMARY KEY
     )
   `)
 
-  const appliedRows = db
+  const appliedRows = database
     .prepare('SELECT filename FROM __migrations')
     .pluck()
     .all() as string[]
@@ -39,9 +40,9 @@ export function migrate() {
     }
 
     const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8')
-    const applyMigration = db.transaction((migrationFile: string, migrationSql: string) => {
-      db.exec(migrationSql)
-      db.prepare('INSERT INTO __migrations (filename) VALUES (?)').run(migrationFile)
+    const applyMigration = database.transaction((migrationFile: string, migrationSql: string) => {
+      database.exec(migrationSql)
+      database.prepare('INSERT INTO __migrations (filename) VALUES (?)').run(migrationFile)
     })
     applyMigration(file, sql)
     console.log(`[migrate] applied ${file}`)
