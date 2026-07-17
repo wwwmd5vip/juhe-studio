@@ -1,8 +1,22 @@
-import { copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, resolve } from 'node:path'
 import { db } from '../../db'
 import { assets } from '../../db/schema'
 import type { Asset, AssetKind } from '@shared/types/creator-os'
+
+function parseDataUrl(dataUrl: string): { mimeType: string; base64: string; ext: string } {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
+  if (!match) throw new Error('Invalid dataUrl format')
+  const mimeType = match[1]
+  const base64 = match[2]
+  const extByMime: Record<string, string> = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/webp': '.webp',
+    'image/gif': '.gif'
+  }
+  return { mimeType, base64, ext: extByMime[mimeType] || '.png' }
+}
 
 /** 确保某项目的资产目录存在并返回路径 */
 export function ensureAssetDir(projectId: string, root: string): string {
@@ -90,4 +104,54 @@ export async function importAsset(
   }
 
   return result
+}
+
+export async function importAssetFromDataUrl(
+  projectId: string,
+  dataUrl: string,
+  fileName: string,
+  assetsRoot: string,
+  metadata?: Record<string, unknown>
+): Promise<Asset> {
+  if (typeof projectId !== 'string' || projectId.length === 0) throw new Error('Invalid projectId')
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) throw new Error('Invalid dataUrl')
+
+  const { mimeType, base64, ext } = parseDataUrl(dataUrl)
+  const buffer = Buffer.from(base64, 'base64')
+  if (buffer.length === 0) throw new Error('Empty image data')
+
+  const id = crypto.randomUUID()
+  const now = new Date().toISOString()
+  const destExt = extname(fileName) || ext
+  const destName = `${id}${destExt}`
+  const destDir = ensureAssetDir(projectId, assetsRoot)
+  const destPath = join(destDir, destName)
+
+  writeFileSync(destPath, buffer)
+
+  const record: typeof assets.$inferInsert = {
+    id,
+    projectId,
+    kind: 'source',
+    filePath: destPath,
+    mimeType,
+    status: 'active',
+    metadata: metadata ?? null,
+    createdAt: now,
+    updatedAt: now
+  }
+
+  await db.insert(assets).values(record)
+
+  return {
+    id,
+    projectId,
+    kind: 'source',
+    filePath: destPath,
+    mimeType,
+    status: 'active',
+    metadata: metadata ?? null,
+    createdAt: now,
+    updatedAt: now
+  } satisfies Asset
 }
