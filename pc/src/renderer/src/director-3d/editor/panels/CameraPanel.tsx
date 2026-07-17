@@ -15,7 +15,7 @@ import { postDirectorDeskCapturesToHost, type HostCaptureItem } from "../io/host
 import { getDirectorObjectFocusTarget, isCameraFocusableObject } from "../schema/cameraTarget";
 import type { DirectorCameraCapture, DirectorCameraShot } from "../schema/directorProject";
 import type { ScreenshotResult } from "../io/screenshotExport";
-import { getCameraMotionPath } from "../schema/cameraMotion";
+import { DEFAULT_CAMERA_MOTION_PATH, getCameraMotionPath } from "../schema/cameraMotion";
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
 
@@ -90,9 +90,7 @@ export function CameraPanel() {
   const setCameraMotionPlaying = useDirectorStore((state) => state.setCameraMotionPlaying);
   const setViewMode = useDirectorStore((state) => state.setViewMode);
 
-  if (!camera) return null;
-  const currentCamera = camera;
-  const captures = useMemo(() => currentCamera.captures ?? [], [currentCamera.captures]);
+  const captures = useMemo(() => camera?.captures ?? [], [camera?.captures]);
   const cameraCaptureGroups = useMemo(
     () =>
       cameras.map((item) => ({
@@ -103,17 +101,25 @@ export function CameraPanel() {
   );
   const hasAnyCameraCapture = cameraCaptureGroups.some((group) => group.captures.length > 0);
   const focusableObjects = useMemo(() => objects.filter(isCameraFocusableObject), [objects]);
-  const targetSelectValue =
-    currentCamera.targetMode === "object" && currentCamera.targetObjectId
-      ? `object:${currentCamera.targetObjectId}`
-      : "manual";
-  const motionPath = useMemo(() => getCameraMotionPath(currentCamera), [currentCamera]);
+  const targetSelectValue = useMemo(
+    () =>
+      camera?.targetMode === "object" && camera.targetObjectId
+        ? `object:${camera.targetObjectId}`
+        : "manual",
+    [camera]
+  );
+  const motionPath = useMemo(
+    () => (camera ? getCameraMotionPath(camera) : DEFAULT_CAMERA_MOTION_PATH),
+    [camera]
+  );
   const selectedMotionKeyframe =
     motionPath.keyframes.find((item) => item.id === selectedCameraKeyframeId) ?? motionPath.keyframes[0] ?? null;
 
   useEffect(() => {
-    setMotionDurationDraft(String(motionPath.duration));
-  }, [currentCamera.id, motionPath.duration]);
+    if (camera) {
+      setMotionDurationDraft(String(motionPath.duration));
+    }
+  }, [camera?.id, motionPath.duration, camera]);
 
   useEffect(() => {
     setMotionFovDraft(selectedMotionKeyframe ? String(selectedMotionKeyframe.fov) : "");
@@ -185,42 +191,43 @@ export function CameraPanel() {
     setViewerScale((currentScale) => clampViewerScale(Number(updater(currentScale).toFixed(2))));
   }, [clampViewerScale]);
 
-  async function saveCapturesToHost(captures: HostCaptureItem[]) {
+  const saveCapturesToHost = useCallback(async (captures: HostCaptureItem[]) => {
     setCaptureStatus(null);
     setCaptureError(null);
     try {
       const saved = await postDirectorDeskCapturesToHost(captures);
-      const failures = saved.filter((r) => r.error || !r.asset);
-      if (failures.length > 0) {
-        setPreviewCaptures(
-          failures.map((f) => ({
-            dataUrl: f.dataUrl,
-            fileName: f.fileName,
-            error:
-              f.error === 'DIRECTOR3D_NO_PROJECT_ID'
-                ? t('director3d.capture.noProjectId')
-                : f.error === 'DIRECTOR3D_EMPTY_CAPTURES'
-                  ? t('director3d.capture.emptyCaptures')
-                  : f.error,
-          }))
-        );
-        setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
-      } else if (saved.length === 0) {
+      const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
+      if (isEmpty) {
         setCaptureStatus(t("director3d.capture.emptyCaptures"));
       } else {
-        setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+        const failures = saved.filter((r) => r.error || !r.asset);
+        if (failures.length > 0) {
+          setPreviewCaptures(
+            failures.map((f) => ({
+              dataUrl: f.dataUrl,
+              fileName: f.fileName,
+              error:
+                f.error === 'DIRECTOR3D_NO_PROJECT_ID'
+                  ? t('director3d.capture.noProjectId')
+                  : f.error,
+            }))
+          );
+          setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+        } else {
+          setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+        }
       }
     } catch (error) {
       setCaptureStatus(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
     }
-  }
+  }, [t]);
 
   const sendCaptureToCanvas = useCallback(
     async (capture: DirectorCameraCapture, camera: DirectorCameraShot) => {
       const fileName = getCaptureFileName(capture, camera);
       await saveCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
     },
-    [t]
+    [saveCapturesToHost]
   );
 
   const sendAllCapturesToCanvas = useCallback(async () => {
@@ -232,7 +239,10 @@ export function CameraPanel() {
       fileName: getCaptureFileName(capture, camera),
     }));
     await saveCapturesToHost(captures);
-  }, [cameraCaptureGroups, t]);
+  }, [cameraCaptureGroups, saveCapturesToHost]);
+
+  if (!camera) return null;
+  const currentCamera = camera;
 
   async function handleCameraCapture() {
     setCaptureStatus(null);
