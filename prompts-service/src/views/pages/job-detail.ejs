@@ -1,0 +1,118 @@
+<div class="min-h-screen bg-gray-50">
+  <%- include('../partials/nav.ejs') %>
+  <main class="max-w-7xl mx-auto px-4 py-8" data-job-id="<%= job.id %>">
+    <h1 class="text-2xl font-bold mb-2">任务 #<%= job.id %>: <%= job.name %></h1>
+    <div class="mb-4 text-gray-600">
+      <span id="job-status"><%= job.status %></span>
+      | 完成 <%= job.completed_count %> / <%= job.total_count %>
+      | 失败 <%= job.failed_count %>
+    </div>
+    <div class="w-full bg-gray-200 rounded h-4 mb-6">
+      <div
+        id="progress-bar"
+        class="bg-blue-600 h-4 rounded transition-all"
+        style="width: <%= job.total_count ? Math.round((job.completed_count / job.total_count) * 100) : 0 %>%"
+      ></div>
+    </div>
+
+    <div class="bg-white rounded shadow overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-3">ID</th>
+            <th class="p-3">Prompt ID</th>
+            <th class="p-3">状态</th>
+            <th class="p-3">图片</th>
+            <th class="p-3">错误信息</th>
+            <th class="p-3">尝试次数</th>
+          </tr>
+        </thead>
+        <tbody id="items-body">
+          <tr><td colspan="6" class="p-3 text-gray-500">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4">
+      <a href="/admin/jobs" class="text-blue-600 hover:underline">返回</a>
+    </div>
+  </main>
+</div>
+<script>
+  const jobId = document.querySelector('main').dataset.jobId;
+
+  async function load() {
+    const [jobRes, itemsRes] = await Promise.all([
+      fetch(`/admin/api/jobs/${jobId}`),
+      fetch(`/admin/api/jobs/${jobId}/items`)
+    ]);
+    const job = await jobRes.json();
+    const items = await itemsRes.json();
+
+    if (job.error) return;
+
+    document.getElementById('job-status').textContent = job.status;
+    const pct = job.total_count ? Math.round((job.completed_count / job.total_count) * 100) : 0;
+    document.getElementById('progress-bar').style.width = pct + '%';
+
+    const tbody = document.getElementById('items-body');
+    tbody.replaceChildren();
+    if (items.data && items.data.length) {
+      for (const item of items.data) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t';
+
+        const tdId = document.createElement('td');
+        tdId.className = 'p-3';
+        tdId.textContent = item.id;
+        tr.appendChild(tdId);
+
+        const tdPromptId = document.createElement('td');
+        tdPromptId.className = 'p-3';
+        tdPromptId.textContent = item.prompt_id;
+        tr.appendChild(tdPromptId);
+
+        const tdStatus = document.createElement('td');
+        tdStatus.className = 'p-3';
+        tdStatus.textContent = item.status;
+        tr.appendChild(tdStatus);
+
+        const tdImage = document.createElement('td');
+        tdImage.className = 'p-3';
+        if (item.image_path) {
+          const img = document.createElement('img');
+          img.src = '/images/' + item.image_path;
+          img.alt = 'Result for prompt ' + item.prompt_id;
+          img.className = 'h-16 w-auto rounded';
+          tdImage.appendChild(img);
+        } else {
+          tdImage.textContent = '-';
+        }
+        tr.appendChild(tdImage);
+
+        const tdError = document.createElement('td');
+        tdError.className = 'p-3 text-red-500';
+        tdError.textContent = item.error_message || '';
+        tr.appendChild(tdError);
+
+        const tdAttempts = document.createElement('td');
+        tdAttempts.className = 'p-3';
+        tdAttempts.textContent = item.attempt_count;
+        tr.appendChild(tdAttempts);
+
+        tbody.appendChild(tr);
+      }
+    } else {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.className = 'p-3 text-gray-500';
+      td.textContent = '暂无数据';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+  }
+
+  load();
+  setInterval(load, 3000);
+</script>

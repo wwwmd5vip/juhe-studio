@@ -1,0 +1,15 @@
+<header class="bg-white shadow mb-6">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+    <nav class="space-x-4">
+      <a href="/admin/dashboard" class="text-blue-600 hover:underline">控制台</a>
+      <a href="/admin/prompts" class="text-blue-600 hover:underline">提示词</a>
+      <a href="/admin/generate" class="text-blue-600 hover:underline">批量生成</a>
+      <a href="/admin/jobs" class="text-blue-600 hover:underline">任务</a>
+      <a href="/admin/settings" class="text-blue-600 hover:underline">设置</a>
+    </nav>
+    <form method="post" action="/admin/logout" class="inline">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="text-sm text-gray-600 hover:text-gray-900">退出登录</button>
+    </form>
+  </div>
+</header>

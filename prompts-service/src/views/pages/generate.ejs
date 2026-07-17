@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-gray-50">
+  <%- include('../partials/nav.ejs') %>
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">批量生成</h1>
+    <% if (error) { %>
+      <div class="text-red-500 mb-4"><%= error %></div>
+    <% } %>
+    <form method="post" action="/admin/jobs" id="generate-form" class="space-y-6">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="bg-white p-6 rounded shadow">
+        <h2 class="font-semibold mb-3">选择提示词</h2>
+        <input type="hidden" name="prompt_ids" id="prompt_ids">
+        <div class="max-h-64 overflow-y-auto border rounded">
+          <table class="w-full text-left">
+            <thead class="bg-gray-100 sticky top-0">
+              <tr>
+                <th class="p-2"><input type="checkbox" id="select-all"></th>
+                <th class="p-2">ID</th>
+                <th class="p-2">标题</th>
+                <th class="p-2">分类</th>
+                <th class="p-2">内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% prompts.forEach(function(p) { %>
+                <tr class="border-t">
+                  <td class="p-2"><input type="checkbox" class="prompt-checkbox" value="<%= p.id %>"></td>
+                  <td class="p-2"><%= p.id %></td>
+                  <td class="p-2"><%= p.title || '-' %></td>
+                  <td class="p-2"><%= p.category || '-' %></td>
+                  <td class="p-2 truncate max-w-xs"><%= p.content %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded shadow grid grid-cols-1 md:grid-cols-2 gap-4">
+        <h2 class="col-span-full font-semibold">Provider 配置</h2>
+        <div>
+          <label class="block text-sm font-medium mb-1">Base URL *</label>
+          <input name="provider_config_base_url" type="url" class="w-full border p-2 rounded" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">API Key *</label>
+          <input name="provider_config_api_key" type="password" class="w-full border p-2 rounded" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Model *</label>
+          <input name="provider_config_model" class="w-full border p-2 rounded" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Size *</label>
+          <input name="provider_config_size" class="w-full border p-2 rounded" placeholder="1024x1024" required pattern="^\d+x\d+$">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Response Format</label>
+          <select name="provider_config_response_format" class="w-full border p-2 rounded">
+            <option value="url">url</option>
+            <option value="b64_json">b64_json</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">占位符值</label>
+          <input name="placeholder_value" class="w-full border p-2 rounded">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">并发数</label>
+          <input name="concurrency" type="number" min="1" max="10" class="w-full border p-2 rounded">
+        </div>
+        <div class="col-span-full">
+          <label class="block text-sm font-medium mb-1">任务名称（可选）</label>
+          <input name="name" class="w-full border p-2 rounded">
+        </div>
+      </div>
+
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">创建任务</button>
+    </form>
+  </main>
+</div>
+<script>
+  const selectAll = document.getElementById('select-all');
+  const checkboxes = document.querySelectorAll('.prompt-checkbox');
+  const hidden = document.getElementById('prompt_ids');
+
+  function updateIds() {
+    hidden.value = Array.from(checkboxes)
+      .filter((c) => c.checked)
+      .map((c) => c.value)
+      .join(',');
+  }
+
+  selectAll.addEventListener('change', () => {
+    checkboxes.forEach((c) => {
+      c.checked = selectAll.checked;
+    });
+    updateIds();
+  });
+  checkboxes.forEach((c) => c.addEventListener('change', updateIds));
+
+  document.getElementById('generate-form').addEventListener('submit', (e) => {
+    updateIds();
+    if (!hidden.value) {
+      e.preventDefault();
+      alert('请至少选择一个提示词');
+    }
+  });
+</script>

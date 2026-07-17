@@ -1,0 +1,45 @@
+<div class="min-h-screen bg-gray-50">
+  <%- include('../partials/nav.ejs') %>
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">生成任务</h1>
+    <% if (error) { %>
+      <div class="text-red-500 mb-4"><%= error %></div>
+    <% } %>
+    <div class="bg-white rounded shadow overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-3">ID</th>
+            <th class="p-3">名称</th>
+            <th class="p-3">状态</th>
+            <th class="p-3">进度</th>
+            <th class="p-3">并发</th>
+            <th class="p-3">创建时间</th>
+            <th class="p-3">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% jobs.forEach(function(j) { %>
+            <tr class="border-t">
+              <td class="p-3"><%= j.id %></td>
+              <td class="p-3"><%= j.name %></td>
+              <td class="p-3"><%= j.status %></td>
+              <td class="p-3"><%= j.completed_count %> / <%= j.total_count %> (失败 <%= j.failed_count %>)</td>
+              <td class="p-3"><%= j.concurrency %></td>
+              <td class="p-3"><%= j.created_at %></td>
+              <td class="p-3 space-x-3">
+                <a href="/admin/jobs/<%= j.id %>" class="text-blue-600 hover:underline">详情</a>
+                <% if (j.status === 'pending' || j.status === 'running') { %>
+                  <form method="post" action="/admin/jobs/<%= j.id %>/cancel" class="inline">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="text-sm text-red-600 hover:text-red-800">取消</button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
