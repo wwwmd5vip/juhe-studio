@@ -44,6 +44,24 @@ export const Route = createFileRoute('/smart-tools')({
   component: SmartToolsPage
 })
 
+// ---- Helpers ----
+
+function formatSmartToolError(error: string): string {
+  if (error.includes('ERR_PROVIDER_NO_CHANNEL')) {
+    return '当前模型没有可用的上游渠道。\n请到 admin 后台检查：该模型是否绑定了 status=1 且未 auto-ban 的渠道，或是否启用了 CrossGroupRetry。'
+  }
+  if (error.includes('ERR_PROVIDER_NO_PRICING')) {
+    return '当前模型没有配置图像生成定价。\n请到 admin 后台 → 渠道定价里给该渠道 × image 类型设置 FixedPriceCents。'
+  }
+  if (error.includes('Please select a provider and model first')) {
+    return '请先在顶部选择支持图像生成的 Provider 和模型。'
+  }
+  if (error.includes('no available channel')) {
+    return '上游没有可用渠道，请联系管理员检查渠道配置。'
+  }
+  return error
+}
+
 // ---- Component ----
 
 function SmartToolsPage() {
@@ -75,13 +93,17 @@ function SmartToolsPage() {
     loadProviders()
   }, [loadProviders])
 
-  // Available providers (those with models)
-  const availableProviders = useMemo(() => allProviders.filter((p) => p.models.length > 0), [allProviders])
+  // Available providers: must have at least one image-generation model
+  const availableProviders = useMemo(
+    () =>
+      allProviders.filter((p) => p.models.some((m) => (m.capabilities ?? []).includes('image-generation'))),
+    [allProviders]
+  )
 
-  // Models of selected provider
+  // Models of selected provider: only image-generation capable models
   const providerModels = useMemo(() => {
     const p = allProviders.find((pr) => pr.id === providerId)
-    return p?.models ?? []
+    return (p?.models ?? []).filter((m) => (m.capabilities ?? []).includes('image-generation'))
   }, [allProviders, providerId])
 
   // Auto-select first provider when none selected
@@ -616,6 +638,11 @@ function SmartToolsPage() {
                 ))}
               </select>
             </div>
+            {allProviders.length > 0 && availableProviders.length === 0 && (
+              <span className='text-[10px] text-red-400'>
+                没有支持图像生成的 Provider，请先在设置中添加 image 模型。
+              </span>
+            )}
           </div>
 
           {/* Tool parameters — compact bar */}
@@ -802,9 +829,45 @@ function SmartToolsPage() {
                 </div>
               </div>
             ) : (
-              /* Source image with processing overlay */
+              /* Source image with processing / error overlay */
               <div className='relative w-full rounded-3xl overflow-hidden' style={{ aspectRatio: '1' }}>
                 <img src={localTask.sourceImage} alt='Source' className='w-full h-full object-cover' />
+                {localTask?.status === 'failed' && localTask?.error && (
+                  <div
+                    className='absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 backdrop-blur-sm'
+                    style={{ background: 'rgba(220,38,38,0.12)' }}
+                  >
+                    <div
+                      className='max-w-md w-full p-4 rounded-2xl border'
+                      style={{ background: 'rgba(20,20,32,0.95)', borderColor: 'rgba(220,38,38,0.4)' }}
+                    >
+                      <div className='flex items-start gap-3'>
+                        <span className='text-xl'>⚠️</span>
+                        <div className='flex-1 min-w-0'>
+                          <p className='text-sm font-semibold text-red-400 mb-1'>处理失败</p>
+                          <p className='text-xs leading-relaxed text-red-200/80 whitespace-pre-wrap'>
+                            {formatSmartToolError(localTask.error)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type='button'
+                      onClick={() => {
+                        reset()
+                        inputRef.current?.click()
+                      }}
+                      className='flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 border'
+                      style={{
+                        background: 'rgba(20,20,32,0.85)',
+                        color: 'var(--juhe-text-2)',
+                        borderColor: 'var(--juhe-border)'
+                      }}
+                    >
+                      <RefreshCw className='w-3 h-3' /> {t('smartTools.retry')}
+                    </button>
+                  </div>
+                )}
                 {isProcessing && (
                   <div
                     className='absolute inset-0 flex flex-col items-center justify-center gap-4 backdrop-blur-sm'
