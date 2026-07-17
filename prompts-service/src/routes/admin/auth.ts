@@ -21,11 +21,22 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   app.post('/login', async (request, reply) => {
-    const body = loginSchema.parse(request.body)
-    const ok = await validateUser(body.username, body.password)
-    if (!ok) return reply.view('pages/login.ejs', { error: '用户名或密码错误' })
-    request.session.set('user', body.username)
-    return reply.redirect('/admin/dashboard')
+    const parsed = loginSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.view('pages/login.ejs', { error: '用户名和密码不能为空' })
+    }
+
+    const { username, password } = parsed.data
+
+    try {
+      const ok = await validateUser(username, password)
+      if (!ok) return reply.view('pages/login.ejs', { error: '用户名或密码错误' })
+      request.session.set('user', username)
+      return reply.redirect('/admin/dashboard')
+    } catch (err) {
+      request.log.error(err, 'validateUser failed')
+      return reply.view('pages/login.ejs', { error: '登录失败，请稍后重试' })
+    }
   })
 
   app.post('/logout', async (request, reply) => {
@@ -40,8 +51,13 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   }
 }
 
-export async function seedAdminIfNeeded(username?: string, password?: string) {
-  if (username && password && !hasUsers()) {
+export async function seedAdminIfNeeded(username?: string, password?: string): Promise<void> {
+  if (!username || !password) return
+  if (hasUsers()) return
+
+  try {
     await createUser(username, password)
+  } catch (err) {
+    console.error('seedAdminIfNeeded failed:', err)
   }
 }
