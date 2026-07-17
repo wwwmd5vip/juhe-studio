@@ -9,13 +9,14 @@ import {
 } from "lucide-react";
 import { DEFAULT_CAMERA_MOTION_PATH, getCameraMotionPath } from "../schema/cameraMotion";
 import { normalizeObjectMotionPath } from "../schema/objectMotion";
+import { useTranslation } from "react-i18next";
 import { useDirectorStore } from "../store/directorStore";
 import "./objectMotionTransport.css";
 
 const CURRENT_KEYFRAME_TOLERANCE = 0.005;
 
-function formatSeconds(seconds: number) {
-  return `${seconds.toFixed(1)} 秒`;
+function formatSeconds(seconds: number, t: (key: string) => string) {
+  return `${seconds.toFixed(1)}${t("director3d.motion.transport.seconds")}`;
 }
 
 /**
@@ -26,6 +27,7 @@ function formatSeconds(seconds: number) {
  * continue without losing sync.
  */
 export function ObjectMotionTransport() {
+  const { t } = useTranslation();
   const progress = useDirectorStore((state) => state.cameraMotionProgress);
   const playing = useDirectorStore((state) => state.cameraMotionPlaying);
   const pilotMode = useDirectorStore((state) => state.cameraPilotMode);
@@ -63,8 +65,8 @@ export function ObjectMotionTransport() {
   );
   const isAtStart = progress <= CURRENT_KEYFRAME_TOLERANCE;
   const isCharacterRoute = selectedObject?.kind === "character";
-  const pointLabel = isCharacterRoute ? "路线点" : "动作点";
-  const recordLabel = isAtStart ? "记录起点" : "记录当前位置";
+  const pointLabel = isCharacterRoute ? t("director3d.motion.transport.routePoint") : t("director3d.motion.transport.actionPoint");
+  const recordLabel = isAtStart ? t("director3d.motion.transport.recordStart") : t("director3d.motion.transport.recordCurrent");
 
   function togglePlayback() {
     if (!hasPlayableObjectMotion) return;
@@ -88,57 +90,57 @@ export function ObjectMotionTransport() {
     return (
       <section
         className="object-motion-transport object-motion-transport--pilot"
-        aria-label="掌镜人物和道具动作播放条"
+        aria-label={t("director3d.motion.transport.titlePilot")}
       >
         <button
           className="object-motion-transport__play object-motion-transport__play--compact"
           type="button"
           disabled={!hasPlayableObjectMotion}
           aria-label={hasPlayableObjectMotion
-            ? playing ? "暂停人物和物品动作" : "播放人物和物品动作"
-            : "还没有可播放的人物和物品动作"}
+            ? playing ? t("director3d.motion.transport.pause") : t("director3d.motion.transport.play")
+            : t("director3d.motion.transport.noMotion")}
           aria-pressed={playing}
           onClick={togglePlayback}
         >
           {playing ? <Pause aria-hidden="true" size={16} /> : <Play aria-hidden="true" size={16} />}
         </button>
-        <output className="object-motion-transport__compact-time" aria-label="当前动作时间">
-          {formatSeconds(currentSeconds)}
+        <output className="object-motion-transport__compact-time" aria-label={t("director3d.motion.transport.currentTime")}>
+          {formatSeconds(currentSeconds, t)}
         </output>
-        <span className="object-motion-transport__shortcut" aria-label="空格键播放或暂停">
-          <kbd>空格</kbd>
-          播放/暂停
+        <span className="object-motion-transport__shortcut" aria-label={t("director3d.motion.transport.spaceShortcut")}>
+          <kbd>{t("director3d.motion.transport.spaceKey")}</kbd>
+          {t("director3d.motion.transport.playPause")}
         </span>
       </section>
     );
   }
 
-  const objectKindLabel = selectedObject?.kind === "character" ? "人物" : "道具";
+  const objectKindLabel = selectedObject?.kind === "character" ? t("director3d.motion.transport.characterAction") : t("director3d.motion.transport.propAction");
 
   return (
     <section
       className="object-motion-transport object-motion-transport--full"
-      aria-label="人物和道具动作播放条"
+      aria-label={t("director3d.motion.transport.title")}
     >
-      <div className="object-motion-transport__subject" aria-label="当前动作对象">
+      <div className="object-motion-transport__subject" aria-label={t("director3d.motion.transport.subject")}>
         <span className="object-motion-transport__subject-icon" aria-hidden="true">
           {selectedObject?.kind === "character"
             ? <PersonStanding size={17} />
             : <Package size={17} />}
         </span>
         <span className="object-motion-transport__subject-copy">
-          <small>{selectedObject ? isCharacterRoute ? "人物路线播放" : `${objectKindLabel}动作` : "人物 / 道具动作"}</small>
+          <small>{selectedObject ? isCharacterRoute ? t("director3d.motion.transport.characterRoute") : `${objectKindLabel}` : t("director3d.motion.transport.characterOrPropAction")}</small>
           <strong title={selectedObject?.name}>
-            {selectedObject?.name ?? "请先选中人物或道具"}
+            {selectedObject?.name ?? t("director3d.motion.transport.selectObjectFirst")}
           </strong>
         </span>
       </div>
 
-      <div className="object-motion-transport__player" aria-label="动作播放控制">
+      <div className="object-motion-transport__player" aria-label={t("director3d.motion.transport.playerControls")}>
         <button
           className="object-motion-transport__icon-button"
           type="button"
-          aria-label="回到动作开头"
+          aria-label={t("director3d.motion.transport.backToStart")}
           onClick={() => seek(0)}
         >
           <RotateCcw aria-hidden="true" size={15} />
@@ -148,20 +150,20 @@ export function ObjectMotionTransport() {
           type="button"
           disabled={!hasPlayableObjectMotion}
           aria-label={hasPlayableObjectMotion
-            ? playing ? "暂停人物和物品动作" : "播放人物和物品动作"
-            : "还没有可播放的人物和物品动作"}
+            ? playing ? t("director3d.motion.transport.pause") : t("director3d.motion.transport.play")
+            : t("director3d.motion.transport.noMotion")}
           aria-pressed={playing}
           onClick={togglePlayback}
         >
           {playing ? <Pause aria-hidden="true" size={17} /> : <Play aria-hidden="true" size={17} />}
         </button>
-        <output className="object-motion-transport__time" aria-label="当前动作时间">
-          {formatSeconds(currentSeconds)}
+        <output className="object-motion-transport__time" aria-label={t("director3d.motion.transport.currentTime")}>
+          {formatSeconds(currentSeconds, t)}
         </output>
         <input
           className="object-motion-transport__scrubber"
-          aria-label="场景动作时间轴"
-          aria-valuetext={`${formatSeconds(currentSeconds)}，共 ${formatSeconds(duration)}`}
+          aria-label={t("director3d.motion.transport.sceneTimeline")}
+          aria-valuetext={t("director3d.motion.transport.timeValue", { current: formatSeconds(currentSeconds, t), duration: formatSeconds(duration, t) })}
           type="range"
           min="0"
           max="1"
@@ -170,9 +172,9 @@ export function ObjectMotionTransport() {
           onChange={(event) => seek(Number(event.currentTarget.value))}
         />
         <label className="object-motion-transport__duration-control">
-          <span>总时长</span>
+          <span>{t("director3d.motion.transport.totalDuration")}</span>
           <input
-            aria-label="动作总时长（秒）"
+            aria-label={t("director3d.motion.transport.durationSecondsAria")}
             type="number"
             min="0.5"
             max="30"
@@ -183,7 +185,7 @@ export function ObjectMotionTransport() {
               updateCameraMotionPath(activeCamera.id, { duration: Number(event.currentTarget.value) });
             }}
           />
-          <span>秒</span>
+          <span>{t("director3d.motion.transport.seconds")}</span>
         </label>
       </div>
 
@@ -193,7 +195,7 @@ export function ObjectMotionTransport() {
             className="object-motion-transport__record"
             type="button"
             disabled={!selectedObject}
-            aria-label={selectedObject ? `${recordLabel}：${selectedObject.name}` : "记录人物或道具动作点"}
+            aria-label={selectedObject ? t("director3d.motion.transport.recordLabel", { label: recordLabel, name: selectedObject.name }) : t("director3d.motion.transport.recordAction")}
             onClick={() => {
               if (!selectedObject) return;
               setPlaying(false);
@@ -207,7 +209,7 @@ export function ObjectMotionTransport() {
           <div
             className="object-motion-transport__keyframes"
             role="group"
-            aria-label={selectedObject ? `${selectedObject.name}动作点` : "动作点"}
+            aria-label={selectedObject ? t("director3d.motion.transport.keyframes", { name: selectedObject.name }) : t("director3d.motion.transport.keyframe")}
           >
             {keyframes.length > 0 ? keyframes.map((keyframe, index) => {
             const isCurrent = keyframe.id === currentKeyframe?.id;
@@ -216,9 +218,9 @@ export function ObjectMotionTransport() {
                 key={keyframe.id}
                 className={isCurrent ? "is-current" : undefined}
                 type="button"
-                aria-label={`跳转到${selectedObject?.name ?? "对象"}${pointLabel} ${index + 1}`}
+                aria-label={t("director3d.motion.transport.jumpToKeyframe", { name: selectedObject?.name ?? "", pointLabel, index: index + 1 })}
                 aria-pressed={isCurrent}
-                title={`${formatSeconds(keyframe.time * duration)} · ${pointLabel} ${index + 1}`}
+                title={`${formatSeconds(keyframe.time * duration, t)} · ${pointLabel} ${index + 1}`}
                 onClick={() => {
                   selectObjectMotionKeyframe(keyframe.id);
                   seek(keyframe.time);
@@ -228,16 +230,16 @@ export function ObjectMotionTransport() {
               </button>
             );
             }) : (
-              <small>{selectedObject ? "还没有动作点" : "选择对象后记录动作"}</small>
+              <small>{selectedObject ? t("director3d.motion.transport.noKeyframes") : t("director3d.motion.transport.selectObjectToRecord")}</small>
             )}
           </div>
-        </> : <span className="object-motion-transport__route-hint">路线点、每段动作和朝向请在右侧“路线”页编辑</span>}
+        </> : <span className="object-motion-transport__route-hint">{t("director3d.motion.transport.routeHint")}</span>}
 
         <button
           className="object-motion-transport__delete"
           type="button"
           disabled={isCharacterRoute || !selectedObject || !currentKeyframe}
-          aria-label={selectedObject ? `删除${selectedObject.name}当前${pointLabel}` : "删除当前动作点"}
+          aria-label={selectedObject ? t("director3d.motion.transport.deleteKeyframeLabel", { name: selectedObject.name, pointLabel }) : t("director3d.motion.transport.deleteCurrentKeyframe")}
           onClick={() => {
             if (!selectedObject || !currentKeyframe) return;
             setPlaying(false);
@@ -246,7 +248,7 @@ export function ObjectMotionTransport() {
           }}
         >
           <Trash2 aria-hidden="true" size={14} />
-          <span>删除当前点</span>
+          <span>{t("director3d.motion.transport.delete")}</span>
         </button>
       </div>
     </section>

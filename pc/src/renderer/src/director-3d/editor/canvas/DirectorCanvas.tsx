@@ -13,6 +13,7 @@ import {
   type CSSProperties,
   type MutableRefObject,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { Euler, Matrix4, PerspectiveCamera as ThreePerspectiveCamera, Quaternion, Spherical, Vector3 } from "three";
 import type { Object3D } from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -66,16 +67,16 @@ const CAPTURE_LABEL_PANEL_RGB_FALLBACK = "26 26 26";
 const CAPTURE_LABEL_TEXT_RGB_FALLBACK = "255 255 255";
 const VIEWPORT_GRID_ELEVATION = 0.002;
 const GIZMO_AXIS_HIT_TARGETS: Array<{
-  label: string;
+  labelKey: string;
   className: string;
   direction: [number, number, number];
 }> = [
-  { label: "切换到 X 正向视图", className: "is-x-positive", direction: [1, 0, 0] },
-  { label: "切换到 Y 正向视图", className: "is-y-positive", direction: [0, 1, 0] },
-  { label: "切换到 Z 正向视图", className: "is-z-positive", direction: [0, 0, 1] },
-  { label: "切换到 X 反向视图", className: "is-x-negative", direction: [-1, 0, 0] },
-  { label: "切换到 Y 反向视图", className: "is-y-negative", direction: [0, -1, 0] },
-  { label: "切换到 Z 反向视图", className: "is-z-negative", direction: [0, 0, -1] },
+  { labelKey: "director3d.canvas.xPositive", className: "is-x-positive", direction: [1, 0, 0] },
+  { labelKey: "director3d.canvas.yPositive", className: "is-y-positive", direction: [0, 1, 0] },
+  { labelKey: "director3d.canvas.zPositive", className: "is-z-positive", direction: [0, 0, 1] },
+  { labelKey: "director3d.canvas.xNegative", className: "is-x-negative", direction: [-1, 0, 0] },
+  { labelKey: "director3d.canvas.yNegative", className: "is-y-negative", direction: [0, -1, 0] },
+  { labelKey: "director3d.canvas.zNegative", className: "is-z-negative", direction: [0, 0, -1] },
 ];
 type ViewportCaptureLabel = {
   text: string;
@@ -413,6 +414,7 @@ function CanvasCaptureBridge({
   viewportAspectRatio: ReturnType<typeof useDirectorStore.getState>["viewportAspectRatio"];
   viewMode: "director" | "camera";
 }) {
+  const { t } = useTranslation();
   const { camera, gl, scene } = useThree();
 
   useEffect(() => {
@@ -459,11 +461,11 @@ function CanvasCaptureBridge({
       };
 
       if (preset === "current") {
-        return [snapshot(source === "camera-panel" ? "当前机位" : "当前视角")];
+        return [snapshot(source === "camera-panel" ? t("director3d.capture.currentCamera") : t("director3d.capture.currentView"))];
       }
 
       const count = preset === "four" ? 4 : 12;
-      const labelPrefix = preset === "four" ? "四方位" : "十二方位";
+      const labelPrefix = preset === "four" ? t("director3d.capture.fourPrefix") : t("director3d.capture.twelvePrefix");
       const offset = originalPosition.clone().sub(target);
       const spherical = new Spherical().setFromVector3(offset.lengthSq() === 0 ? new Vector3(0, 0, 6) : offset);
       const phi = Math.min(Math.max(spherical.phi, 0.35), Math.PI - 0.35);
@@ -644,12 +646,13 @@ function ViewportGizmoOverlay({
   rightOffset?: number;
   snapshot: CameraShotSnapshot;
 }) {
+  const { t } = useTranslation();
   function selectAxisDirection(direction: [number, number, number]) {
     onSnapshotChange(getViewportSnapshotFromGizmoDirection(snapshot, new Vector3(...direction)));
   }
 
   return (
-    <div className="viewport-gizmo-overlay" aria-label="3D视口原生坐标控件" style={{ right: `${rightOffset}px` }}>
+    <div className="viewport-gizmo-overlay" aria-label={t("director3d.canvas.viewport")} style={{ right: `${rightOffset}px` }}>
       <Canvas
         className="viewport-gizmo-canvas"
         camera={{ fov: snapshot.fov, position: [0, 0, 1] }}
@@ -657,11 +660,11 @@ function ViewportGizmoOverlay({
       >
         <ViewportGizmoContent onSnapshotChange={onSnapshotChange} snapshot={snapshot} />
       </Canvas>
-      <div className="viewport-gizmo-hit-layer" aria-label="3D视口坐标切换按钮">
+      <div className="viewport-gizmo-hit-layer" aria-label={t("director3d.canvas.axisSwitch")}>
         {GIZMO_AXIS_HIT_TARGETS.map((target) => (
           <button
-            key={target.label}
-            aria-label={target.label}
+            key={target.labelKey}
+            aria-label={t(target.labelKey)}
             className={`viewport-gizmo-hit-button ${target.className}`}
             style={getViewportGizmoHitButtonStyle(snapshot, target.direction)}
             type="button"
@@ -692,6 +695,7 @@ function MotionMonitor({
   onFinishedShotFovChange: (fov: number | null) => void;
   onMonitorFovChange: (fov: number | null) => void;
 }) {
+  const { t } = useTranslation();
   const monitorCameraBase = mainViewMode === "director" ? cameraSnapshot : directorSnapshot;
   const monitorCamera = monitorCameraBase
     ? { ...monitorCameraBase, fov: monitorFov ?? monitorCameraBase.fov }
@@ -729,18 +733,18 @@ function MotionMonitor({
   return (
     <aside
       className="motion-monitor"
-      aria-label={mainViewMode === "director" ? "成片实时监看" : "路线实时监看"}
+      aria-label={mainViewMode === "director" ? t("director3d.canvas.finishedMonitor") : t("director3d.canvas.routeMonitor")}
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
     >
       <header
-        aria-label="拖动监看窗口"
+        aria-label={t("director3d.canvas.dragMonitor")}
         onPointerDown={(event) => {
           event.preventDefault();
           dragRef.current = { pointerX: event.clientX, pointerY: event.clientY, startX: position.x, startY: position.y };
         }}
       >
-        <span>{mainViewMode === "director" ? "成片监看" : "路线监看"}</span>
-        <small><Move aria-hidden="true" size={11} />拖动</small>
+        <span>{mainViewMode === "director" ? t("director3d.canvas.finishedLabel") : t("director3d.canvas.routeLabel")}</span>
+        <small><Move aria-hidden="true" size={11} />{t("director3d.canvas.dragHint")}</small>
       </header>
       <div className="motion-monitor-canvas-wrap" style={{ aspectRatio }}>
         <Canvas camera={{ fov: monitorCamera.fov, position: monitorCamera.position }} dpr={[1, 1.5]} gl={{ antialias: true }}>
@@ -770,11 +774,11 @@ function MotionMonitor({
           </Suspense>
         </Canvas>
       </div>
-      <div className="motion-monitor-fov" aria-label="看成片 FOV 设置">
+      <div className="motion-monitor-fov" aria-label={t("director3d.canvas.finishedFov")}>
         <label>
-          <span>看成片</span>
+          <span>{t("director3d.canvas.finishedFov")}</span>
           <input
-            aria-label="看成片 FOV"
+            aria-label={t("director3d.canvas.finishedFov")}
             type="range"
             min="10"
             max="120"
@@ -785,14 +789,14 @@ function MotionMonitor({
           <output>{Math.round(finishedShotFov ?? cameraSnapshot?.fov ?? 50)}°</output>
         </label>
         <button type="button" disabled={finishedShotFov === null} onClick={() => onFinishedShotFovChange(null)}>
-          跟随轨迹
+          {t("director3d.canvas.followPath")}
         </button>
       </div>
-      <div className="motion-monitor-fov motion-monitor-fov--secondary" aria-label="小窗 FOV 设置">
+      <div className="motion-monitor-fov motion-monitor-fov--secondary" aria-label={t("director3d.canvas.monitorFov")}>
         <label>
-          <span>小窗</span>
+          <span>{t("director3d.canvas.monitorFov")}</span>
           <input
-            aria-label="小窗 FOV"
+            aria-label={t("director3d.canvas.monitorFov")}
             type="range"
             min="10"
             max="120"
@@ -803,7 +807,7 @@ function MotionMonitor({
           <output>{Math.round(monitorFov ?? monitorCameraBase?.fov ?? 50)}°</output>
         </label>
         <button type="button" disabled={monitorFov === null} onClick={() => onMonitorFovChange(null)}>
-          跟随原视角
+          {t("director3d.canvas.followOriginal")}
         </button>
       </div>
     </aside>
@@ -819,6 +823,7 @@ function getReferenceVideoDimensions(quality: "720p" | "1080p", ratio: number | 
 }
 
 export function DirectorCanvas() {
+  const { t } = useTranslation();
   const viewMode = useDirectorStore((state) => state.viewMode);
   const openSceneInspector = useDirectorStore((state) => state.openSceneInspector);
   const sceneSettings = useDirectorStore((state) => state.project.scene);

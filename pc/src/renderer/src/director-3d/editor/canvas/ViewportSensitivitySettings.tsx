@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RotateCcw, Settings2, X } from "lucide-react";
 import {
   DEFAULT_VIEWPORT_ROTATE_SENSITIVITY,
@@ -17,15 +18,16 @@ function toPercent(value: number) {
   return Math.round(value * 100);
 }
 
-function getSensitivityDescription(value: number) {
-  if (value <= 0.25) return "很慢";
-  if (value <= 0.5) return "舒缓";
-  if (value <= 0.8) return "适中";
-  if (value <= 1.1) return "灵敏";
-  return "很快";
+function getSensitivityDescription(value: number, t: (key: string) => string) {
+  if (value <= 0.25) return t("director3d.sensitivity.verySlow");
+  if (value <= 0.5) return t("director3d.sensitivity.relaxed");
+  if (value <= 0.8) return t("director3d.sensitivity.moderate");
+  if (value <= 1.1) return t("director3d.sensitivity.sensitive");
+  return t("director3d.sensitivity.veryFast");
 }
 
 export function ViewportSensitivitySettings() {
+  const { t } = useTranslation();
   const rotateSensitivity = useDirectorStore((state) => state.viewportRotateSensitivity);
   const zoomSensitivity = useDirectorStore((state) => state.viewportZoomSensitivity);
   const setRotateSensitivity = useDirectorStore((state) => state.setViewportRotateSensitivity);
@@ -74,7 +76,7 @@ export function ViewportSensitivitySettings() {
         onClick={() => setOpen((current) => !current)}
       >
         <Settings2 aria-hidden="true" size={15} strokeWidth={1.9} />
-        <span>视角手感</span>
+        <span>{t("director3d.sensitivity.trigger")}</span>
       </button>
 
       {open ? (
@@ -82,59 +84,59 @@ export function ViewportSensitivitySettings() {
           id="viewport-sensitivity-popover"
           className="viewport-sensitivity-popover"
           role="dialog"
-          aria-label="视角灵敏度设置"
+          aria-label={t("director3d.sensitivity.title")}
         >
           <header className="viewport-sensitivity-header">
             <div>
-              <strong>视角手感</strong>
-              <small>拖动后立即生效，并自动保存</small>
+              <strong>{t("director3d.sensitivity.title")}</strong>
+              <small>{t("director3d.sensitivity.subtitle")}</small>
             </div>
-            <button type="button" aria-label="关闭视角灵敏度设置" onClick={() => setOpen(false)}>
+            <button type="button" aria-label={t("director3d.sensitivity.close")} onClick={() => setOpen(false)}>
               <X aria-hidden="true" size={15} />
             </button>
           </header>
 
           <div className="viewport-sensitivity-control">
             <div className="viewport-sensitivity-label">
-              <label htmlFor="viewport-rotate-sensitivity">转动视角</label>
+              <label htmlFor="viewport-rotate-sensitivity">{t("director3d.sensitivity.rotate")}</label>
               <output htmlFor="viewport-rotate-sensitivity">
-                {getSensitivityDescription(rotateSensitivity)} · {toPercent(rotateSensitivity)}%
+                {getSensitivityDescription(rotateSensitivity, t)} · {toPercent(rotateSensitivity)}%
               </output>
             </div>
             <input
               id="viewport-rotate-sensitivity"
               type="range"
-              aria-label="转动视角灵敏度"
+              aria-label={t("director3d.sensitivity.rotate")}
               min={SENSITIVITY_PERCENT_MIN}
               max={SENSITIVITY_PERCENT_MAX}
               step={SENSITIVITY_PERCENT_STEP}
               value={toPercent(rotateSensitivity)}
               onChange={(event) => setRotateSensitivity(Number(event.currentTarget.value) / 100)}
             />
-            <div className="viewport-sensitivity-scale" aria-hidden="true"><span>慢</span><span>快</span></div>
+            <div className="viewport-sensitivity-scale" aria-hidden="true"><span>{t("director3d.sensitivity.slow")}</span><span>{t("director3d.sensitivity.fast")}</span></div>
           </div>
 
           <div className="viewport-sensitivity-control">
             <div className="viewport-sensitivity-label">
-              <label htmlFor="viewport-zoom-sensitivity">拉近 / 拉远</label>
+              <label htmlFor="viewport-zoom-sensitivity">{t("director3d.sensitivity.zoom")}</label>
               <output htmlFor="viewport-zoom-sensitivity">
-                {getSensitivityDescription(zoomSensitivity)} · {toPercent(zoomSensitivity)}%
+                {getSensitivityDescription(zoomSensitivity, t)} · {toPercent(zoomSensitivity)}%
               </output>
             </div>
             <input
               id="viewport-zoom-sensitivity"
               type="range"
-              aria-label="缩放视角灵敏度"
+              aria-label={t("director3d.sensitivity.zoom")}
               min={SENSITIVITY_PERCENT_MIN}
               max={SENSITIVITY_PERCENT_MAX}
               step={SENSITIVITY_PERCENT_STEP}
               value={toPercent(zoomSensitivity)}
               onChange={(event) => setZoomSensitivity(Number(event.currentTarget.value) / 100)}
             />
-            <div className="viewport-sensitivity-scale" aria-hidden="true"><span>慢</span><span>快</span></div>
+            <div className="viewport-sensitivity-scale" aria-hidden="true"><span>{t("director3d.sensitivity.slow")}</span><span>{t("director3d.sensitivity.fast")}</span></div>
           </div>
 
-          <p className="viewport-sensitivity-note">同时作用于普通视角和掌镜模式，不会改变 WASD 移动速度。</p>
+          <p className="viewport-sensitivity-note">{t("director3d.sensitivity.note")}</p>
 
           <button
             className="viewport-sensitivity-reset"
@@ -143,7 +145,7 @@ export function ViewportSensitivitySettings() {
             onClick={resetSensitivity}
           >
             <RotateCcw aria-hidden="true" size={14} />
-            恢复默认手感
+            {t("director3d.sensitivity.reset")}
           </button>
         </section>
       ) : null}

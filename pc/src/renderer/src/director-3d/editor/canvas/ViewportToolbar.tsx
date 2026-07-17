@@ -7,6 +7,7 @@ import {
   type ChangeEvent,
   type MutableRefObject,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Box,
   Boxes,
@@ -50,6 +51,7 @@ import {
 } from "../store/directorStore";
 
 type ToolbarAction = {
+  id?: string;
   label: string;
   icon: LucideIcon;
   mode?: TransformMode;
@@ -90,6 +92,7 @@ export function ViewportToolbar({
   getViewportCameraSnapshot?: () => CameraShotSnapshot;
   toolbarContainerRef?: MutableRefObject<HTMLDivElement | null>;
 }) {
+  const { t } = useTranslation();
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const aspectRatioPanelRef = useRef<HTMLDivElement | null>(null);
   const characterTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -425,29 +428,29 @@ export function ViewportToolbar({
   }
 
   const actions: ToolbarAction[] = [
-    { label: "移动", icon: Move3D, mode: "translate", onClick: () => selectTransformMode("translate") },
-    { label: "旋转", icon: Rotate3D, mode: "rotate", onClick: () => selectTransformMode("rotate") },
-    { label: "缩放", icon: Scale3D, mode: "scale", onClick: () => selectTransformMode("scale") },
+    { label: t("director3d.toolbar.translate"), icon: Move3D, mode: "translate", onClick: () => selectTransformMode("translate") },
+    { label: t("director3d.toolbar.rotate"), icon: Rotate3D, mode: "rotate", onClick: () => selectTransformMode("rotate") },
+    { label: t("director3d.toolbar.scale"), icon: Scale3D, mode: "scale", onClick: () => selectTransformMode("scale") },
     {
-      label: "显示人物路线",
+      label: t("director3d.toolbar.showCharacterRoutes"),
       icon: Route,
       pressed: showCharacterRoutes,
       onClick: () => setShowCharacterRoutes(!showCharacterRoutes),
     },
     {
-      label: "导入本地模型",
+      label: t("director3d.toolbar.importLocalModel"),
       icon: Box,
       onClick: () => {
         sceneLocalModelInputRef.current?.click();
       },
     },
-    { label: "模型库", icon: Boxes, onClick: toggleModelLibrary },
-    { label: "添加机位", icon: Video, onClick: addCameraFromViewport },
-    { label: "选择画幅比例", icon: Ratio, onClick: toggleAspectRatioPanel },
-    { label: "当前视角截图", icon: Camera, onClick: () => void handleCapture("current") },
-    { label: "四方位截图", icon: Grid2X2, onClick: () => void handleCapture("four") },
-    { label: "十二方位截图", icon: Grid3X3, onClick: () => void handleCapture("twelve") },
-    { label: "全屏", icon: Expand, onClick: toggleViewportPanelsCollapsed },
+    { id: "modelLibrary", label: t("director3d.toolbar.modelLibrary"), icon: Boxes, onClick: toggleModelLibrary },
+    { label: t("director3d.toolbar.addCamera"), icon: Video, onClick: addCameraFromViewport },
+    { label: t("director3d.toolbar.selectAspectRatio"), icon: Ratio, onClick: toggleAspectRatioPanel },
+    { label: t("director3d.toolbar.currentViewCapture"), icon: Camera, onClick: () => void handleCapture("current") },
+    { label: t("director3d.toolbar.fourViewCapture"), icon: Grid2X2, onClick: () => void handleCapture("four") },
+    { label: t("director3d.toolbar.twelveViewCapture"), icon: Grid3X3, onClick: () => void handleCapture("twelve") },
+    { label: t("director3d.toolbar.fullscreen"), icon: Expand, onClick: toggleViewportPanelsCollapsed },
   ];
 
   function renderActionButton(action: ToolbarAction) {
@@ -490,23 +493,23 @@ export function ViewportToolbar({
 
   return (
     <>
-      <div className="viewport-toolbar" role="group" aria-label="3D视口快捷工具" ref={setToolbarElement}>
+      <div className="viewport-toolbar" role="group" aria-label={t("director3d.toolbar.viewportTools")} ref={setToolbarElement}>
         {actions.slice(0, 3).map(renderActionButton)}
         <div className="viewport-toolbar-menu-wrap">
           <button
             aria-expanded={characterMenuOpen}
-            aria-label="添加角色"
+            aria-label={t("director3d.toolbar.addCharacter")}
             className="ui-icon-button viewport-toolbar-button"
             ref={characterTriggerRef}
             type="button"
             onClick={toggleCharacterMenu}
           >
             <UserPlus aria-hidden="true" size={17} strokeWidth={1.9} />
-            <span className="viewport-toolbar-label">添加角色</span>
+            <span className="viewport-toolbar-label">{t("director3d.toolbar.addCharacter")}</span>
           </button>
         </div>
         {actions.slice(3).map((action) => {
-          if (action.label !== "模型库") {
+          if (action.id !== "modelLibrary") {
             return renderActionButton(action);
           }
 
@@ -532,7 +535,7 @@ export function ViewportToolbar({
           ref={characterMenuRef}
           className="viewport-toolbar-menu"
           role="menu"
-          aria-label="选择角色体型"
+          aria-label={t("director3d.toolbar.selectBodyType")}
           style={characterMenuStyle}
         >
           {BODY_TYPE_OPTIONS.map((option) => (
@@ -563,7 +566,7 @@ export function ViewportToolbar({
               onFocus={openCrowdPanel}
               onMouseEnter={openCrowdPanel}
             >
-              <span>群众 (3x3)</span>
+              <span>{t("director3d.toolbar.crowd")}</span>
               <ChevronRight aria-hidden="true" size={14} strokeWidth={1.8} />
             </button>
           </div>
@@ -586,7 +589,7 @@ export function ViewportToolbar({
                 setCrowdPanelOpen(false);
               }}
             >
-              <span>几何模型</span>
+              <span>{t("director3d.toolbar.geometryModels")}</span>
               <ChevronRight aria-hidden="true" size={14} strokeWidth={1.8} />
             </button>
           </div>
@@ -597,19 +600,19 @@ export function ViewportToolbar({
           ref={crowdPanelRef}
           className="viewport-toolbar-crowd-panel"
           role="dialog"
-          aria-label="添加群众阵列"
+          aria-label={t("director3d.toolbar.addCrowdArray")}
           style={crowdPanelStyle}
         >
           <div className="viewport-toolbar-crowd-panel-header">
-            <h2 className="viewport-toolbar-crowd-panel-title">添加群众阵列</h2>
-            <span className="viewport-toolbar-crowd-panel-count">共{crowdTotalCount}人</span>
+            <h2 className="viewport-toolbar-crowd-panel-title">{t("director3d.toolbar.addCrowdArray")}</h2>
+            <span className="viewport-toolbar-crowd-panel-count">{t("director3d.toolbar.crowdTotal", { count: crowdTotalCount })}</span>
           </div>
           <div className="viewport-toolbar-crowd-grid">
             <label className="viewport-toolbar-crowd-field">
-              <span>行数</span>
+              <span>{t("director3d.toolbar.rows")}</span>
               <input
                 className="ui-field"
-                aria-label="群众行数"
+                aria-label={t("director3d.toolbar.rows")}
                 inputMode="numeric"
                 type="number"
                 min={MIN_CROWD_GRID_SIZE}
@@ -622,10 +625,10 @@ export function ViewportToolbar({
               ×
             </span>
             <label className="viewport-toolbar-crowd-field">
-              <span>列数</span>
+              <span>{t("director3d.toolbar.columns")}</span>
               <input
                 className="ui-field"
-                aria-label="群众列数"
+                aria-label={t("director3d.toolbar.columns")}
                 inputMode="numeric"
                 type="number"
                 min={MIN_CROWD_GRID_SIZE}
@@ -635,10 +638,10 @@ export function ViewportToolbar({
               />
             </label>
             <label className="viewport-toolbar-crowd-field viewport-toolbar-crowd-field-spacing">
-              <span>间距</span>
+              <span>{t("director3d.toolbar.spacing")}</span>
               <input
                 className="ui-field"
-                aria-label="群众间距"
+                aria-label={t("director3d.toolbar.spacing")}
                 inputMode="decimal"
                 type="number"
                 min={MIN_CROWD_SPACING}
@@ -651,15 +654,15 @@ export function ViewportToolbar({
           </div>
           <div className="viewport-toolbar-crowd-actions">
             <button className="viewport-toolbar-crowd-cancel camera-capture-clear-all" type="button" onClick={closeCrowdPanel}>
-              取消
+              {t("director3d.toolbar.cancel")}
             </button>
             <button
-              aria-label="添加群众"
+              aria-label={t("director3d.toolbar.addCrowd")}
               className="viewport-toolbar-crowd-confirm camera-capture-send-all"
               type="button"
               onClick={addCrowd}
             >
-              添加
+              {t("director3d.toolbar.add")}
             </button>
           </div>
         </div>
@@ -669,7 +672,7 @@ export function ViewportToolbar({
           ref={geometryMenuRef}
           className="viewport-toolbar-submenu"
           role="menu"
-          aria-label="选择几何模型"
+          aria-label={t("director3d.toolbar.selectGeometryModel")}
           style={geometryMenuStyle}
         >
           {GEOMETRY_PRIMITIVE_OPTIONS.map((option) => (
@@ -689,13 +692,13 @@ export function ViewportToolbar({
           ref={modelLibraryPanelRef}
           className="model-library-panel"
           role="dialog"
-          aria-label="模型库"
+          aria-label={t("director3d.toolbar.modelLibraryTitle")}
           style={modelLibraryPanelStyle}
         >
           <div className="model-library-header">
-            <h2 className="model-library-title">模型库</h2>
+            <h2 className="model-library-title">{t("director3d.toolbar.modelLibraryTitle")}</h2>
             <button
-              aria-label="关闭模型库"
+              aria-label={t("director3d.toolbar.closeModelLibrary")}
               className="top-bar-action-button model-library-close-button"
               type="button"
               onClick={() => setModelLibraryOpen(false)}
@@ -703,7 +706,7 @@ export function ViewportToolbar({
               <X aria-hidden="true" size={16} strokeWidth={1.8} />
             </button>
           </div>
-          <div className="model-library-tabs" role="tablist" aria-label="模型分类">
+          <div className="model-library-tabs" role="tablist" aria-label={t("director3d.toolbar.modelCategories")}>
             {MODEL_LIBRARY_CATEGORIES.map((category) => {
               const active = category.id === activeModelLibraryCategoryId;
 
@@ -722,22 +725,22 @@ export function ViewportToolbar({
             })}
           </div>
           {activeModelLibraryCategoryId === "my-models" && activeModelLibraryItems.length === 0 ? (
-            <div className="model-library-empty-state object-search-empty-state" role="status" aria-label="暂无任何模型">
+            <div className="model-library-empty-state object-search-empty-state" role="status" aria-label={t("director3d.toolbar.noModels")}>
               <span className="object-search-empty-icon" data-testid="my-models-empty-icon">
                 <Boxes aria-hidden="true" size={16} strokeWidth={1.8} />
               </span>
-              <span>暂无任何模型</span>
+              <span>{t("director3d.toolbar.noModels")}</span>
               <button className="top-bar-action-button model-library-empty-action" type="button" onClick={() => void handleMyModelsImport()}>
-                本地导入
+                {t("director3d.toolbar.localImport")}
               </button>
             </div>
           ) : (
-            <div className="model-library-grid" role="list" aria-label="模型列表">
+            <div className="model-library-grid" role="list" aria-label={t("director3d.toolbar.modelLibraryTitle")}>
               {activeModelLibraryItems.map((item) => (
                 activeModelLibraryCategoryId === "my-models" ? (
                   <div key={item.id} className="model-library-card-wrap">
                     <button
-                      aria-label={`添加模型 ${item.name}`}
+                      aria-label={t("director3d.toolbar.addModel", { name: item.name })}
                       className="model-library-card"
                       type="button"
                       onClick={() => {
@@ -761,7 +764,7 @@ export function ViewportToolbar({
                       <span className="model-library-name">{item.name}</span>
                     </button>
                     <button
-                      aria-label={`删除模型 ${item.name}`}
+                      aria-label={t("director3d.toolbar.deleteModel", { name: item.name })}
                       className="model-library-card-delete"
                       type="button"
                       onClick={() => {
@@ -774,7 +777,7 @@ export function ViewportToolbar({
                 ) : (
                   <button
                     key={item.id}
-                    aria-label={`添加模型 ${item.name}`}
+                    aria-label={t("director3d.toolbar.addModel", { name: item.name })}
                     className="model-library-card"
                     type="button"
                     onClick={() => {
@@ -800,7 +803,7 @@ export function ViewportToolbar({
               ))}
               {activeModelLibraryCategoryId === "my-models" ? (
                 <button
-                  aria-label="本地导入"
+                  aria-label={t("director3d.toolbar.localImport")}
                   className="model-library-card model-library-import-card"
                   type="button"
                   onClick={() => void handleMyModelsImport()}
@@ -808,7 +811,7 @@ export function ViewportToolbar({
                   <span className="model-library-thumb model-library-thumb-import" aria-hidden="true">
                     <Plus size={28} strokeWidth={1.8} />
                   </span>
-                  <span className="model-library-name">本地导入</span>
+                  <span className="model-library-name">{t("director3d.toolbar.localImport")}</span>
                 </button>
               ) : null}
             </div>
@@ -820,11 +823,11 @@ export function ViewportToolbar({
           ref={aspectRatioPanelRef}
           className="viewport-aspect-panel"
           role="dialog"
-          aria-label="比例"
+          aria-label={t("director3d.toolbar.aspectRatio")}
           style={aspectRatioPanelStyle}
         >
-          <h2 className="viewport-aspect-panel-title">比例</h2>
-          <div className="viewport-aspect-panel-grid" role="group" aria-label="画幅比例选项">
+          <h2 className="viewport-aspect-panel-title">{t("director3d.toolbar.aspectRatio")}</h2>
+          <div className="viewport-aspect-panel-grid" role="group" aria-label={t("director3d.toolbar.aspectRatioOptions")}>
             {VIEWPORT_ASPECT_RATIO_OPTIONS.map((option) => {
               const active = option.id === viewportAspectRatio;
               const frameClassName = `viewport-aspect-option-frame viewport-aspect-option-frame-${option.id.replace(":", "-")}`;

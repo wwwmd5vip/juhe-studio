@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { readLocalModelFile } from "../loaders/localModelImport";
 import { useDirectorStore } from "../store/directorStore";
 
 export function AssetImportPanel() {
+  const { t } = useTranslation();
   const addImportedAsset = useDirectorStore((state) => state.addImportedAsset);
   const assets = useDirectorStore((state) => state.project.assets);
   const [importError, setImportError] = useState<string | null>(null);
@@ -17,11 +19,11 @@ export function AssetImportPanel() {
 
   return (
     <section className="panel-card">
-      <h2>导入</h2>
+      <h2>{t("director3d.import.title")}</h2>
       <label className="asset-import-item">
-        导入本地模型
+        {t("director3d.import.localModel")}
         <input
-          aria-label="导入本地模型"
+          aria-label={t("director3d.import.localModel")}
           accept=".fbx,.obj"
           type="file"
           onChange={async (event) => {
@@ -31,14 +33,16 @@ export function AssetImportPanel() {
             try {
               await handleLocalModel(file);
             } catch (error) {
-              setImportError(error instanceof Error ? error.message : "本地模型导入失败");
+              setImportError(error instanceof Error ? error.message : t("director3d.error.importFailed"));
             } finally {
               input.value = "";
             }
           }}
         />
         <p className="asset-import-status">
-          {latestLocalModel ? `已导入本地模型: ${latestLocalModel.fileName}` : "支持 FBX / OBJ 素模文件"}
+          {latestLocalModel
+            ? t("director3d.import.imported", { fileName: latestLocalModel.fileName })
+            : t("director3d.import.supportedFormats")}
         </p>
       </label>
       {importError ? <p className="capture-status">{importError}</p> : null}

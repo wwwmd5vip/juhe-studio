@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { requestReferenceVideoExport, type ReferenceVideoExportQuality } from "../io/referenceVideoExport";
 import { getCameraMotionPath } from "../schema/cameraMotion";
 import {
@@ -52,6 +53,7 @@ export function MotionStudio({
   onLoadCameraSnapshot?: (snapshot: CameraShotSnapshot) => void;
   onStartPilot?: (editKeyframeId?: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const open = useDirectorStore((state) => state.motionStudioOpen);
   const viewMode = useDirectorStore((state) => state.viewMode);
   const cameraPilotMode = useDirectorStore((state) => state.cameraPilotMode);
@@ -233,79 +235,79 @@ export function MotionStudio({
   async function exportReferenceVideo() {
     if (motionPath.keyframes.length < 2 || exporting) return;
     setExporting(true);
-    setExportStatus("正在录制参考视频...");
+    setExportStatus(t("director3d.motion.recording") + "...");
     try {
       await requestReferenceVideoExport({
-        fileName: `${activeCamera.name || "运镜"}-参考视频.webm`,
+        fileName: `${t("director3d.motion.referenceVideoFileName", { name: activeCamera.name || t("director3d.motion.motion") })}.webm`,
         fps: exportFps,
         quality: exportQuality,
       });
-      setExportStatus("参考视频已下载");
+      setExportStatus(t("director3d.motion.referenceVideoDownloaded"));
     } catch (error) {
-      setExportStatus(error instanceof Error ? error.message : "参考视频导出失败");
+      setExportStatus(error instanceof Error ? error.message : t("director3d.motion.referenceVideoExportFailed"));
     } finally {
       setExporting(false);
     }
   }
 
   return (
-    <section className={`motion-studio${cameraPilotMode !== "idle" ? " is-piloting" : ""}`} aria-label="运镜工作台">
+    <section className={`motion-studio${cameraPilotMode !== "idle" ? " is-piloting" : ""}`} aria-label={t("director3d.shell.motionWorkbench")}>
       <header className="motion-studio-header">
         <div className="motion-studio-heading">
           <span className="motion-studio-icon"><Route aria-hidden="true" size={17} /></span>
           <div>
-            <h2>运镜工作台</h2>
-            <p>侧边栏不挡画面 · 无需摆放机位</p>
+            <h2>{t("director3d.shell.motionWorkbench")}</h2>
+            <p>{t("director3d.motion.subtitle")}</p>
           </div>
         </div>
         <div className="motion-studio-header-actions">
-          <button type="button" className="motion-studio-export" aria-label="导出运镜" aria-expanded={exportOpen} onClick={() => setExportOpen((current) => !current)}>
-            <Download aria-hidden="true" size={14} />导出
+          <button type="button" className="motion-studio-export" aria-label={t("director3d.motion.export")} aria-expanded={exportOpen} onClick={() => setExportOpen((current) => !current)}>
+            <Download aria-hidden="true" size={14} />{t("director3d.motion.export")}
           </button>
-          <button type="button" className="motion-studio-close" aria-label="关闭运镜工作台" onClick={() => setMotionStudioOpen(false)}>
+          <button type="button" className="motion-studio-close" aria-label={t("director3d.motion.close")} onClick={() => setMotionStudioOpen(false)}>
             <X aria-hidden="true" size={16} />
           </button>
         </div>
       </header>
 
       {exportOpen ? (
-        <section className="motion-export-panel" aria-label="导出运镜设置">
-          <div><strong>导出参考视频</strong><small>导出干净的第一视角运镜，不包含轨迹线和操作界面</small></div>
-          <label><span>画质</span><select aria-label="参考视频画质" value={exportQuality} onChange={(event) => setExportQuality(event.currentTarget.value as ReferenceVideoExportQuality)}><option value="720p">720p</option><option value="1080p">1080p</option></select></label>
-          <label><span>帧率</span><select aria-label="参考视频帧率" value={exportFps} onChange={(event) => setExportFps(Number(event.currentTarget.value))}><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
-          <button type="button" className="motion-export-confirm" disabled={motionPath.keyframes.length < 2 || exporting} onClick={() => void exportReferenceVideo()}><Download aria-hidden="true" size={14} />{exporting ? "正在录制" : "导出 WebM"}</button>
+        <section className="motion-export-panel" aria-label={t("director3d.motion.exportSettings")}>
+          <div><strong>{t("director3d.motion.exportReferenceVideo")}</strong><small>{t("director3d.motion.exportDescription")}</small></div>
+          <label><span>{t("director3d.motion.quality")}</span><select aria-label={t("director3d.motion.quality")} value={exportQuality} onChange={(event) => setExportQuality(event.currentTarget.value as ReferenceVideoExportQuality)}><option value="720p">{t("director3d.motion.quality720p")}</option><option value="1080p">{t("director3d.motion.quality1080p")}</option></select></label>
+          <label><span>{t("director3d.motion.frameRate")}</span><select aria-label={t("director3d.motion.frameRate")} value={exportFps} onChange={(event) => setExportFps(Number(event.currentTarget.value))}><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
+          <button type="button" className="motion-export-confirm" disabled={motionPath.keyframes.length < 2 || exporting} onClick={() => void exportReferenceVideo()}><Download aria-hidden="true" size={14} />{exporting ? t("director3d.motion.recording") : t("director3d.motion.exportWebM")}</button>
           {exportStatus ? <output className="motion-export-status" role="status">{exportStatus}</output> : null}
         </section>
       ) : null}
 
-      <section className="motion-preview-panel" aria-label="运镜预览方式">
+      <section className="motion-preview-panel" aria-label={t("director3d.motion.previewMode")}>
         <div className="motion-block-heading">
-          <strong>你想怎么看？</strong>
-          <small>路线检查和最终镜头分开预览</small>
+          <strong>{t("director3d.motion.previewQuestion")}</strong>
+          <small>{t("director3d.motion.previewHint")}</small>
         </div>
         <div className="motion-preview-options">
           <button
             type="button"
             className={`motion-preview-option is-director${viewMode === "director" ? " is-active" : ""}`}
             disabled={!canPlay}
-            aria-label={cameraMotionPlaying && viewMode === "director" ? "暂停导演视角预演" : "播放导演视角预演"}
+            aria-label={cameraMotionPlaying && viewMode === "director" ? t("director3d.motion.pause") : t("director3d.motion.previewDirector")}
             aria-pressed={viewMode === "director"}
             onClick={() => previewInView("director")}
           >
             <Route aria-hidden="true" size={17} />
-            <span><strong>{cameraMotionPlaying && viewMode === "director" ? "暂停" : "看路线"}</strong><small>导演视角看轨迹点</small></span>
+            <span><strong>{cameraMotionPlaying && viewMode === "director" ? t("director3d.motion.pause") : t("director3d.motion.previewDirector")}</strong><small>{t("director3d.motion.previewDirectorHint")}</small></span>
             {cameraMotionPlaying && viewMode === "director" ? <Pause aria-hidden="true" size={14} /> : <Play aria-hidden="true" size={14} />}
           </button>
           <button
             type="button"
             className={`motion-preview-option is-camera${viewMode === "camera" ? " is-active" : ""}`}
             disabled={!canPlay}
-            aria-label={cameraMotionPlaying && viewMode === "camera" ? "暂停第一视角运镜预演" : "播放第一视角运镜预演"}
+            aria-label={cameraMotionPlaying && viewMode === "camera" ? t("director3d.motion.pause") : t("director3d.motion.previewCamera")}
             aria-pressed={viewMode === "camera"}
             onClick={() => previewInView("camera")}
           >
             <Video aria-hidden="true" size={17} />
-            <span><strong>{cameraMotionPlaying && viewMode === "camera" ? "暂停" : "看成片"}</strong><small>第一视角看最终镜头</small></span>
+            <span><strong>{cameraMotionPlaying && viewMode === "camera" ? t("director3d.motion.pause") : t("director3d.motion.previewCamera")}</strong><small>{t("director3d.motion.previewCameraHint")}</small></span>
             {cameraMotionPlaying && viewMode === "camera" ? <Pause aria-hidden="true" size={14} /> : <Play aria-hidden="true" size={14} />}
           </button>
         </div>
@@ -314,76 +316,76 @@ export function MotionStudio({
       <div className="motion-studio-body">
         <div className="motion-studio-primary-actions">
           <div className="motion-block-heading">
-            <strong>制作镜头</strong>
-            <small>移动镜头，按 Enter 添加轨迹点</small>
+            <strong>{t("director3d.motion.createShot")}</strong>
+            <small>{t("director3d.motion.createShotHint")}</small>
           </div>
           <button
             type="button"
             className="motion-primary-button"
-            aria-label="开始掌镜"
+            aria-label={t("director3d.motion.startPilot")}
             onClick={() => onStartPilot ? onStartPilot(null) : startCameraPilot("pilot")}
           >
             <MousePointer2 aria-hidden="true" size={17} />
-            <span><strong>开始掌镜</strong><small>WASD 自由走镜头</small></span>
+            <span><strong>{t("director3d.motion.startPilot")}</strong><small>{t("director3d.motion.startPilotHint")}</small></span>
           </button>
-          <button type="button" className="motion-add-current" aria-label="添加当前视角为轨迹点" onClick={addCurrentView}>
+          <button type="button" className="motion-add-current" aria-label={t("director3d.motion.addCurrentView")} onClick={addCurrentView}>
             <Plus aria-hidden="true" size={16} />
-            添加当前视角
+            {t("director3d.motion.addCurrentView")}
           </button>
         </div>
 
-        <div className="motion-key-help" aria-label="掌镜键位说明">
-          <span><kbd>WASD</kbd><small>移动</small></span>
-          <span><kbd>E</kbd><small>上升</small></span>
-          <span><kbd>Q</kbd><small>下降</small></span>
-          <span><kbd>空格</kbd><small>播放 / 暂停人物</small></span>
-          <span><kbd>鼠标</kbd><small>看向</small></span>
-          <span><kbd>F</kbd><small>锁定</small></span>
-          <span><kbd>Enter</kbd><small>记录</small></span>
+        <div className="motion-key-help" aria-label={t("director3d.pilot.keyboardHelp")}>
+          <span><kbd>WASD</kbd><small>{t("director3d.pilot.move")}</small></span>
+          <span><kbd>E</kbd><small>{t("director3d.pilot.ascendDescend")}</small></span>
+          <span><kbd>Q</kbd><small>{t("director3d.pilot.ascendDescend")}</small></span>
+          <span><kbd>空格</kbd><small>{t("director3d.pilot.playPause")}</small></span>
+          <span><kbd>鼠标</kbd><small>{t("director3d.pilot.look")}</small></span>
+          <span><kbd>F</kbd><small>{t("director3d.pilot.lockSubject")}</small></span>
+          <span><kbd>Enter</kbd><small>{t("director3d.pilot.record")}</small></span>
         </div>
 
         <div className="motion-route-column">
           <div className="motion-route-title">
-            <div><Video aria-hidden="true" size={15} /><strong>镜头路线</strong><span>{motionPath.keyframes.length} 个点</span></div>
+            <div><Video aria-hidden="true" size={15} /><strong>{t("director3d.motion.route")}</strong><span>{t("director3d.motion.routePoints", { count: motionPath.keyframes.length })}</span></div>
             {motionPath.keyframes.length > 0 ? (
               <button
                 type="button"
                 className={batchSelectionEnabled ? "is-active" : undefined}
-                aria-label="批量选择并移动轨迹点"
+                aria-label={t("director3d.motion.batchSelectHint")}
                 aria-pressed={batchSelectionEnabled}
                 onClick={toggleBatchSelection}
               >
                 <Move3D aria-hidden="true" size={13} />
-                批量移动
+                {t("director3d.motion.batchMove")}
               </button>
             ) : null}
           </div>
 
           {batchSelectionEnabled ? (
-            <div className="motion-batch-selection" aria-label="批量轨迹点选择工具">
-              <span>已选 {selectedCameraKeyframeIds.length} 个点</span>
-              <small>点下面的数字，可选 1、3、6</small>
+            <div className="motion-batch-selection" aria-label={t("director3d.motion.batchSelectHint")}>
+              <span>{t("director3d.motion.selectedCount", { count: selectedCameraKeyframeIds.length })}</span>
+              <small>{t("director3d.motion.batchTip")}</small>
               <button
                 type="button"
-                aria-label="全选所有轨迹点"
+                aria-label={t("director3d.motion.selectAll")}
                 onClick={() => setCameraMotionKeyframeSelection(motionPath.keyframes.map((item) => item.id))}
-              >全选</button>
+              >{t("director3d.motion.selectAll")}</button>
               <button
                 type="button"
-                aria-label="清空轨迹点选择"
+                aria-label={t("director3d.motion.clearSelection")}
                 onClick={() => setCameraMotionKeyframeSelection([])}
-              >清空</button>
+              >{t("director3d.motion.clearSelection")}</button>
             </div>
           ) : null}
 
           {motionPath.keyframes.length === 0 ? (
             <div className="motion-route-empty" role="status">
               <Route aria-hidden="true" size={20} />
-              <span>还没有轨迹点</span>
-              <small>点“开始掌镜”，走到合适的位置按 Enter。</small>
+              <span>{t("director3d.motion.noWaypoints")}</span>
+              <small>{t("director3d.motion.noWaypointsHint")}</small>
             </div>
           ) : (
-            <div className="motion-waypoint-strip" role="list" aria-label="可编辑轨迹点">
+            <div className="motion-waypoint-strip" role="list" aria-label={t("director3d.motion.waypoint")}>
               {motionPath.keyframes.map((keyframe, index) => {
                 const selected = selectedKeyframe?.id === keyframe.id;
                 const reached = timelinePreviewActive && index <= activeIndex;
@@ -399,8 +401,8 @@ export function MotionStudio({
                         <button
                           type="button"
                           className="motion-waypoint-insert"
-                          aria-label={`在轨迹点 ${index} 和 ${index + 1} 之间插入轨迹点`}
-                          title={`在 ${index} 和 ${index + 1} 中间插入`}
+                          aria-label={t("director3d.motion.waypointInsert", { from: index, to: index + 1 })}
+                          title={t("director3d.motion.waypointInsertTitle", { from: index, to: index + 1 })}
                           onClick={() => {
                             setBatchSelectionEnabled(false);
                             insertCameraMotionKeyframeAfter(activeCamera.id, motionPath.keyframes[index - 1].id);
@@ -413,31 +415,31 @@ export function MotionStudio({
                     <button
                       type="button"
                       className={`motion-waypoint${(batchSelectionEnabled ? selectedCameraKeyframeIds.includes(keyframe.id) : selected) ? " is-selected" : ""}${reached ? " is-reached" : ""}${approaching ? " is-approaching" : ""}${trackedObjectName ? " has-tracking" : ""}`}
-                      aria-label={batchSelectionEnabled ? `批量选择轨迹点 ${index + 1}` : `选择轨迹点 ${index + 1}`}
+                      aria-label={t(batchSelectionEnabled ? "director3d.motion.batchSelectWaypoint" : "director3d.motion.selectWaypoint", { index: index + 1 })}
                       aria-pressed={batchSelectionEnabled ? selectedCameraKeyframeIds.includes(keyframe.id) : selected}
-                      title={trackedObjectName ? `轨迹点 ${index + 1} · 跟踪 ${trackedObjectName}` : `轨迹点 ${index + 1} · 固定朝向`}
+                      title={trackedObjectName ? t("director3d.motion.waypointTracking", { index: index + 1, name: trackedObjectName }) : t("director3d.motion.waypointTitle", { index: index + 1 })}
                       onClick={() => selectWaypoint(keyframe.id, keyframe.time)}
                     >
                       <span>{index + 1}</span>
-                      <small>{(keyframe.time * motionPath.duration).toFixed(1)}s{trackedObjectName ? " · 跟" : ""}</small>
+                      <small>{(keyframe.time * motionPath.duration).toFixed(1)}s{trackedObjectName ? t("director3d.motion.waypointFollow") : ""}</small>
                     </button>
                   </div>
                 );
               })}
-              <button type="button" className="motion-waypoint-add" aria-label="添加当前视角为轨迹点" onClick={addCurrentView}>
+              <button type="button" className="motion-waypoint-add" aria-label={t("director3d.motion.addCurrentView")} onClick={addCurrentView}>
                 <Plus aria-hidden="true" size={16} />
               </button>
             </div>
           )}
 
           {selectedKeyframe && !batchSelectionEnabled ? (
-            <div className="motion-selected-actions" aria-label="当前轨迹点操作">
-              <span>轨迹点 {motionPath.keyframes.indexOf(selectedKeyframe) + 1}</span>
+            <div className="motion-selected-actions" aria-label={t("director3d.motion.selectedWaypointActions")}>
+              <span>{t("director3d.motion.waypoint")} {motionPath.keyframes.indexOf(selectedKeyframe) + 1}</span>
               {motionPath.keyframes.indexOf(selectedKeyframe) > 0 && motionPath.keyframes.indexOf(selectedKeyframe) < motionPath.keyframes.length - 1 ? (
                 <label className="motion-waypoint-arrival">
-                  到达
+                  {t("director3d.motion.arrival")}
                   <input
-                    aria-label="当前轨迹点到达时间"
+                    aria-label={t("director3d.motion.arrival")}
                     type="number"
                     min={(motionPath.keyframes[motionPath.keyframes.indexOf(selectedKeyframe) - 1].time * motionPath.duration + 0.1).toFixed(1)}
                     max={(motionPath.keyframes[motionPath.keyframes.indexOf(selectedKeyframe) + 1].time * motionPath.duration - 0.1).toFixed(1)}
@@ -448,23 +450,23 @@ export function MotionStudio({
                     onKeyDown={(event) => {
                       if (event.key === "Enter") event.currentTarget.blur();
                     }}
-                  />秒
+                  />{t("director3d.motion.seconds")}
                 </label>
               ) : null}
-              <button type="button" onClick={editSelectedWaypoint}><MousePointer2 aria-hidden="true" size={13} />进入此点调整</button>
+              <button type="button" onClick={editSelectedWaypoint}><MousePointer2 aria-hidden="true" size={13} />{t("director3d.motion.editWaypoint")}</button>
               <button
                 type="button"
-                aria-label="轨迹点前移"
+                aria-label={t("director3d.motion.moveUp")}
                 disabled={motionPath.keyframes.indexOf(selectedKeyframe) === 0}
                 onClick={() => moveCameraMotionKeyframe(activeCamera.id, selectedKeyframe.id, -1)}
               ><ChevronUp aria-hidden="true" size={14} /></button>
               <button
                 type="button"
-                aria-label="轨迹点后移"
+                aria-label={t("director3d.motion.moveDown")}
                 disabled={motionPath.keyframes.indexOf(selectedKeyframe) === motionPath.keyframes.length - 1}
                 onClick={() => moveCameraMotionKeyframe(activeCamera.id, selectedKeyframe.id, 1)}
               ><ChevronDown aria-hidden="true" size={14} /></button>
-              <button type="button" className="is-danger" aria-label="删除当前轨迹点" onClick={() => deleteCameraMotionKeyframe(activeCamera.id, selectedKeyframe.id)}>
+              <button type="button" className="is-danger" aria-label={t("director3d.motion.deleteWaypoint")} onClick={() => deleteCameraMotionKeyframe(activeCamera.id, selectedKeyframe.id)}>
                 <Trash2 aria-hidden="true" size={14} />
               </button>
             </div>
@@ -472,38 +474,38 @@ export function MotionStudio({
             <div className="motion-batch-move-hint" role="status">
               <Move3D aria-hidden="true" size={14} />
               {selectedCameraKeyframeIds.length > 0
-                ? "在画面里拖动 XYZ 箭头，所选轨迹点会一起移动"
-                : "请先点选要一起移动的轨迹点"}
+                ? t("director3d.motion.batchMoveHint")
+                : t("director3d.motion.batchMoveSelectHint")}
             </div>
           ) : null}
         </div>
 
         <div className="motion-settings-column">
           <div className="motion-block-heading">
-            <strong>运镜细节</strong>
-            <small>速度、平滑和主体锁定</small>
+            <strong>{t("director3d.motion.details")}</strong>
+            <small>{t("director3d.motion.detailsHint")}</small>
           </div>
           <label className="motion-setting-row motion-preset-row">
-            <span><SlidersHorizontal aria-hidden="true" size={14} />参数预设</span>
+            <span><SlidersHorizontal aria-hidden="true" size={14} />{t("director3d.motion.preset")}</span>
             <select
               className="motion-tracking-select"
-              aria-label="运镜参数预设"
+              aria-label={t("director3d.motion.preset")}
               value={matchingPreset?.id ?? "custom"}
               onChange={(event) => applyMotionPreset(event.currentTarget.value)}
             >
-              <option value="custom" disabled>自定义</option>
+              <option value="custom" disabled>{t("director3d.motion.presetCustom")}</option>
               {CAMERA_MOTION_PRESETS.map((preset) => (
                 <option key={preset.id} value={preset.id}>{preset.label}</option>
               ))}
             </select>
             <small className="motion-tracking-status">
-              {matchingPreset?.description ?? "选择预设不会改变已经摆好的轨迹点"}
+              {matchingPreset?.description ?? t("director3d.motion.presetHint")}
             </small>
           </label>
           <label className="motion-setting-row">
-            <span><Gauge aria-hidden="true" size={14} />整段时长</span>
+            <span><Gauge aria-hidden="true" size={14} />{t("director3d.motion.duration")}</span>
             <input
-              aria-label="整段运镜时长"
+              aria-label={t("director3d.motion.duration")}
               type="range"
               min="0.5"
               max="30"
@@ -518,56 +520,56 @@ export function MotionStudio({
             <output>{motionPath.duration.toFixed(1)}s</output>
           </label>
           <div className="motion-setting-row">
-            <span><SlidersHorizontal aria-hidden="true" size={14} />轨迹形状</span>
-            <div className="motion-mini-segmented" role="group" aria-label="轨迹形状">
-              <button type="button" aria-pressed={motionPath.interpolation === "smooth"} onClick={() => updateCameraMotionPath(activeCamera.id, { interpolation: "smooth" })}>平滑</button>
-              <button type="button" aria-pressed={motionPath.interpolation === "linear"} onClick={() => updateCameraMotionPath(activeCamera.id, { interpolation: "linear" })}>折线</button>
+            <span><SlidersHorizontal aria-hidden="true" size={14} />{t("director3d.motion.interpolation")}</span>
+            <div className="motion-mini-segmented" role="group" aria-label={t("director3d.motion.interpolation")}>
+              <button type="button" aria-pressed={motionPath.interpolation === "smooth"} onClick={() => updateCameraMotionPath(activeCamera.id, { interpolation: "smooth" })}>{t("director3d.motion.interpolationSmooth")}</button>
+              <button type="button" aria-pressed={motionPath.interpolation === "linear"} onClick={() => updateCameraMotionPath(activeCamera.id, { interpolation: "linear" })}>{t("director3d.motion.interpolationLinear")}</button>
             </div>
           </div>
           <div className="motion-setting-row">
-            <span><ArrowUp aria-hidden="true" size={14} /><ArrowDown aria-hidden="true" size={14} />速度曲线</span>
-            <div className="motion-mini-segmented" role="group" aria-label="速度曲线">
-              <button type="button" aria-pressed={motionPath.easing === "ease-in-out"} onClick={() => updateCameraMotionPath(activeCamera.id, { easing: "ease-in-out" })}>柔和</button>
-              <button type="button" aria-pressed={motionPath.easing === "linear"} onClick={() => updateCameraMotionPath(activeCamera.id, { easing: "linear" })}>匀速</button>
+            <span><ArrowUp aria-hidden="true" size={14} /><ArrowDown aria-hidden="true" size={14} />{t("director3d.motion.easing")}</span>
+            <div className="motion-mini-segmented" role="group" aria-label={t("director3d.motion.easing")}>
+              <button type="button" aria-pressed={motionPath.easing === "ease-in-out"} onClick={() => updateCameraMotionPath(activeCamera.id, { easing: "ease-in-out" })}>{t("director3d.motion.easingEaseInOut")}</button>
+              <button type="button" aria-pressed={motionPath.easing === "linear"} onClick={() => updateCameraMotionPath(activeCamera.id, { easing: "linear" })}>{t("director3d.motion.easingLinear")}</button>
             </div>
           </div>
           <div className="motion-setting-row">
-            <span><MousePointer2 aria-hidden="true" size={14} />此点跟踪</span>
+            <span><MousePointer2 aria-hidden="true" size={14} />{t("director3d.motion.tracking")}</span>
             <select
               className="motion-tracking-select"
-              aria-label="轨迹点跟踪主体"
+              aria-label={t("director3d.motion.tracking")}
               value={trackingObjectId}
               disabled={!selectedKeyframe}
               onChange={(event) => setTrackingObject(event.currentTarget.value)}
             >
-              <option value="">不跟踪（固定朝向）</option>
+              <option value="">{t("director3d.motion.noTracking")}</option>
               {trackableObjects.map((object) => (
                 <option key={object.id} value={object.id}>{object.name}</option>
               ))}
             </select>
             <small className="motion-tracking-status">
               {!selectedKeyframe
-                ? "先在上方选择一个轨迹点"
+                ? t("director3d.motion.selectWaypointFirst")
                 : trackingObjectId
-                  ? "这个点会实时看向所选主体"
-                  : "这个点使用自己保存的固定朝向"}
+                  ? t("director3d.motion.trackingActive")
+                  : t("director3d.motion.trackingFixed")}
             </small>
           </div>
           <div className="motion-setting-row">
-            <span><MousePointer2 aria-hidden="true" size={14} />锁定方式</span>
-            <div className="motion-mini-segmented" role="group" aria-label="主体锁定方式">
+            <span><MousePointer2 aria-hidden="true" size={14} />{t("director3d.motion.lockMode")}</span>
+            <div className="motion-mini-segmented" role="group" aria-label={t("director3d.motion.lockMode")}>
               <button
                 type="button"
-                aria-label="锁定后只保持看向主体"
+                aria-label={t("director3d.motion.lookAt")}
                 aria-pressed={!cameraPilotFollowTarget}
                 onClick={() => setCameraPilotFollowTarget(false)}
-              >只看向</button>
+              >{t("director3d.motion.lookAt")}</button>
               <button
                 type="button"
-                aria-label="锁定后跟随主体移动"
+                aria-label={t("director3d.motion.follow")}
                 aria-pressed={cameraPilotFollowTarget}
                 onClick={() => setCameraPilotFollowTarget(true)}
-              >跟随移动</button>
+              >{t("director3d.motion.follow")}</button>
             </div>
           </div>
         </div>

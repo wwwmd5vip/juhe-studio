@@ -1,4 +1,5 @@
 import { CornerDownLeft, Crosshair, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { CameraPilotMode } from "../store/directorStore";
 
 export function PilotHud({
@@ -13,18 +14,19 @@ export function PilotHud({
   onRecord: () => void;
   pointedTargetName: string | null;
 }) {
+  const { t } = useTranslation();
   const targetName = lockedTargetName ?? pointedTargetName;
   const crosshairLabel = lockedTargetName
-    ? `掌镜准星，已锁定${lockedTargetName}`
+    ? t("director3d.pilot.crosshairLocked", { name: lockedTargetName })
     : pointedTargetName
-      ? `掌镜准星，当前对准${pointedTargetName}`
-      : "掌镜准星，当前没有对准可锁定物体";
+      ? t("director3d.pilot.crosshairPointing", { name: pointedTargetName })
+      : t("director3d.pilot.crosshairIdle");
 
   return (
-    <div className="pilot-hud" aria-label="第一人称掌镜控制层">
+    <div className="pilot-hud" aria-label={t("director3d.pilot.mode")}>
       <div className="pilot-status" role="status">
         <span className="pilot-status-dot" />
-        掌镜模式
+        {t("director3d.pilot.mode")}
       </div>
 
       <div className={`pilot-crosshair${lockedTargetName ? " is-locked" : targetName ? " is-pointing" : ""}`} aria-label={crosshairLabel}>
@@ -36,27 +38,29 @@ export function PilotHud({
         {targetName ? (
           <span className="pilot-target-name">
             <Crosshair aria-hidden="true" size={13} />
-            {lockedTargetName ? `已锁定：${targetName}` : `${targetName} · 按 F 锁定`}
+            {lockedTargetName
+              ? t("director3d.pilot.locked", { name: targetName })
+              : t("director3d.pilot.lockHint", { name: targetName })}
           </span>
         ) : null}
       </div>
 
-      <div className="pilot-keyboard-help" aria-label="掌镜快捷键">
-        <span><kbd>W A S D</kbd> 移动</span>
-        <span><kbd>E</kbd> 上升 · <kbd>Q</kbd> 下降</span>
-        <span><kbd>空格</kbd> 播放/暂停</span>
-        <span><kbd>F</kbd> 锁定主体</span>
-        <span><kbd>滚轮</kbd> 调整远近</span>
+      <div className="pilot-keyboard-help" aria-label={t("director3d.pilot.keyboardHelp")}>
+        <span><kbd>W A S D</kbd> {t("director3d.pilot.move")}</span>
+        <span><kbd>E</kbd> {t("director3d.pilot.ascendDescend")}</span>
+        <span><kbd>空格</kbd> {t("director3d.pilot.playPause")}</span>
+        <span><kbd>F</kbd> {t("director3d.pilot.lockSubject")}</span>
+        <span><kbd>滚轮</kbd> {t("director3d.pilot.zoom")}</span>
       </div>
 
       <div className="pilot-hud-actions">
-        <button type="button" className="pilot-hud-secondary" onClick={onExit} aria-label="退出掌镜模式">
+        <button type="button" className="pilot-hud-secondary" onClick={onExit} aria-label={t("director3d.pilot.exitAria")}>
           <LogOut aria-hidden="true" size={15} />
-          Esc 退出
+          {t("director3d.pilot.exit")}
         </button>
-        <button type="button" className="pilot-hud-primary" onClick={onRecord} aria-label="记录当前轨迹点">
+        <button type="button" className="pilot-hud-primary" onClick={onRecord} aria-label={t("director3d.pilot.recordAria")}>
           <CornerDownLeft aria-hidden="true" size={15} />
-          Enter 记录轨迹点
+          {t("director3d.pilot.record")}
         </button>
       </div>
     </div>

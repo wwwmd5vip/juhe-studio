@@ -1,6 +1,7 @@
 import { Html, Line, TransformControls, type TransformControlsProps } from "@react-three/drei";
 import { useLoader, type ThreeEvent } from "@react-three/fiber";
 import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Box3, Color, Matrix4, Quaternion, Vector3, type Group, type Object3D } from "three";
 import type { TransformControls as TransformControlsImpl } from "three-stdlib";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
@@ -515,6 +516,7 @@ function ObjectSceneNode({
   motionTimeSeconds?: number;
   motionProgress?: number;
 }) {
+  const { t } = useTranslation();
   const groupRef = useRef<Group>(null!);
   const [measuredCharacterLabel, setMeasuredCharacterLabel] = useState<{
     key: string;
@@ -620,7 +622,7 @@ function ObjectSceneNode({
             <meshBasicMaterial color={pilotTargetState === "locked" ? "#4ADE80" : "#F7B955"} depthTest={false} transparent opacity={0.95} />
           </mesh>
           <ViewportObjectLabel position={[0, 0.42, 0]}>
-            {pilotTargetState === "locked" ? `已锁定 · ${item.name}` : `${item.name} · F 锁定`}
+            {pilotTargetState === "locked" ? t("director3d.canvas.locked", { name: item.name }) : t("director3d.canvas.lockHint", { name: item.name })}
           </ViewportObjectLabel>
         </group>
       ) : null}
@@ -944,6 +946,7 @@ function CameraMotionSelectionTransform({
   keyframes: DirectorCameraMotionKeyframe[];
   translationSnap: number | null;
 }) {
+  const { t } = useTranslation();
   const groupRef = useRef<Group>(null!);
   const translateSelectedCameraMotionKeyframes = useDirectorStore(
     (state) => state.translateSelectedCameraMotionKeyframes
@@ -992,7 +995,7 @@ function CameraMotionSelectionTransform({
         position={center}
         userData={{ [HIDE_FROM_VIEWPORT_CAPTURE_KEY]: true }}
       >
-        <ViewportObjectLabel position={[0, 0.48, 0]}>已选 {keyframes.length} 个轨迹点</ViewportObjectLabel>
+        <ViewportObjectLabel position={[0, 0.48, 0]}>{t("director3d.canvas.selectedKeyframes", { count: keyframes.length })}</ViewportObjectLabel>
       </group>
       <ViewportTransformControls
         mode="translate"
@@ -1228,6 +1231,7 @@ function CharacterRouteRig({
   transformMode: TransformMode;
   translationSnap: number | null;
 }) {
+  const { t } = useTranslation();
   const selectedObjectMotionKeyframeId = useDirectorStore((state) => state.selectedObjectMotionKeyframeId);
   const path = useMemo(
     () => normalizeObjectMotionPath(character.motionPath, character.transform),
@@ -1284,7 +1288,7 @@ function CharacterRouteRig({
             <sphereGeometry args={[0.11, 18, 12]} />
             <meshBasicMaterial color="#FFFFFF" depthTest={false} />
           </mesh>
-          <ViewportObjectLabel position={[0, 0.31, 0]}>进行中：{activeIndex + 1}</ViewportObjectLabel>
+          <ViewportObjectLabel position={[0, 0.31, 0]}>{t("director3d.canvas.current", { index: activeIndex + 1 })}</ViewportObjectLabel>
         </group>
       ) : null}
     </group>
