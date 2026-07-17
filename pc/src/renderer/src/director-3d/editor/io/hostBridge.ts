@@ -1,166 +1,77 @@
-import { useDirectorStore } from "../store/directorStore";
+import type { Asset } from '@shared/types/creator-os'
 
-interface HostPanoramaPayload {
-  edgeId?: unknown;
-  sourceNodeId?: unknown;
-  imageUrl?: unknown;
-  fileName?: unknown;
+export interface HostCaptureItem {
+  dataUrl: string
+  fileName?: string
 }
 
-interface HostSessionPayload {
-  instanceId?: unknown;
-  theme?: unknown;
+export interface HostCaptureResult {
+  asset?: Asset
+  dataUrl: string
+  fileName: string
+  error?: string
 }
 
-export interface HostCaptureItemPayload {
-  dataUrl?: unknown;
-  fileName?: unknown;
-}
-
-export interface HostCaptureBatchPayload {
-  captures?: HostCaptureItemPayload[];
-}
-
-let initialized = false;
-let directorDeskProjectId: string | null = null;
-export const DIRECTOR_DESK_SESSION_OPENED_EVENT = "storyai:director-desk-session-opened";
+let currentProjectId: string | null = null
 
 export function setDirectorDeskProjectId(projectId: string | null) {
-  directorDeskProjectId = projectId;
-}
-
-export function getDirectorDeskProjectId() {
-  return directorDeskProjectId;
-}
-
-function normalizeString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-const HOST_ORIGIN_QUERY_KEY = "hostOrigin";
-
-function normalizeOrigin(value: unknown) {
-  const text = normalizeString(value);
-  if (!text) return null;
-
-  try {
-    return new URL(text).origin;
-  } catch {
-    return null;
-  }
-}
-
-export function getDirectorDeskHostOrigin() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    return normalizeOrigin(params.get(HOST_ORIGIN_QUERY_KEY)) ?? window.location.origin;
-  } catch {
-    return window.location.origin;
-  }
-}
-
-function isAllowedHostEvent(event: MessageEvent) {
-  return event.origin === getDirectorDeskHostOrigin();
-}
-
-function normalizeTheme(value: unknown): "dark" | "light" | null {
-  return value === "light" || value === "dark" ? value : null;
-}
-
-function applyDirectorDeskTheme(theme: "dark" | "light") {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.classList.toggle("dark", theme === "dark");
-}
-
-function getInitialHostTheme() {
-  try {
-    return normalizeTheme(new URLSearchParams(window.location.search).get("theme"));
-  } catch {
-    return null;
-  }
-}
-
-function importHostPanorama(_payload: HostPanoramaPayload) {
-  // 全景图功能已关闭；保留旧消息入口，避免旧宿主发送时抛错。
-}
-
-function openHostSession(payload: HostSessionPayload) {
-  const instanceId = normalizeString(payload.instanceId);
-  const theme = normalizeTheme(payload.theme);
-  if (theme) {
-    applyDirectorDeskTheme(theme);
-  }
-  if (instanceId) {
-    useDirectorStore.getState().openScopedScene(instanceId);
-    window.dispatchEvent(new CustomEvent(DIRECTOR_DESK_SESSION_OPENED_EVENT, { detail: { instanceId } }));
-  }
-}
-
-export function postDirectorDeskCapturesToHost(
-  captures: Array<{
-    dataUrl: string;
-    fileName?: string;
-  }>
-) {
-  const normalizedCaptures = captures
-    .map((capture, index) => {
-      const dataUrl = normalizeString(capture.dataUrl);
-      if (!dataUrl) {
-        return null;
-      }
-
-      return {
-        dataUrl,
-        fileName: normalizeString(capture.fileName) || `director-desk-capture-${index + 1}.png`,
-      };
-    })
-    .filter((capture): capture is { dataUrl: string; fileName: string } => Boolean(capture));
-
-  if (normalizedCaptures.length === 0) {
-    return;
-  }
-
-  window.parent?.postMessage(
-    {
-      type: "storyai:director-desk-captures-sent",
-      payload: {
-        captures: normalizedCaptures,
-      },
-    },
-    getDirectorDeskHostOrigin()
-  );
-}
-
-function handleHostMessage(event: MessageEvent) {
-  if (!isAllowedHostEvent(event)) {
-    return;
-  }
-
-  if (event.data?.type === "storyai:director-desk-session") {
-    openHostSession((event.data.payload || {}) as HostSessionPayload);
-    return;
-  }
-
-  if (event.data?.type === "storyai:director-desk-panorama") {
-    importHostPanorama((event.data.payload || {}) as HostPanoramaPayload);
-  }
-}
-
-export function initDirectorDeskHostBridge() {
-  if (initialized) {
-    return;
-  }
-
-  initialized = true;
-  applyDirectorDeskTheme(getInitialHostTheme() ?? "dark");
-  window.addEventListener("message", handleHostMessage);
+  currentProjectId = projectId
 }
 
 export function clearDirectorDeskHostBridge() {
-  if (!initialized) {
-    return;
+  currentProjectId = null
+}
+
+function normalizeString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+export async function postDirectorDeskCapturesToHost(
+  captures: HostCaptureItem[]
+): Promise<HostCaptureResult[]> {
+  const normalizedCaptures = captures
+    .map((capture, index) => {
+      const dataUrl = normalizeString(capture.dataUrl)
+      if (!dataUrl) return null
+      return {
+        dataUrl,
+        fileName: normalizeString(capture.fileName) || `director-desk-capture-${index + 1}.png`
+      }
+    })
+    .filter((capture): capture is { dataUrl: string; fileName: string } => Boolean(capture))
+
+  if (normalizedCaptures.length === 0) {
+    return []
   }
 
-  initialized = false;
-  window.removeEventListener("message", handleHostMessage);
+  console.log('[Director3D] Captures ready:', normalizedCaptures.length)
+
+  const projectId = currentProjectId
+  if (!projectId) {
+    return normalizedCaptures.map((capture) => ({
+      ...capture,
+      error: 'NO_PROJECT_ID'
+    }))
+  }
+
+  return Promise.all(
+    normalizedCaptures.map(async (capture) => {
+      try {
+        const asset = await window.api.creatorOs.createAssetFromDataUrl(
+          projectId,
+          capture.dataUrl,
+          capture.fileName,
+          { source: 'director-3d-capture' }
+        )
+        return { ...capture, asset }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return { ...capture, error: message }
+      }
+    })
+  )
+}
+
+export function initDirectorDeskHostBridge() {
+  // pc/ 不需要 message 监听；保留函数以保持调用方兼容。
 }

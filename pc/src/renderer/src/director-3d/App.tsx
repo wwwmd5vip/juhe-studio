@@ -7,9 +7,7 @@ import { DirectorDeskShell } from "./app/layout/DirectorDeskShell";
 import { DirectorCanvas } from "./editor/canvas/DirectorCanvas";
 import { ViewportSensitivitySettings } from "./editor/canvas/ViewportSensitivitySettings";
 import {
-  DIRECTOR_DESK_SESSION_OPENED_EVENT,
   clearDirectorDeskHostBridge,
-  getDirectorDeskHostOrigin,
   initDirectorDeskHostBridge,
   setDirectorDeskProjectId,
 } from "./editor/io/hostBridge";
@@ -81,21 +79,7 @@ export default function App({ instanceId, projectId }: Director3DAppProps) {
   useEffect(() => {
     initDirectorDeskHostBridge();
     openDirectorDesk(activeDeskId, directorDesks);
-
-    window.parent?.postMessage({ type: "storyai:director-desk-ready" }, getDirectorDeskHostOrigin());
   }, []);
-
-  useEffect(() => {
-    function handleHostSessionOpened(event: Event) {
-      const openedInstanceId = (event as CustomEvent<{ instanceId?: string }>).detail?.instanceId;
-      if (openedInstanceId) {
-        openDirectorDesk(openedInstanceId, directorDesks, { loadScene: false });
-      }
-    }
-
-    window.addEventListener(DIRECTOR_DESK_SESSION_OPENED_EVENT, handleHostSessionOpened);
-    return () => window.removeEventListener(DIRECTOR_DESK_SESSION_OPENED_EVENT, handleHostSessionOpened);
-  }, [directorDesks]);
 
   function handleCreateDesk() {
     const record = createDirectorDeskRecord(directorDesks, t("director3d.shell.defaultDeskName"));
