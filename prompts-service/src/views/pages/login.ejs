@@ -1,0 +1,11 @@
+<div class="min-h-screen flex items-center justify-center">
+  <form method="post" action="/admin/login" class="bg-white p-8 rounded shadow w-96">
+    <h1 class="text-2xl font-bold mb-6">提示词后台登录</h1>
+    <% if (error) { %>
+      <div class="text-red-500 mb-4"><%= error %></div>
+    <% } %>
+    <input name="username" placeholder="用户名" class="w-full border p-2 mb-4 rounded" required>
+    <input name="password" type="password" placeholder="密码" class="w-full border p-2 mb-4 rounded" required>
+    <button class="w-full bg-blue-600 text-white p-2 rounded">登录</button>
+  </form>
+</div>
