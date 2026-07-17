@@ -5,7 +5,7 @@ import path from 'node:path'
 const cssPath = path.resolve(__dirname, 'index.css')
 const css = fs.readFileSync(cssPath, 'utf-8')
 
-describe.skip('director-3d global CSS scoping', () => {
+describe('director-3d global CSS scoping', () => {
   it('does not use bare html/body/#root/global * selectors', () => {
     const globalSelectors = [
       /^html\s*\{/m,
@@ -16,6 +16,10 @@ describe.skip('director-3d global CSS scoping', () => {
     for (const pattern of globalSelectors) {
       expect(css).not.toMatch(pattern)
     }
+  })
+
+  it('does not use top-level :root selector', () => {
+    expect(css).not.toMatch(/^:root\s*\{/m)
   })
 
   it('scopes variables and resets under .director3d-routing-wrapper', () => {
