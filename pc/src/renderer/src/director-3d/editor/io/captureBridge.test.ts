@@ -45,5 +45,5 @@ it("throws a clear error when the viewport capture handler is missing", async ()
       source: "camera-panel",
       cameraId: "cam_1",
     })
-  ).rejects.toThrow("Viewport capture handler is not registered");
+  ).rejects.toThrow("DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED");
 });

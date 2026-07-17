@@ -2944,7 +2944,8 @@
       "modelFormatUnsupported": "Only FBX / OBJ model files are currently supported",
       "panoramaSizeFailed": "Failed to read panorama size, please select another image",
       "panoramaGenFailed": "Unable to generate panorama in current environment, please try again later",
-      "panoramaFormatUnsupported": "Panorama only supports JPG / PNG / WEBP"
+      "panoramaFormatUnsupported": "Panorama only supports JPG / PNG / WEBP",
+      "viewportCaptureNotRegistered": "Viewport capture handler is not registered"
     },
     "shell": {
       "title": "3D Director's Desk",

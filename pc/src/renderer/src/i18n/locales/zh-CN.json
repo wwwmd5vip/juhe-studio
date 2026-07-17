@@ -2944,7 +2944,8 @@
       "modelFormatUnsupported": "仅支持 FBX / OBJ 模型文件",
       "panoramaSizeFailed": "读取全景图尺寸失败，请选择其他图片",
       "panoramaGenFailed": "当前环境无法生成全景图，请稍后重试",
-      "panoramaFormatUnsupported": "全景图仅支持 JPG / PNG / WEBP"
+      "panoramaFormatUnsupported": "全景图仅支持 JPG / PNG / WEBP",
+      "viewportCaptureNotRegistered": "截图处理器尚未注册"
     },
     "shell": {
       "title": "3D 导演台",

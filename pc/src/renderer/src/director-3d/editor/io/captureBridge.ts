@@ -22,7 +22,7 @@ export function clearViewportCaptureHandler() {
 
 export async function requestViewportCapture(request: ViewportCaptureRequest) {
   if (!viewportCaptureHandler) {
-    throw new Error("Viewport capture handler is not registered");
+    throw new Error("DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED");
   }
 
   return viewportCaptureHandler(request);

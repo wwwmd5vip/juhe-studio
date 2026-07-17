@@ -1,6 +1,7 @@
 import { Camera, Download, Eye, Images, Pause, Play, Plus, Route, Send, Trash2, Waypoints, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   InspectorAxisGroup,
   InspectorPanel,
@@ -48,6 +49,14 @@ function clampNumber(value: number, min: number, max: number) {
 
 function replaceAxis(tuple: [number, number, number], axis: 0 | 1 | 2, value: number): [number, number, number] {
   return tuple.map((item, index) => (index === axis ? value : item)) as [number, number, number];
+}
+
+function getCaptureErrorMessage(error: unknown, t: TFunction<'translation', undefined>): string {
+  const message = error instanceof Error ? error.message : String(error)
+  if (message === 'DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED') {
+    return t('director3d.error.viewportCaptureNotRegistered')
+  }
+  return message
 }
 
 export function CameraPanel() {
@@ -258,7 +267,7 @@ export function CameraPanel() {
         addCameraCaptures(currentCamera.id, [preview.dataUrl]);
       }
     } catch (error) {
-      setCaptureError(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
+      setCaptureError(getCaptureErrorMessage(error, t));
     }
   }
 

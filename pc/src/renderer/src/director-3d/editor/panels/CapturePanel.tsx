@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { requestViewportCapture } from "../io/captureBridge";
 import { serializeProject } from "../io/exportProjectJson";
 import { parseProject } from "../io/importProjectJson";
@@ -7,6 +8,14 @@ import { buildCaptureFileName } from "../io/screenshotExport";
 import { postDirectorDeskCapturesToHost } from "../io/hostBridge";
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
+
+function getCaptureErrorMessage(error: unknown, t: TFunction<'translation', undefined>): string {
+  const message = error instanceof Error ? error.message : String(error)
+  if (message === 'DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED') {
+    return t('director3d.error.viewportCaptureNotRegistered')
+  }
+  return message
+}
 
 export function CapturePanel() {
   const { t } = useTranslation();
@@ -51,7 +60,7 @@ export function CapturePanel() {
         }
       }
     } catch (error) {
-      setCaptureStatus(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
+      setCaptureStatus(getCaptureErrorMessage(error, t));
     }
   }
 
