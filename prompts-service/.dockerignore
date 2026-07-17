@@ -6,3 +6,9 @@ uploads
 .git
 .DS_Store
 *.log
+docs/
+tests/
+README.md
+.github/
+.gitignore
+*.md

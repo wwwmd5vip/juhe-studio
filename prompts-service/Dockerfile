@@ -11,11 +11,14 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-RUN apk add --no-cache python3 make g++
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src/db/migrations ./dist/db/migrations
-COPY --from=builder /app/src/views ./dist/views
-COPY --from=builder /app/package.json ./package.json
+RUN apk add --no-cache dumb-init libstdc++
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/src/db/migrations ./dist/db/migrations
+COPY --from=builder --chown=node:node /app/src/views ./dist/views
+COPY --from=builder --chown=node:node /app/package.json ./package.json
+RUN chown -R node:node /app
+USER node
 EXPOSE 3000
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/app.js"]

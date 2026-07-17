@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    # Bind mounts are written by the `node` user (UID 1000) inside the container.
+    # Ensure ./data and ./uploads on the host are writable by UID 1000, or use named volumes.
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads
@@ -19,6 +21,19 @@ services:
       - DEFAULT_GENERATION_CONCURRENCY=2
       - CORS_ORIGIN=${CORS_ORIGIN}
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s
