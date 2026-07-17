@@ -8,6 +8,8 @@ export type Director3dErrorCode =
   | 'DIRECTOR3D_PANORAMA_SIZE_FAILED'
   | 'DIRECTOR3D_PANORAMA_GEN_FAILED'
   | 'DIRECTOR3D_PANORAMA_FORMAT_UNSUPPORTED'
+  | 'DIRECTOR3D_NO_PROJECT_ID'
+  | 'DIRECTOR3D_EMPTY_CAPTURES'
 
 export function getDirector3dErrorMessage(
   error: unknown,
@@ -29,6 +31,10 @@ export function getDirector3dErrorMessage(
       return t('director3d.error.panoramaGenFailed')
     case 'DIRECTOR3D_PANORAMA_FORMAT_UNSUPPORTED':
       return t('director3d.error.panoramaFormatUnsupported')
+    case 'DIRECTOR3D_NO_PROJECT_ID':
+      return t('director3d.capture.noProjectId')
+    case 'DIRECTOR3D_EMPTY_CAPTURES':
+      return t('director3d.capture.emptyCaptures')
     default:
       return message
   }

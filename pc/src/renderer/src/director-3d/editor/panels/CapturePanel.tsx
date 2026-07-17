@@ -12,6 +12,7 @@ import {
   postDirectorDeskCapturesToHost,
 } from "../io/hostBridge";
 import { getDirector3dErrorMessage } from "../io/errorMessages";
+import { summarizeCaptureResults } from "../io/captureResult";
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
 
@@ -39,27 +40,9 @@ export function CapturePanel() {
         captures,
         DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
       );
-      const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
-      if (isEmpty) {
-        setCaptureStatus(t("director3d.capture.emptyCaptures"));
-      } else {
-        const failures = saved.filter((r) => r.error || !r.asset);
-        if (failures.length > 0) {
-          setPreviewCaptures(
-            failures.map((f) => ({
-              dataUrl: f.dataUrl,
-              fileName: f.fileName,
-              error:
-                f.error === 'DIRECTOR3D_NO_PROJECT_ID'
-                  ? t('director3d.capture.noProjectId')
-                  : f.error,
-            }))
-          );
-          setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
-        } else {
-          setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
-        }
-      }
+      const summary = summarizeCaptureResults(saved, t);
+      setPreviewCaptures(summary.previewCaptures);
+      setCaptureStatus(summary.status);
     } catch (error) {
       setCaptureStatus(getDirector3dErrorMessage(error, t));
     }

@@ -21,6 +21,7 @@ import {
   type HostCaptureItem,
 } from "../io/hostBridge";
 import { getDirector3dErrorMessage } from "../io/errorMessages";
+import { summarizeCaptureResults } from "../io/captureResult";
 import { getDirectorObjectFocusTarget, isCameraFocusableObject } from "../schema/cameraTarget";
 import type { DirectorCameraCapture, DirectorCameraShot } from "../schema/directorProject";
 import type { ScreenshotResult } from "../io/screenshotExport";
@@ -212,29 +213,11 @@ export function CameraPanel() {
         captures,
         DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
       );
-      const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
-      if (isEmpty) {
-        setCaptureStatus(t("director3d.capture.emptyCaptures"));
-      } else {
-        const failures = saved.filter((r) => r.error || !r.asset);
-        if (failures.length > 0) {
-          setPreviewCaptures(
-            failures.map((f) => ({
-              dataUrl: f.dataUrl,
-              fileName: f.fileName,
-              error:
-                f.error === 'DIRECTOR3D_NO_PROJECT_ID'
-                  ? t('director3d.capture.noProjectId')
-                  : f.error,
-            }))
-          );
-          setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
-        } else {
-          setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
-        }
-      }
+      const summary = summarizeCaptureResults(saved, t);
+      setPreviewCaptures(summary.previewCaptures);
+      setCaptureStatus(summary.status);
     } catch (error) {
-      setCaptureStatus(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
+      setCaptureStatus(getDirector3dErrorMessage(error, t));
     }
   }, [t]);
 
@@ -243,7 +226,7 @@ export function CameraPanel() {
       const fileName = getCaptureFileName(capture, camera, DEFAULT_SCREENSHOT_FILE_NAME_BASE);
       await saveCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
     },
-    [saveCapturesToHost, t]
+    [saveCapturesToHost]
   );
 
   const sendAllCapturesToCanvas = useCallback(async () => {
@@ -255,7 +238,7 @@ export function CameraPanel() {
       fileName: getCaptureFileName(capture, camera, DEFAULT_SCREENSHOT_FILE_NAME_BASE),
     }));
     await saveCapturesToHost(captures);
-  }, [cameraCaptureGroups, saveCapturesToHost, t]);
+  }, [cameraCaptureGroups, saveCapturesToHost]);
 
   if (!camera) return null;
   const currentCamera = camera;
