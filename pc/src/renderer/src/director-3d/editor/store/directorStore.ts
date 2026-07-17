@@ -267,8 +267,8 @@ const GEOMETRY_PRIMITIVE_COLOR = "#d7e7ff";
 const ADDED_MODEL_WORLD_SPACING = 1.25;
 const COPY_PASTE_POSITION_OFFSET = 0.6;
 const UNDO_STACK_LIMIT = 80;
-const LOCAL_MODEL_LIBRARY_STORAGE_KEY = "storyai-3d-director-local-model-library";
-const DIRECTOR_SCENE_STORAGE_KEY = "storyai-3d-director-desk-demo";
+const LOCAL_MODEL_LIBRARY_STORAGE_KEY = "juhe-studio-director-3d-local-model-library";
+const DIRECTOR_SCENE_STORAGE_KEY = "juhe-studio-director-3d-scene";
 const DIRECTOR_SCENE_STORAGE_KEY_PREFIX = `${DIRECTOR_SCENE_STORAGE_KEY}:`;
 const DEFAULT_UI_STATE: DirectorUiState = {
   viewMode: "director",
