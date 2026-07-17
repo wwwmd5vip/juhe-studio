@@ -459,7 +459,7 @@ export function ViewportToolbar({
 
     return (
       <button
-        key={action.label}
+        key={action.id ?? action.label}
         aria-label={action.label}
         aria-pressed={action.mode || action.pressed !== undefined ? active : undefined}
         className={`ui-icon-button viewport-toolbar-button${active ? " is-active" : ""}`}
@@ -517,7 +517,7 @@ export function ViewportToolbar({
 
           return (
             <button
-              key={action.label}
+              key={action.id ?? action.label}
               aria-label={action.label}
               className="ui-icon-button viewport-toolbar-button"
               ref={modelLibraryTriggerRef}

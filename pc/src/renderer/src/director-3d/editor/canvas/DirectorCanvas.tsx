@@ -493,7 +493,7 @@ function CanvasCaptureBridge({
 
     setViewportCaptureHandler(capture);
     return () => clearViewportCaptureHandler();
-  }, [activeCamera, bottomPadding, camera, controlsRef, gl, safeAreaInsets, scene, viewMode, viewportAspectRatio]);
+  }, [activeCamera, bottomPadding, camera, controlsRef, gl, safeAreaInsets, scene, t, viewMode, viewportAspectRatio]);
 
   return null;
 }

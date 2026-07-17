@@ -421,7 +421,7 @@ export function MotionStudio({
                       onClick={() => selectWaypoint(keyframe.id, keyframe.time)}
                     >
                       <span>{index + 1}</span>
-                      <small>{(keyframe.time * motionPath.duration).toFixed(1)}s{trackedObjectName ? t("director3d.motion.waypointFollow") : ""}</small>
+                      <small>{(keyframe.time * motionPath.duration).toFixed(1)}{t("director3d.motion.seconds")}{trackedObjectName ? t("director3d.motion.waypointFollow") : ""}</small>
                     </button>
                   </div>
                 );
@@ -517,7 +517,7 @@ export function MotionStudio({
               onBlur={endUndoBatch}
               onChange={(event) => updateCameraMotionPath(activeCamera.id, { duration: Number(event.currentTarget.value) })}
             />
-            <output>{motionPath.duration.toFixed(1)}s</output>
+            <output>{motionPath.duration.toFixed(1)}{t("director3d.motion.seconds")}</output>
           </label>
           <div className="motion-setting-row">
             <span><SlidersHorizontal aria-hidden="true" size={14} />{t("director3d.motion.interpolation")}</span>
