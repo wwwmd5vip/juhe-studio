@@ -115,20 +115,27 @@ export function importPrompts(sourceDir: string, database: Database.Database = d
     }
 
     const importOneFile = database.transaction((fileRows: PromptRow[]) => {
+      let fileTotal = 0
+      let fileInserted = 0
+      let fileUpdated = 0
       for (const row of fileRows) {
         const alreadyExists = exists.get(row.source_file, row.source_id) !== undefined
         insert.run(...rowToParams(row))
         if (alreadyExists) {
-          updated++
+          fileUpdated++
         } else {
-          inserted++
+          fileInserted++
         }
-        total++
+        fileTotal++
       }
+      return { total: fileTotal, inserted: fileInserted, updated: fileUpdated }
     })
 
     try {
-      importOneFile(rows)
+      const result = importOneFile(rows)
+      total += result.total
+      inserted += result.inserted
+      updated += result.updated
     } catch (err) {
       console.warn(`[import] failed to import ${file}:`, err)
       failed.push(file)

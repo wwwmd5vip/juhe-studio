@@ -3,10 +3,8 @@ import { createUser } from '../src/services/user-service.js'
 import { db } from '../src/db/connection.js'
 import { migrate } from '../src/db/migrate.js'
 
-migrate()
-
-async function hiddenQuestion(query: string): Promise<string> {
-  return new Promise((resolve) => {
+function hiddenQuestion(query: string): Promise<string> {
+  return new Promise((resolve, reject) => {
     const stdin = process.stdin
     const stdout = process.stdout
     const ttyStdin = stdin as NodeJS.TtyReadStream
@@ -39,7 +37,8 @@ async function hiddenQuestion(query: string): Promise<string> {
         }
         if (char === 0x03) {
           cleanup()
-          process.exit(130)
+          reject(new Error('Interrupted'))
+          return
         }
         if (char === 0x04) {
           cleanup()
@@ -61,6 +60,7 @@ async function hiddenQuestion(query: string): Promise<string> {
 async function main() {
   let rl: readline.Interface | undefined
   try {
+    migrate()
     rl = readline.createInterface({ input: process.stdin, output: process.stdout })
     const username = await rl.question('Username: ')
     rl.close()

@@ -16,9 +16,23 @@ const querySchema = z.object({
   is_enabled: z.enum(['true', 'false']).default('true')
 })
 
+const paramsSchema = z.object({ id: z.coerce.number().int().positive() })
+
+function encodeImagePath(relPath: string) {
+  return relPath.split('/').map(encodeURIComponent).join('/')
+}
+
 export async function promptsRoutes(app: FastifyInstance) {
-  app.get('/', async (request, _reply) => {
-    const q = querySchema.parse(request.query)
+  app.get('/', async (request, reply) => {
+    const parsed = querySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: 'Invalid query parameters',
+        code: 'INVALID_PARAMETER',
+        details: parsed.error.format()
+      })
+    }
+    const q = parsed.data
     const conditions: string[] = ['is_enabled = ?']
     const params: (string | number)[] = [q.is_enabled === 'true' ? 1 : 0]
 
@@ -39,9 +53,9 @@ export async function promptsRoutes(app: FastifyInstance) {
     if (q.has_image === 'false') conditions.push('example_image_path IS NULL')
 
     if (q.search) {
-      const terms = q.search.trim().split(/\s+/)
+      const terms = q.search.trim().split(/\s+/).filter((t) => t.length > 0)
       for (const term of terms) {
-        conditions.push(`(title LIKE ? OR content LIKE ? OR tags LIKE ?)`)
+        conditions.push(`(title LIKE ? ESCAPE '\\' OR content LIKE ? ESCAPE '\\' OR tags LIKE ? ESCAPE '\\')`)
         const t = `%${term.replace(/[%_]/g, '\\$&')}%`
         params.push(t, t, t)
       }
@@ -62,7 +76,7 @@ export async function promptsRoutes(app: FastifyInstance) {
 
     const data = rows.map((r) => ({
       ...r,
-      example_image_url: r.example_image_path ? `/images/${r.example_image_path}` : null,
+      example_image_url: r.example_image_path ? `/images/${encodeImagePath(r.example_image_path)}` : null,
       is_enabled: Boolean(r.is_enabled)
     }))
 
@@ -72,13 +86,21 @@ export async function promptsRoutes(app: FastifyInstance) {
         page: q.page,
         pageSize: q.pageSize,
         total,
-        totalPages: Math.ceil(total / q.pageSize)
+        totalPages: Math.max(1, Math.ceil(total / q.pageSize))
       }
     }
   })
 
   app.get('/:id', async (request, reply) => {
-    const { id } = request.params as { id: string }
+    const parsed = paramsSchema.safeParse(request.params)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: 'Invalid route parameters',
+        code: 'INVALID_PARAMETER',
+        details: parsed.error.format()
+      })
+    }
+    const { id } = parsed.data
     const row = db
       .prepare(
         `SELECT id, source_file, source_id, title, content, category, style, original_style, scene, image_type,
@@ -91,19 +113,27 @@ export async function promptsRoutes(app: FastifyInstance) {
     if (!row) return reply.status(404).send({ error: 'Not found', code: 'PROMPT_NOT_FOUND' })
     return {
       ...row,
-      example_image_url: row.example_image_path ? `/images/${row.example_image_path}` : null,
+      example_image_url: row.example_image_path ? `/images/${encodeImagePath(row.example_image_path)}` : null,
       is_enabled: Boolean(row.is_enabled)
     }
   })
 
   app.get('/:id/image', async (request, reply) => {
-    const { id } = request.params as { id: string }
+    const parsed = paramsSchema.safeParse(request.params)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: 'Invalid route parameters',
+        code: 'INVALID_PARAMETER',
+        details: parsed.error.format()
+      })
+    }
+    const { id } = parsed.data
     const row = db.prepare('SELECT example_image_path FROM prompts WHERE id = ?').get(id) as
       | { example_image_path?: string }
       | undefined
     if (!row?.example_image_path) {
       return reply.status(404).send({ error: 'Not found', code: 'PROMPT_NOT_FOUND' })
     }
-    return reply.redirect(`/images/${row.example_image_path}`)
+    return reply.redirect(`/images/${encodeImagePath(row.example_image_path)}`)
   })
 }
