@@ -46,8 +46,13 @@ function ProductSetPage() {
     staleTime: 60_000
   })
 
+  const hasImageModel = models.length > 0
+
   const submitMutation = useMutation({
     mutationFn: async () => {
+      if (!hasImageModel) {
+        throw new Error('没有可用的图片模型。请先在「设置 → 模型/provider」中添加一个 image 类型的模型，或登录 Juhe Management 同步模型。')
+      }
       const slotParams: Record<string, { prompt: string; model?: string; providerId?: string }> = {}
       for (let i = 0; i < SLOT_COUNT; i++) {
         const modelId = slotModels[i]
@@ -56,7 +61,7 @@ function ProductSetPage() {
           const m = models.find((x: DbModel) => x.id === modelId)
           slotParams[String(i)] = {
             prompt,
-            model: m?.name,
+            model: m?.id,
             providerId: m?.providerId
           }
         } else {
@@ -244,14 +249,23 @@ function ProductSetPage() {
         )}
       </div>
 
+      {!hasImageModel && !isRunning && (
+        <p className="mt-4 text-cos-error text-sm text-center">
+          没有可用的图片模型。请先在「设置 → Provider/模型」中添加 image 模型，或登录 Juhe Management 同步模型。
+        </p>
+      )}
       {submitMutation.isError && (
         <p className="mt-4 text-cos-error text-sm text-center">
-          {(submitMutation.error as Error).message}
+          {submitMutation.error instanceof Error
+            ? submitMutation.error.message
+            : String(submitMutation.error)}
         </p>
       )}
       {retryMutation.isError && (
         <p className="mt-2 text-cos-error text-sm text-center">
-          {(retryMutation.error as Error).message}
+          {retryMutation.error instanceof Error
+            ? retryMutation.error.message
+            : String(retryMutation.error)}
         </p>
       )}
 

@@ -16,7 +16,8 @@ const JIMENG_MODEL_ALIASES: Record<string, string> = {
 
 export async function createRoutedGenerationTask(
   params: GenerationParams,
-  priority: TaskPriority = 'normal'
+  priority: TaskPriority = 'normal',
+  options?: { id?: string }
 ): Promise<GenerationTask> {
   const queue = getGenerationQueue()
 
@@ -97,16 +98,19 @@ export async function createRoutedGenerationTask(
     if (normalizedModel !== resolvedParams.model) {
       resolvedParams = { ...resolvedParams, model: normalizedModel }
     }
-    return queue.createTask('jimeng' as GenerationType, resolvedParams, priority)
+    console.log('[GenerationRouter] Routed to jimeng:', { taskId: options?.id, model: resolvedParams.model, providerId: resolvedParams.providerId })
+    return queue.createTask('jimeng' as GenerationType, resolvedParams, priority, options)
   }
 
   // Aliyun 路由
   if (providerPresetId === 'aliyun') {
     if (ALIYUN_IMAGE_MODELS.has(resolvedParams.model || '')) {
-      return queue.createTask('aliyun-image' as GenerationType, resolvedParams, priority)
+      console.log('[GenerationRouter] Routed to aliyun-image:', { taskId: options?.id, model: resolvedParams.model })
+      return queue.createTask('aliyun-image' as GenerationType, resolvedParams, priority, options)
     }
     if (ALIYUN_VIDEO_MODELS.has(resolvedParams.model || '')) {
-      return queue.createTask('aliyun-video' as GenerationType, resolvedParams, priority)
+      console.log('[GenerationRouter] Routed to aliyun-video:', { taskId: options?.id, model: resolvedParams.model })
+      return queue.createTask('aliyun-video' as GenerationType, resolvedParams, priority, options)
     }
     console.warn('[GenerationRouter] Aliyun provider but unsupported model:', resolvedParams.model)
   }
@@ -114,12 +118,14 @@ export async function createRoutedGenerationTask(
   // Provider Registry 路由（新 Provider 通过工厂注册即可自动路由）
   const registryType = resolveQueueTypeViaRegistry(providerPresetId, resolvedParams)
   if (registryType) {
-    return queue.createTask(registryType, resolvedParams, priority)
+    console.log('[GenerationRouter] Routed via registry:', { taskId: options?.id, type: registryType, providerPresetId })
+    return queue.createTask(registryType, resolvedParams, priority, options)
   }
 
   // 默认路由：根据 params 推断 type
   const type: GenerationType = inferGenerationType(resolvedParams)
-  return queue.createTask(type, resolvedParams, priority)
+  console.log('[GenerationRouter] Routed to default:', { taskId: options?.id, type, model: resolvedParams.model, providerId: resolvedParams.providerId })
+  return queue.createTask(type, resolvedParams, priority, options)
 }
 
 function inferGenerationType(params: GenerationParams): GenerationType {
