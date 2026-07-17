@@ -1,4 +1,5 @@
-/* 3D 导演台路由包装器 - 确保正确填充和 CSS 隔离 */
+/* Fill the AppLayout <main> container; the route is already a flex child,
+   so 100vh/100vw would overflow the titlebar/sidebar chrome. */
 .director3d-routing-wrapper {
   height: 100%;
   width: 100%;
