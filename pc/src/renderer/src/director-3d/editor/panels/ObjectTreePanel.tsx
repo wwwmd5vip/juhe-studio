@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Box, Camera, ChevronDown, ChevronRight, Eye, EyeOff, Lock, Search, Unlock, User, Users } from "lucide-react";
 import type { DirectorObject, DirectorObjectKind } from "../schema/directorProject";
 import { useDirectorStore } from "../store/directorStore";
@@ -21,16 +22,19 @@ type SceneTreeItem = {
 
 type ObjectTreeIconKind = "character" | "crowd" | "geometry" | "model" | "camera";
 
-const GROUP_LABELS: Array<{
-  key: string;
-  title: string;
-}> = [
-  { key: "characters", title: "角色" },
-  { key: "crowd", title: "群众" },
-  { key: "geometry", title: "几何体" },
-  { key: "my-models", title: "我的模型" },
-  { key: "cameras", title: "摄像机" },
-];
+function useGroupLabels() {
+  const { t } = useTranslation();
+  return useMemo(
+    () => [
+      { key: "characters", title: t("director3d.objectTree.characters") },
+      { key: "crowd", title: t("director3d.objectTree.crowd") },
+      { key: "geometry", title: t("director3d.objectTree.geometry") },
+      { key: "my-models", title: t("director3d.objectTree.myModels") },
+      { key: "cameras", title: t("director3d.objectTree.cameras") },
+    ],
+    [t]
+  );
+}
 
 function ObjectKindIcon({ icon }: { icon: ObjectTreeIconKind }) {
   const iconProps = { "aria-hidden": true, size: 16, strokeWidth: 1.8 } as const;
@@ -52,6 +56,8 @@ function isEditableKeyboardTarget(target: EventTarget | null) {
 }
 
 export function ObjectTreePanel() {
+  const { t } = useTranslation();
+  const GROUP_LABELS = useGroupLabels();
   const [query, setQuery] = useState("");
   const [expandedCrowdIds, setExpandedCrowdIds] = useState<string[]>([]);
   const assets = useDirectorStore((state) => state.project.assets);
@@ -283,28 +289,28 @@ export function ObjectTreePanel() {
 
   return (
     <section className="panel-card object-tree-panel">
-      <h2 className="visually-hidden">场景对象</h2>
+      <h2 className="visually-hidden">{t("director3d.objectTree.title")}</h2>
       <label className="object-search-field">
         <Search aria-hidden="true" size={16} strokeWidth={1.8} />
         <input
           className="ui-field"
-          aria-label="搜索场景内容"
+          aria-label={t("director3d.objectTree.searchAriaLabel")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="请输入搜索内容"
+          placeholder={t("director3d.objectTree.searchPlaceholder")}
         />
       </label>
       {hasEmptySearchResult ? (
-        <div className="object-search-empty-state" role="status" aria-label="未搜索到内容">
+        <div className="object-search-empty-state" role="status" aria-label={t("director3d.objectTree.noSearchResultsAriaLabel")}>
           <span className="object-search-empty-icon" data-testid="object-search-empty-icon">
             <Search aria-hidden="true" size={16} strokeWidth={1.8} />
           </span>
-          <span>未搜索到内容</span>
+          <span>{t("director3d.objectTree.noSearchResults")}</span>
         </div>
       ) : (
-        <div className="object-tree-groups" role="tree" aria-label="场景对象列表">
+        <div className="object-tree-groups" role="tree" aria-label={t("director3d.objectTree.objectListAriaLabel")}>
           {filteredGroups.map((group) => (
-            <section key={group.key} className="object-tree-group" role="group" aria-label={`${group.title}分组`}>
+            <section key={group.key} className="object-tree-group" role="group" aria-label={t("director3d.objectTree.groupAriaLabel", { title: group.title })}>
               <h3>{group.title}</h3>
               <ul className="object-list">
                 {group.items.map((item) => {
@@ -329,7 +335,7 @@ export function ObjectTreePanel() {
                         <div className="object-row-main">
                           {item.crowdId ? (
                             <button
-                              aria-label={`${expanded ? "收起" : "展开"} ${item.name}`}
+                              aria-label={expanded ? t("director3d.objectTree.collapse", { name: item.name }) : t("director3d.objectTree.expand", { name: item.name })}
                               className="object-row-toggle-button"
                               type="button"
                               onClick={(event) => {
@@ -354,7 +360,7 @@ export function ObjectTreePanel() {
                             <button
                               className="object-flag-button object-icon-flag-button"
                               type="button"
-                              aria-label={`${item.name} 可见性`}
+                              aria-label={t("director3d.objectTree.visibilityAriaLabel", { name: item.name })}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 toggleObjectVisible(item.id);
@@ -369,7 +375,7 @@ export function ObjectTreePanel() {
                             <button
                               className="object-flag-button object-icon-flag-button"
                               type="button"
-                              aria-label={`${item.name} 锁定`}
+                              aria-label={t("director3d.objectTree.lockAriaLabel", { name: item.name })}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 toggleObjectLocked(item.id);
@@ -385,7 +391,7 @@ export function ObjectTreePanel() {
                         ) : null}
                       </div>
                       {item.crowdId && expanded && item.previewChildren?.length ? (
-                        <ul className="object-crowd-preview-list" aria-label={`${item.name} 成员预览`}>
+                        <ul className="object-crowd-preview-list" aria-label={t("director3d.objectTree.crowdPreviewAriaLabel", { name: item.name })}>
                           {item.previewChildren.map((child) => (
                             <li key={child.id}>
                               <div className={`object-row object-row-preview${selected ? " is-selected" : ""}`}>

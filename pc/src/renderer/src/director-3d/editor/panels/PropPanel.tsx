@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   InspectorAxisGroup,
   InspectorColorField,
@@ -12,6 +13,7 @@ function replaceAxis(tuple: [number, number, number], axis: 0 | 1 | 2, value: nu
 }
 
 export function PropPanel() {
+  const { t } = useTranslation();
   const prop = useDirectorStore((state) => {
     const selected = state.project.objects.find((item) => item.id === state.selectedObjectId);
     const selectedAsset = selected?.assetRefId
@@ -34,74 +36,74 @@ export function PropPanel() {
   const propColor = prop.color ?? "#d7e7ff";
 
   return (
-    <InspectorPanel title="模型" ariaLabel="模型右侧属性面板" className="prop-inspector">
-      <InspectorTextField label="名称" ariaLabel="模型名称" value={prop.name} onChange={(value) => updateObjectName(prop.id, value)} />
+    <InspectorPanel title={t("director3d.prop.title")} ariaLabel={t("director3d.prop.panelAriaLabel")} className="prop-inspector">
+      <InspectorTextField label={t("director3d.name")} ariaLabel={t("director3d.prop.nameAriaLabel")} value={prop.name} onChange={(value) => updateObjectName(prop.id, value)} />
       <InspectorAxisGroup
-        label="位置"
+        label={t("director3d.position")}
         axes={[
           {
             axis: "X",
-            ariaLabel: "模型位置 X",
+            ariaLabel: t("director3d.prop.positionX"),
             value: prop.transform.position[0],
             onChange: (value) => updateObjectTransform(prop.id, { position: replaceAxis(prop.transform.position, 0, Number(value)) }),
           },
           {
             axis: "Y",
-            ariaLabel: "模型位置 Y",
+            ariaLabel: t("director3d.prop.positionY"),
             value: prop.transform.position[1],
             onChange: (value) => updateObjectTransform(prop.id, { position: replaceAxis(prop.transform.position, 1, Number(value)) }),
           },
           {
             axis: "Z",
-            ariaLabel: "模型位置 Z",
+            ariaLabel: t("director3d.prop.positionZ"),
             value: prop.transform.position[2],
             onChange: (value) => updateObjectTransform(prop.id, { position: replaceAxis(prop.transform.position, 2, Number(value)) }),
           },
         ]}
       />
       <InspectorAxisGroup
-        label="旋转"
+        label={t("director3d.rotation")}
         axes={[
           {
             axis: "X",
-            ariaLabel: "模型旋转 X",
+            ariaLabel: t("director3d.prop.rotationX"),
             value: prop.transform.rotation[0],
             onChange: (value) => updateObjectTransform(prop.id, { rotation: replaceAxis(prop.transform.rotation, 0, Number(value)) }),
           },
           {
             axis: "Y",
-            ariaLabel: "模型旋转 Y",
+            ariaLabel: t("director3d.prop.rotationY"),
             value: prop.transform.rotation[1],
             onChange: (value) => updateObjectTransform(prop.id, { rotation: replaceAxis(prop.transform.rotation, 1, Number(value)) }),
           },
           {
             axis: "Z",
-            ariaLabel: "模型旋转 Z",
+            ariaLabel: t("director3d.prop.rotationZ"),
             value: prop.transform.rotation[2],
             onChange: (value) => updateObjectTransform(prop.id, { rotation: replaceAxis(prop.transform.rotation, 2, Number(value)) }),
           },
         ]}
       />
       <InspectorAxisGroup
-        label="缩放"
+        label={t("director3d.scale")}
         axes={[
           {
             axis: "X",
-            ariaLabel: "模型缩放 X",
+            ariaLabel: t("director3d.prop.scaleX"),
             step: "0.01",
             value: prop.transform.scale[0],
             onChange: (value) => updateObjectTransform(prop.id, { scale: replaceAxis(prop.transform.scale, 0, Number(value)) }),
           },
           {
             axis: "Y",
-            ariaLabel: "模型缩放 Y",
+            ariaLabel: t("director3d.prop.scaleY"),
             step: "0.01",
             value: prop.transform.scale[1],
             onChange: (value) => updateObjectTransform(prop.id, { scale: replaceAxis(prop.transform.scale, 1, Number(value)) }),
           },
           {
             axis: "Z",
-            ariaLabel: "模型缩放 Z",
+            ariaLabel: t("director3d.prop.scaleZ"),
             step: "0.01",
             value: prop.transform.scale[2],
             onChange: (value) => updateObjectTransform(prop.id, { scale: replaceAxis(prop.transform.scale, 2, Number(value)) }),
@@ -109,9 +111,9 @@ export function PropPanel() {
         ]}
       />
       <InspectorRangeNumberField
-        label="统一缩放"
-        rangeAriaLabel="模型统一缩放滑杆"
-        numberAriaLabel="模型统一缩放"
+        label={t("director3d.uniformScale")}
+        rangeAriaLabel={t("director3d.prop.uniformScaleRangeAriaLabel")}
+        numberAriaLabel={t("director3d.prop.uniformScaleNumberAriaLabel")}
         max="3"
         min="0.2"
         step="0.01"
@@ -119,9 +121,9 @@ export function PropPanel() {
         onValueChange={(value) => updateUniformScale(prop.id, Number(value))}
       />
       <InspectorColorField
-        label="颜色"
-        colorAriaLabel="模型颜色"
-        hexAriaLabel="模型颜色 HEX"
+        label={t("director3d.color")}
+        colorAriaLabel={t("director3d.prop.colorAriaLabel")}
+        hexAriaLabel={t("director3d.prop.colorHexAriaLabel")}
         value={propColor}
         onColorChange={(value) => updateObjectColor(prop.id, value)}
         onHexChange={(value) => updateObjectColor(prop.id, value)}

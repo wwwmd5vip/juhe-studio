@@ -642,28 +642,28 @@ export function CameraPanel() {
         <div className="camera-motion-intro">
           <span className="camera-motion-intro-icon"><Route aria-hidden="true" size={18} /></span>
           <div>
-            <h3>自由摄影机轨迹</h3>
-            <p>先移动当前机位，再添加轨迹点；橙色轨迹点可直接在 3D 视口中拖动。</p>
+            <h3>{t("director3d.camera.motionTitle")}</h3>
+            <p>{t("director3d.camera.motionHint")}</p>
           </div>
         </div>
 
         <button className="camera-motion-add-button" type="button" onClick={handleAddMotionKeyframe}>
           <Plus aria-hidden="true" size={15} />
-          将当前机位添加为轨迹点
+          {t("director3d.camera.addKeyframe")}
         </button>
 
         {motionPath.keyframes.length === 0 ? (
           <div className="camera-motion-empty" role="status">
             <Waypoints aria-hidden="true" size={22} />
-            <strong>还没有摄影机轨迹</strong>
-            <span>添加两个或更多轨迹点后，即可预演任意推、拉、摇、移和环绕路线。</span>
+            <strong>{t("director3d.camera.noKeyframes")}</strong>
+            <span>{t("director3d.camera.noKeyframesHint")}</span>
           </div>
         ) : (
           <>
             <InspectorRangeNumberField
-              label="镜头时长"
-              rangeAriaLabel="摄影机轨迹时长滑杆"
-              numberAriaLabel="摄影机轨迹时长"
+              label={t("director3d.camera.duration")}
+              rangeAriaLabel={t("director3d.camera.durationRangeAriaLabel")}
+              numberAriaLabel={t("director3d.camera.durationNumberAriaLabel")}
               min="0.5"
               max="30"
               step="0.1"
@@ -674,13 +674,13 @@ export function CameraPanel() {
               onNumberChange={setMotionDurationDraft}
             />
             <InspectorSelectField
-              label="路径插值"
-              ariaLabel="摄影机路径插值"
+              label={t("director3d.camera.interpolation")}
+              ariaLabel={t("director3d.camera.interpolationAriaLabel")}
               value={motionPath.interpolation}
               onChange={(value) => updateCameraMotionPath(currentCamera.id, { interpolation: value === "linear" ? "linear" : "smooth" })}
             >
-              <option value="smooth">平滑曲线</option>
-              <option value="linear">直线分段</option>
+              <option value="smooth">{t("director3d.camera.interpolationSmooth")}</option>
+              <option value="linear">{t("director3d.camera.interpolationLinear")}</option>
             </InspectorSelectField>
 
             <div className="camera-motion-playback">
@@ -688,13 +688,13 @@ export function CameraPanel() {
                 className="camera-motion-play-button"
                 type="button"
                 disabled={motionPath.keyframes.length < 2}
-                aria-label={cameraMotionPlaying ? "暂停轨迹预演" : "播放轨迹预演"}
+                aria-label={cameraMotionPlaying ? t("director3d.camera.pauseMotion") : t("director3d.camera.playMotion")}
                 onClick={handleToggleMotionPlayback}
               >
                 {cameraMotionPlaying ? <Pause aria-hidden="true" size={15} /> : <Play aria-hidden="true" size={15} />}
               </button>
               <input
-                aria-label="摄影机轨迹播放位置"
+                aria-label={t("director3d.camera.playbackPositionAriaLabel")}
                 max="1"
                 min="0"
                 step="0.001"
@@ -715,16 +715,16 @@ export function CameraPanel() {
               aria-pressed={motionPath.loop}
               onClick={() => updateCameraMotionPath(currentCamera.id, { loop: !motionPath.loop })}
             >
-              循环播放
+              {t("director3d.camera.loopPlayback")}
             </button>
 
-            <div className="camera-motion-keyframes" role="list" aria-label="摄影机轨迹点">
+            <div className="camera-motion-keyframes" role="list" aria-label={t("director3d.camera.keyframesAriaLabel")}>
               {motionPath.keyframes.map((keyframe, index) => (
                 <div key={keyframe.id} role="listitem">
                   <button
                     className={selectedMotionKeyframe?.id === keyframe.id ? "is-active" : ""}
                     type="button"
-                    aria-label={`选择轨迹点 K${index + 1}`}
+                    aria-label={t("director3d.camera.selectKeyframe", { index: index + 1 })}
                     aria-pressed={selectedMotionKeyframe?.id === keyframe.id}
                     onClick={() => handleSelectMotionKeyframe(keyframe.id, keyframe.time)}
                   >
@@ -736,19 +736,19 @@ export function CameraPanel() {
             </div>
 
             {selectedMotionKeyframe ? (
-              <InspectorSection title={`轨迹点 K${motionPath.keyframes.indexOf(selectedMotionKeyframe) + 1}`} className="camera-motion-keyframe-editor">
+              <InspectorSection title={t("director3d.camera.keyframeTitle", { index: motionPath.keyframes.indexOf(selectedMotionKeyframe) + 1 })} className="camera-motion-keyframe-editor">
                 <InspectorAxisGroup
-                  label="位置"
+                  label={t("director3d.position")}
                   axes={[
-                    { axis: "X", ariaLabel: "轨迹点位置 X", value: selectedMotionKeyframe.position[0], onChange: (value) => updateSelectedMotionPosition(0, value) },
-                    { axis: "Y", ariaLabel: "轨迹点位置 Y", value: selectedMotionKeyframe.position[1], onChange: (value) => updateSelectedMotionPosition(1, value) },
-                    { axis: "Z", ariaLabel: "轨迹点位置 Z", value: selectedMotionKeyframe.position[2], onChange: (value) => updateSelectedMotionPosition(2, value) },
+                    { axis: "X", ariaLabel: t("director3d.camera.keyframePositionX"), value: selectedMotionKeyframe.position[0], onChange: (value) => updateSelectedMotionPosition(0, value) },
+                    { axis: "Y", ariaLabel: t("director3d.camera.keyframePositionY"), value: selectedMotionKeyframe.position[1], onChange: (value) => updateSelectedMotionPosition(1, value) },
+                    { axis: "Z", ariaLabel: t("director3d.camera.keyframePositionZ"), value: selectedMotionKeyframe.position[2], onChange: (value) => updateSelectedMotionPosition(2, value) },
                   ]}
                 />
                 <InspectorRangeNumberField
-                  label="此点视野角度 (FOV)"
-                  rangeAriaLabel="轨迹点 FOV 滑杆"
-                  numberAriaLabel="轨迹点 FOV"
+                  label={t("director3d.camera.keyframeFov")}
+                  rangeAriaLabel={t("director3d.camera.keyframeFovRangeAriaLabel")}
+                  numberAriaLabel={t("director3d.camera.keyframeFovNumberAriaLabel")}
                   min="10"
                   max="120"
                   step="0.1"
@@ -763,7 +763,7 @@ export function CameraPanel() {
                   type="button"
                   onClick={() => deleteCameraMotionKeyframe(currentCamera.id, selectedMotionKeyframe.id)}
                 >
-                  <Trash2 aria-hidden="true" size={14} /> 删除当前轨迹点
+                  <Trash2 aria-hidden="true" size={14} /> {t("director3d.camera.deleteKeyframe")}
                 </button>
               </InspectorSection>
             ) : null}
@@ -776,26 +776,26 @@ export function CameraPanel() {
   return (
     <InspectorPanel
       title={t("director3d.camera.title")}
-      ariaLabel="摄像机右侧属性面板"
+      ariaLabel={t("director3d.camera.panelAriaLabel")}
       className={activeTab === "captures" ? "camera-inspector-captures" : undefined}
       footer={renderCaptureOverviewFooter()}
       tabs={[
-        { label: "属性", active: activeTab === "properties", onClick: () => setActiveTab("properties") },
-        { label: "轨迹", active: activeTab === "motion", onClick: handleOpenMotionTab },
+        { label: t("director3d.properties"), active: activeTab === "properties", onClick: () => setActiveTab("properties") },
+        { label: t("director3d.camera.motionTab"), active: activeTab === "motion", onClick: handleOpenMotionTab },
         { label: t("director3d.capture.tabLabel"), active: activeTab === "captures", onClick: () => setActiveTab("captures") },
       ]}
     >
       {activeTab === "properties" ? (
         <>
           <InspectorTextField
-            label="名称"
-            ariaLabel="机位名称"
+            label={t("director3d.name")}
+            ariaLabel={t("director3d.camera.nameAriaLabel")}
             value={currentCamera.name}
             onChange={(value) => updateCamera(currentCamera.id, { name: value })}
           />
           <InspectorSelectField
-            label="切换机位"
-            ariaLabel="切换机位"
+            label={t("director3d.camera.switchCamera")}
+            ariaLabel={t("director3d.camera.switchCameraAriaLabel")}
             value={currentCamera.id}
             onChange={(value) => setActiveCamera(value)}
           >
@@ -806,11 +806,11 @@ export function CameraPanel() {
             ))}
           </InspectorSelectField>
           <InspectorAxisGroup
-            label="位置"
+            label={t("director3d.position")}
             axes={[
               {
                 axis: "X",
-                ariaLabel: "机位位置 X",
+                ariaLabel: t("director3d.camera.positionX"),
                 value: currentCamera.transform.position[0],
                 onChange: (value) =>
                   updateCamera(currentCamera.id, {
@@ -822,7 +822,7 @@ export function CameraPanel() {
               },
               {
                 axis: "Y",
-                ariaLabel: "机位位置 Y",
+                ariaLabel: t("director3d.camera.positionY"),
                 value: currentCamera.transform.position[1],
                 onChange: (value) =>
                   updateCamera(currentCamera.id, {
@@ -834,7 +834,7 @@ export function CameraPanel() {
               },
               {
                 axis: "Z",
-                ariaLabel: "机位位置 Z",
+                ariaLabel: t("director3d.camera.positionZ"),
                 value: currentCamera.transform.position[2],
                 onChange: (value) =>
                   updateCamera(currentCamera.id, {
@@ -847,12 +847,12 @@ export function CameraPanel() {
             ]}
           />
           <InspectorSelectField
-            label="注视目标"
-            ariaLabel="注视目标模式"
+            label={t("director3d.camera.target")}
+            ariaLabel={t("director3d.camera.targetModeAriaLabel")}
             value={targetSelectValue}
             onChange={handleTargetSelection}
           >
-            <option value="manual">手动坐标</option>
+            <option value="manual">{t("director3d.camera.targetManual")}</option>
             {focusableObjects.map((item) => (
               <option key={item.id} value={`object:${item.id}`}>
                 {item.name}
@@ -860,32 +860,32 @@ export function CameraPanel() {
             ))}
           </InspectorSelectField>
           <InspectorAxisGroup
-            label="注视坐标"
+            label={t("director3d.camera.targetCoordinates")}
             axes={[
               {
                 axis: "X",
-                ariaLabel: "注视坐标 X",
+                ariaLabel: t("director3d.camera.targetX"),
                 value: currentCamera.target[0],
                 onChange: (value) => updateManualTarget(0, value),
               },
               {
                 axis: "Y",
-                ariaLabel: "注视坐标 Y",
+                ariaLabel: t("director3d.camera.targetY"),
                 value: currentCamera.target[1],
                 onChange: (value) => updateManualTarget(1, value),
               },
               {
                 axis: "Z",
-                ariaLabel: "注视坐标 Z",
+                ariaLabel: t("director3d.camera.targetZ"),
                 value: currentCamera.target[2],
                 onChange: (value) => updateManualTarget(2, value),
               },
             ]}
           />
           <InspectorRangeNumberField
-            label="视野角度 (FOV)"
-            rangeAriaLabel="机位 FOV 滑杆"
-            numberAriaLabel="机位 FOV"
+            label={t("director3d.camera.fov")}
+            rangeAriaLabel={t("director3d.camera.fovRangeAriaLabel")}
+            numberAriaLabel={t("director3d.camera.fovNumberAriaLabel")}
             max="120"
             min="10"
             step="0.1"

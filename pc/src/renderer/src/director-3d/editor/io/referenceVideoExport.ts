@@ -22,7 +22,7 @@ export function clearReferenceVideoExportHandler() {
 }
 
 export async function requestReferenceVideoExport(request: ReferenceVideoExportRequest) {
-  if (!exportHandler) throw new Error("参考视频导出器尚未准备好");
+  if (!exportHandler) throw new Error("Reference video exporter is not ready yet");
   await exportHandler(request);
 }
 

@@ -10,16 +10,16 @@ function readFileAsDataUrl(file: File) {
         return;
       }
 
-      reject(new Error("模型文件读取失败"));
+      reject(new Error("Failed to read model file"));
     });
-    reader.addEventListener("error", () => reject(reader.error ?? new Error("模型文件读取失败")));
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("Failed to read model file")));
     reader.readAsDataURL(file);
   });
 }
 
 export async function readLocalModelFile(file: File) {
   if (!LOCAL_MODEL_EXTENSION_RE.test(file.name)) {
-    throw new Error("当前仅支持 FBX / OBJ 模型文件");
+    throw new Error("Only FBX / OBJ model files are currently supported");
   }
 
   return {

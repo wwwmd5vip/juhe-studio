@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   InspectorAxisGroup,
   InspectorColorField,
@@ -24,6 +25,7 @@ function clampNumber(value: number, min: number, max: number) {
 }
 
 export function ScenePanel() {
+  const { t } = useTranslation();
   const scene = useDirectorStore((state) => state.project.scene);
   const updateScene = useDirectorStore((state) => state.updateScene);
   const [sceneScaleDraft, setSceneScaleDraft] = useState(String(scene.scale));
@@ -52,11 +54,11 @@ export function ScenePanel() {
   }
 
   return (
-    <InspectorPanel title="3D场景" ariaLabel="3D场景右侧属性面板" className="scene-inspector">
+    <InspectorPanel title={t("director3d.scene.title")} ariaLabel={t("director3d.scene.panelAriaLabel")} className="scene-inspector">
       <InspectorRangeNumberField
-        label="场景缩放"
-        rangeAriaLabel="场景缩放滑杆"
-        numberAriaLabel="场景缩放"
+        label={t("director3d.scene.scale")}
+        rangeAriaLabel={t("director3d.scene.scaleRangeAriaLabel")}
+        numberAriaLabel={t("director3d.scene.scaleNumberAriaLabel")}
         max={SCENE_SCALE_MAX}
         min={SCENE_SCALE_MIN}
         step="0.01"
@@ -75,25 +77,25 @@ export function ScenePanel() {
         }}
       />
       <InspectorAxisGroup
-        label="场景平移"
+        label={t("director3d.scene.position")}
         axes={[
           {
             axis: "X",
-            ariaLabel: "场景平移 X",
+            ariaLabel: t("director3d.scene.positionX"),
             step: "0.1",
             value: scene.position[0],
             onChange: (value) => updateScene({ position: replaceAxis(scene.position, 0, Number(value)) }),
           },
           {
             axis: "Y",
-            ariaLabel: "场景平移 Y",
+            ariaLabel: t("director3d.scene.positionY"),
             step: "0.1",
             value: scene.position[1],
             onChange: (value) => updateScene({ position: replaceAxis(scene.position, 1, Number(value)) }),
           },
           {
             axis: "Z",
-            ariaLabel: "场景平移 Z",
+            ariaLabel: t("director3d.scene.positionZ"),
             step: "0.1",
             value: scene.position[2],
             onChange: (value) => updateScene({ position: replaceAxis(scene.position, 2, Number(value)) }),
@@ -101,44 +103,44 @@ export function ScenePanel() {
         ]}
       />
       <InspectorAxisGroup
-        label="场景旋转"
+        label={t("director3d.scene.rotation")}
         axes={[
           {
             axis: "X",
-            ariaLabel: "场景旋转 X",
+            ariaLabel: t("director3d.scene.rotationX"),
             step: "1",
             value: scene.rotation[0],
             onChange: (value) => updateScene({ rotation: replaceAxis(scene.rotation, 0, Number(value)) }),
           },
           {
             axis: "Y",
-            ariaLabel: "场景旋转 Y",
+            ariaLabel: t("director3d.scene.rotationY"),
             step: "1",
             value: scene.rotation[1],
             onChange: (value) => updateScene({ rotation: replaceAxis(scene.rotation, 1, Number(value)) }),
           },
           {
             axis: "Z",
-            ariaLabel: "场景旋转 Z",
+            ariaLabel: t("director3d.scene.rotationZ"),
             step: "1",
             value: scene.rotation[2],
             onChange: (value) => updateScene({ rotation: replaceAxis(scene.rotation, 2, Number(value)) }),
           },
         ]}
       />
-      <InspectorSection title="背景">
+      <InspectorSection title={t("director3d.scene.background")}>
         <InspectorColorField
-          label="天空颜色"
-          colorAriaLabel="天空颜色"
-          hexAriaLabel="天空颜色 HEX"
+          label={t("director3d.scene.skyColor")}
+          colorAriaLabel={t("director3d.scene.skyColorAriaLabel")}
+          hexAriaLabel={t("director3d.scene.skyColorHexAriaLabel")}
           value={scene.backgroundColor}
           onColorChange={(value) => updateScene({ backgroundColor: value })}
           onHexChange={(value) => updateScene({ backgroundColor: value })}
         />
         <InspectorRangeNumberField
-          label="天空亮度"
-          rangeAriaLabel="天空亮度滑杆"
-          numberAriaLabel="天空亮度"
+          label={t("director3d.scene.skyBrightness")}
+          rangeAriaLabel={t("director3d.scene.skyBrightnessRangeAriaLabel")}
+          numberAriaLabel={t("director3d.scene.skyBrightnessNumberAriaLabel")}
           max={SCENE_BRIGHTNESS_MAX}
           min={SCENE_BRIGHTNESS_MIN}
           step="0.05"
@@ -146,60 +148,60 @@ export function ScenePanel() {
           onValueChange={(value) => updateScene({ backgroundBrightness: Number(value) })}
         />
       </InspectorSection>
-      <InspectorSection title="开关项">
-        <div className="scene-switch-row" role="group" aria-label="开关项设置">
+      <InspectorSection title={t("director3d.scene.switches")}>
+        <div className="scene-switch-row" role="group" aria-label={t("director3d.scene.switchesAriaLabel")}>
           <div className="inspector-toggle-row">
             <input
-              aria-label="角色标签"
+              aria-label={t("director3d.scene.showLabels")}
               checked={scene.showLabels}
               type="checkbox"
               onChange={(event) => updateScene({ showLabels: event.target.checked })}
             />
-            <span>角色标签</span>
+            <span>{t("director3d.scene.showLabels")}</span>
           </div>
           <div className="inspector-toggle-row">
             <input
-              aria-label="网格吸附"
+              aria-label={t("director3d.scene.snapToGrid")}
               checked={scene.snapToGrid}
               type="checkbox"
               onChange={(event) => updateScene({ snapToGrid: event.target.checked })}
             />
-            <span>网格吸附</span>
+            <span>{t("director3d.scene.snapToGrid")}</span>
           </div>
           <div className="inspector-toggle-row">
             <input
-              aria-label="地面"
+              aria-label={t("director3d.scene.ground")}
               checked={scene.showGround}
               type="checkbox"
               onChange={(event) => updateScene({ showGround: event.target.checked })}
             />
-            <span>地面</span>
+            <span>{t("director3d.scene.ground")}</span>
           </div>
           <div className="inspector-toggle-row">
             <input
-              aria-label="路径碰撞"
+              aria-label={t("director3d.scene.pathCollision")}
               checked={scene.pathCollisionEnabled}
               type="checkbox"
               onChange={(event) => updateScene({ pathCollisionEnabled: event.target.checked })}
             />
-            <span>路径碰撞</span>
+            <span>{t("director3d.scene.pathCollision")}</span>
           </div>
         </div>
       </InspectorSection>
       {scene.showGround ? (
-        <InspectorSection title="地面">
+        <InspectorSection title={t("director3d.scene.ground")}>
           <InspectorColorField
-            label="地面颜色"
-            colorAriaLabel="地面颜色"
-            hexAriaLabel="地面颜色 HEX"
+            label={t("director3d.scene.groundColor")}
+            colorAriaLabel={t("director3d.scene.groundColorAriaLabel")}
+            hexAriaLabel={t("director3d.scene.groundColorHexAriaLabel")}
             value={scene.groundColor}
             onColorChange={(value) => updateScene({ groundColor: value })}
             onHexChange={(value) => updateScene({ groundColor: value })}
           />
           <InspectorRangeNumberField
-            label="地面亮度"
-            rangeAriaLabel="地面亮度滑杆"
-            numberAriaLabel="地面亮度"
+            label={t("director3d.scene.groundBrightness")}
+            rangeAriaLabel={t("director3d.scene.groundBrightnessRangeAriaLabel")}
+            numberAriaLabel={t("director3d.scene.groundBrightnessNumberAriaLabel")}
             max={SCENE_BRIGHTNESS_MAX}
             min={SCENE_BRIGHTNESS_MIN}
             step="0.05"
@@ -207,9 +209,9 @@ export function ScenePanel() {
             onValueChange={(value) => updateScene({ groundBrightness: Number(value) })}
           />
           <InspectorRangeNumberField
-            label="透明度"
-            rangeAriaLabel="地面透明度滑杆"
-            numberAriaLabel="地面透明度"
+            label={t("director3d.scene.opacity")}
+            rangeAriaLabel={t("director3d.scene.opacityRangeAriaLabel")}
+            numberAriaLabel={t("director3d.scene.opacityNumberAriaLabel")}
             max="1"
             min="0"
             step="0.01"
@@ -217,9 +219,9 @@ export function ScenePanel() {
             onValueChange={(value) => updateScene({ groundOpacity: Number(value) })}
           />
           <InspectorRangeNumberField
-            label="高度"
-            rangeAriaLabel="地面高度滑杆"
-            numberAriaLabel="地面高度"
+            label={t("director3d.scene.height")}
+            rangeAriaLabel={t("director3d.scene.heightRangeAriaLabel")}
+            numberAriaLabel={t("director3d.scene.heightNumberAriaLabel")}
             max={GROUND_HEIGHT_MAX}
             min={GROUND_HEIGHT_MIN}
             step="0.1"

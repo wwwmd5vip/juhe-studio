@@ -282,7 +282,7 @@ async function readImageSource(file: File): Promise<PanoramaImageSource & Canvas
 
     image.onerror = () => {
       URL.revokeObjectURL(probeUrl);
-      reject(new Error("无法读取全景图尺寸，请重新选择图片"));
+      reject(new Error("Failed to read panorama size, please select another image"));
     };
 
     image.src = probeUrl;
@@ -308,7 +308,7 @@ async function buildAdaptedPanoramaAsset(file: File) {
 
     const context = canvas.getContext("2d");
     if (!context) {
-      throw new Error("当前环境无法生成全景图，请稍后重试");
+      throw new Error("Unable to generate panorama in current environment, please try again later");
     }
 
     context.fillStyle = "#06080D";
@@ -329,7 +329,7 @@ async function buildAdaptedPanoramaAsset(file: File) {
 
 export async function readPanoramaFile(file: File) {
   if (!PANORAMA_IMAGE_EXTENSION_RE.test(file.name)) {
-    throw new Error("当前全景图仅支持 JPG / PNG / WEBP");
+    throw new Error("Panorama only supports JPG / PNG / WEBP");
   }
   const result = await buildAdaptedPanoramaAsset(file);
 
