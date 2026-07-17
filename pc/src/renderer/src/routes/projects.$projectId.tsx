@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
-import { createFileRoute, Link, useParams, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
 import { ResultGrid } from '@/components/creator-os/ResultGrid'
+import { ProductSetPanel } from '@/components/creator-os/ProductSetPanel'
 import { QueueDrawer } from '@/components/creator-os/QueueDrawer'
 import {
   useProject,
@@ -28,7 +29,6 @@ function ProjectDetail() {
   const { data: assets = [] } = useProjectAssets(projectId)
   const updateMutation = useUpdateProject(projectId)
   const deleteMutation = useDeleteProject()
-  const router = useRouter()
 
   if (isLoading || !project) {
     return (
@@ -37,6 +37,8 @@ function ProjectDetail() {
       </div>
     )
   }
+
+  const isRunning = project.batchStatus === 'processing' || project.batchStatus === 'submitting'
 
   const getStatusLabel = (s: string): string => {
     const key = `creator-os.status-${s}` as const
@@ -52,12 +54,7 @@ function ProjectDetail() {
   const commitRename = () => {
     const trimmed = nameValue.trim()
     if (trimmed && trimmed !== project.name) {
-      updateMutation.mutate(
-        { name: trimmed },
-        {
-          onSuccess: () => setEditing(false)
-        }
-      )
+      updateMutation.mutate({ name: trimmed }, { onSuccess: () => setEditing(false) })
     } else {
       setEditing(false)
     }
@@ -67,7 +64,7 @@ function ProjectDetail() {
     <div className="h-full flex flex-col bg-cos-bg">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4
-                      border-b border-cos-border bg-cos-surface">
+                      border-b border-cos-border bg-cos-surface shrink-0">
         <div>
           <Link
             to="/projects"
@@ -120,22 +117,13 @@ function ProjectDetail() {
           >
             {t('creator-os.delete-project')}
           </button>
-          <button
-            onClick={() => {
-              console.log('[ProjectDetail] Navigating to product-set:', projectId)
-              router.navigate({ to: '/projects/$projectId/product-set', params: { projectId } })
-            }}
-            className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
-                       rounded-cos-md font-medium transition-colors"
-          >
-            {t('creator-os.product-set')}
-          </button>
         </div>
       </div>
 
-      {/* Content: AssetPanel + ResultGrid */}
+      {/* Content: AssetPanel + ProductSetPanel + ResultGrid */}
       <div className="flex-1 flex overflow-hidden">
         <AssetPanel projectId={projectId} assets={assets as any} />
+        <ProductSetPanel projectId={projectId} isRunning={isRunning} />
         <ResultGrid projectId={projectId} />
       </div>
 

@@ -40,7 +40,6 @@ import { Route as AgentSquadRouteImport } from './routes/agent-squad'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
-import { Route as ProjectsProjectIdProductSetRouteImport } from './routes/projects.$projectId.product-set'
 
 const VideoEditorRoute = VideoEditorRouteImport.update({
   id: '/video-editor',
@@ -197,12 +196,6 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsProjectIdProductSetRoute =
-  ProjectsProjectIdProductSetRouteImport.update({
-    id: '/product-set',
-    path: '/product-set',
-    getParentRoute: () => ProjectsProjectIdRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -234,9 +227,8 @@ export interface FileRoutesByFullPath {
   '/tts': typeof TtsRoute
   '/usage': typeof UsageRoute
   '/video-editor': typeof VideoEditorRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
-  '/projects/$projectId/product-set': typeof ProjectsProjectIdProductSetRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -268,9 +260,8 @@ export interface FileRoutesByTo {
   '/tts': typeof TtsRoute
   '/usage': typeof UsageRoute
   '/video-editor': typeof VideoEditorRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects': typeof ProjectsIndexRoute
-  '/projects/$projectId/product-set': typeof ProjectsProjectIdProductSetRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -303,9 +294,8 @@ export interface FileRoutesById {
   '/tts': typeof TtsRoute
   '/usage': typeof UsageRoute
   '/video-editor': typeof VideoEditorRoute
-  '/projects/$projectId': typeof ProjectsProjectIdRouteWithChildren
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/': typeof ProjectsIndexRoute
-  '/projects/$projectId/product-set': typeof ProjectsProjectIdProductSetRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -341,7 +331,6 @@ export interface FileRouteTypes {
     | '/video-editor'
     | '/projects/$projectId'
     | '/projects/'
-    | '/projects/$projectId/product-set'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -375,7 +364,6 @@ export interface FileRouteTypes {
     | '/video-editor'
     | '/projects/$projectId'
     | '/projects'
-    | '/projects/$projectId/product-set'
   id:
     | '__root__'
     | '/'
@@ -409,7 +397,6 @@ export interface FileRouteTypes {
     | '/video-editor'
     | '/projects/$projectId'
     | '/projects/'
-    | '/projects/$projectId/product-set'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -442,7 +429,7 @@ export interface RootRouteChildren {
   TtsRoute: typeof TtsRoute
   UsageRoute: typeof UsageRoute
   VideoEditorRoute: typeof VideoEditorRoute
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRouteWithChildren
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
@@ -665,26 +652,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId/product-set': {
-      id: '/projects/$projectId/product-set'
-      path: '/product-set'
-      fullPath: '/projects/$projectId/product-set'
-      preLoaderRoute: typeof ProjectsProjectIdProductSetRouteImport
-      parentRoute: typeof ProjectsProjectIdRoute
-    }
   }
 }
-
-interface ProjectsProjectIdRouteChildren {
-  ProjectsProjectIdProductSetRoute: typeof ProjectsProjectIdProductSetRoute
-}
-
-const ProjectsProjectIdRouteChildren: ProjectsProjectIdRouteChildren = {
-  ProjectsProjectIdProductSetRoute: ProjectsProjectIdProductSetRoute,
-}
-
-const ProjectsProjectIdRouteWithChildren =
-  ProjectsProjectIdRoute._addFileChildren(ProjectsProjectIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -716,7 +685,7 @@ const rootRouteChildren: RootRouteChildren = {
   TtsRoute: TtsRoute,
   UsageRoute: UsageRoute,
   VideoEditorRoute: VideoEditorRoute,
-  ProjectsProjectIdRoute: ProjectsProjectIdRouteWithChildren,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
 }
 export const routeTree = rootRouteImport
