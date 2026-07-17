@@ -17,6 +17,7 @@ import type {
 } from '../ecommerce-workflow/types'
 import type { GenerationOutput } from './generation'
 import type { PromptDetail, PromptListFilters, PromptListResponse } from './prompts'
+import type { Asset, Project } from '@shared/types/creator-os'
 
 // Generation types
 export interface GenerationRequest {
@@ -522,6 +523,22 @@ export interface RendererAPI {
     getAPIKey: () => Promise<{ success: boolean; data?: string | null; error?: string }>
     listModels: () => Promise<{ success: boolean; data?: Array<{ id: string }>; error?: string }>
     syncModels: () => Promise<{ success: boolean; data?: { providerId: string; synced: number }; error?: string }>
+  }
+  creatorOs: {
+    createProject: (data: Record<string, unknown>) => Promise<Project>
+    listProjects: () => Promise<Project[]>
+    getProject: (id: string) => Promise<Project | null>
+    updateProject: (id: string, data: Record<string, unknown>) => Promise<boolean>
+    deleteProject: (id: string) => Promise<void>
+    importAsset: (projectId: string, sourcePath: string) => Promise<Asset>
+    listAssets: (projectId: string, filter?: { kind?: string }) => Promise<Asset[]>
+    deleteAsset: (assetId: string) => Promise<boolean>
+    createAssetFromDataUrl: (
+      projectId: string,
+      dataUrl: string,
+      fileName: string,
+      metadata?: Record<string, unknown>
+    ) => Promise<Asset>
   }
   system: {
     getStorageInfo: () => Promise<{
