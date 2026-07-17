@@ -2948,6 +2948,20 @@
   },
   "director3d": {
     "title": "3D 导演台",
+    "shell": {
+      "title": "3D 导演台",
+      "defaultDeskName": "导演台",
+      "selectDesk": "选择导演台",
+      "newDesk": "新建",
+      "directorView": "导演视角",
+      "cameraView": "第一视角",
+      "cameraViewTitle": "查看摄影机最终画面",
+      "viewMode": "视角切换",
+      "motion": "运镜",
+      "openMotion": "打开运镜工作台",
+      "closeMotion": "关闭运镜工作台",
+      "close": "关闭"
+    },
     "directorView": "导演视角",
     "cameraView": "机位视角",
     "addCharacter": "添加角色",

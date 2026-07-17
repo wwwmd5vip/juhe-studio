@@ -22,7 +22,16 @@ export interface HostCaptureBatchPayload {
 }
 
 let initialized = false;
+let directorDeskProjectId: string | null = null;
 export const DIRECTOR_DESK_SESSION_OPENED_EVENT = "storyai:director-desk-session-opened";
+
+export function setDirectorDeskProjectId(projectId: string | null) {
+  directorDeskProjectId = projectId;
+}
+
+export function getDirectorDeskProjectId() {
+  return directorDeskProjectId;
+}
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";

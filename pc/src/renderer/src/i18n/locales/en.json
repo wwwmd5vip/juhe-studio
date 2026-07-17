@@ -2920,6 +2920,20 @@
   },
   "director3d": {
     "title": "3D Director's Desk",
+    "shell": {
+      "title": "3D Director's Desk",
+      "defaultDeskName": "Director Desk",
+      "selectDesk": "Select Director Desk",
+      "newDesk": "New",
+      "directorView": "Director View",
+      "cameraView": "Camera View",
+      "cameraViewTitle": "View final camera output",
+      "viewMode": "View mode",
+      "motion": "Motion",
+      "openMotion": "Open motion workbench",
+      "closeMotion": "Close motion workbench",
+      "close": "Close"
+    },
     "directorView": "Director View",
     "cameraView": "Camera View",
     "addCharacter": "Character",
