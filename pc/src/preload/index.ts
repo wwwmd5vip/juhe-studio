@@ -466,6 +466,12 @@ const api = {
     // Assets
     importAsset: (projectId: string, sourcePath: string) =>
       ipcRenderer.invoke('asset:import', projectId, sourcePath),
+    createAssetFromDataUrl: (
+      projectId: string,
+      dataUrl: string,
+      fileName: string,
+      metadata?: Record<string, unknown>
+    ) => ipcRenderer.invoke('asset:create-from-dataurl', projectId, dataUrl, fileName, metadata),
     listAssets: (projectId: string, filter?: { kind?: string }) =>
       ipcRenderer.invoke('asset:list', projectId, filter),
     deleteAsset: (assetId: string) =>
