@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { readLocalModelFile } from "../loaders/localModelImport";
+import { getDirector3dErrorMessage } from "../io/errorMessages";
 import { useDirectorStore } from "../store/directorStore";
 
 export function AssetImportPanel() {
@@ -35,11 +36,7 @@ export function AssetImportPanel() {
             } catch (error) {
               setImportError(
                 error instanceof Error
-                  ? (error.message === "DIRECTOR3D_MODEL_READ_FAILED"
-                      ? t("director3d.error.modelReadFailed")
-                      : error.message === "DIRECTOR3D_MODEL_FORMAT_UNSUPPORTED"
-                        ? t("director3d.error.modelFormatUnsupported")
-                        : error.message)
+                  ? getDirector3dErrorMessage(error, t)
                   : t("director3d.error.importFailed")
               );
             } finally {

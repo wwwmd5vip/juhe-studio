@@ -3087,10 +3087,6 @@
       "supportedFormats": "支持 FBX / OBJ 素模文件",
       "imported": "已导入本地模型: {{fileName}}"
     },
-    "io": {
-      "screenshotFileNameBase": "storyai-director-desk",
-      "captureFallbackFileNameBase": "director-desk-capture"
-    },
     "motion": {
       "subtitle": "侧边栏不挡画面 · 无需摆放机位",
       "export": "导出运镜",

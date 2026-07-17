@@ -3087,10 +3087,6 @@
       "supportedFormats": "Supports FBX / OBJ plain models",
       "imported": "Imported local model: {{fileName}}"
     },
-    "io": {
-      "screenshotFileNameBase": "storyai-director-desk",
-      "captureFallbackFileNameBase": "director-desk-capture"
-    },
     "motion": {
       "subtitle": "Sidebar-free · No camera placement needed",
       "export": "Export Motion",

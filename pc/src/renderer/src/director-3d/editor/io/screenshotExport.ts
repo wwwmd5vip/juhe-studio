@@ -1,3 +1,5 @@
+export const DEFAULT_SCREENSHOT_FILE_NAME_BASE = 'storyai-director-desk'
+
 export interface ScreenshotMeta {
   mode: "director" | "camera";
   cameraId: string | null;

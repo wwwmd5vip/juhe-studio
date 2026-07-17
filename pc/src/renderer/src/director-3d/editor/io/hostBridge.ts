@@ -1,5 +1,7 @@
 import type { Asset } from '@shared/types/creator-os'
 
+export const DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE = 'director-desk-capture'
+
 export interface HostCaptureItem {
   dataUrl: string
   fileName?: string

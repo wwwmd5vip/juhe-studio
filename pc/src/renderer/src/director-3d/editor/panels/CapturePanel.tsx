@@ -1,21 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
 import { requestViewportCapture } from "../io/captureBridge";
 import { serializeProject } from "../io/exportProjectJson";
 import { parseProject } from "../io/importProjectJson";
-import { buildCaptureFileName } from "../io/screenshotExport";
-import { postDirectorDeskCapturesToHost } from "../io/hostBridge";
+import {
+  buildCaptureFileName,
+  DEFAULT_SCREENSHOT_FILE_NAME_BASE,
+} from "../io/screenshotExport";
+import {
+  DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE,
+  postDirectorDeskCapturesToHost,
+} from "../io/hostBridge";
+import { getDirector3dErrorMessage } from "../io/errorMessages";
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
-
-function getCaptureErrorMessage(error: unknown, t: TFunction<'translation', undefined>): string {
-  const message = error instanceof Error ? error.message : String(error)
-  if (message === 'DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED') {
-    return t('director3d.error.viewportCaptureNotRegistered')
-  }
-  return message
-}
 
 export function CapturePanel() {
   const { t } = useTranslation();
@@ -33,14 +31,13 @@ export function CapturePanel() {
         preset,
         source: "capture-panel",
       });
-      const fileNameBase = t('director3d.io.screenshotFileNameBase');
       const captures = results.map((result, index) => ({
         dataUrl: result.dataUrl,
-        fileName: buildCaptureFileName(result, fileNameBase, index),
+        fileName: buildCaptureFileName(result, DEFAULT_SCREENSHOT_FILE_NAME_BASE, index),
       }));
       const saved = await postDirectorDeskCapturesToHost(
         captures,
-        t('director3d.io.captureFallbackFileNameBase')
+        DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
       );
       const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
       if (isEmpty) {
@@ -64,7 +61,7 @@ export function CapturePanel() {
         }
       }
     } catch (error) {
-      setCaptureStatus(getCaptureErrorMessage(error, t));
+      setCaptureStatus(getDirector3dErrorMessage(error, t));
     }
   }
 

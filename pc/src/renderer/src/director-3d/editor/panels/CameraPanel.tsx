@@ -1,7 +1,6 @@
 import { Camera, Download, Eye, Images, Pause, Play, Plus, Route, Send, Trash2, Waypoints, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
 import {
   InspectorAxisGroup,
   InspectorPanel,
@@ -11,8 +10,17 @@ import {
   InspectorTextField,
 } from "./InspectorControls";
 import { requestViewportCapture } from "../io/captureBridge";
-import { buildCaptureFileName, downloadDataUrl } from "../io/screenshotExport";
-import { postDirectorDeskCapturesToHost, type HostCaptureItem } from "../io/hostBridge";
+import {
+  buildCaptureFileName,
+  DEFAULT_SCREENSHOT_FILE_NAME_BASE,
+  downloadDataUrl,
+} from "../io/screenshotExport";
+import {
+  DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE,
+  postDirectorDeskCapturesToHost,
+  type HostCaptureItem,
+} from "../io/hostBridge";
+import { getDirector3dErrorMessage } from "../io/errorMessages";
 import { getDirectorObjectFocusTarget, isCameraFocusableObject } from "../schema/cameraTarget";
 import type { DirectorCameraCapture, DirectorCameraShot } from "../schema/directorProject";
 import type { ScreenshotResult } from "../io/screenshotExport";
@@ -53,14 +61,6 @@ function clampNumber(value: number, min: number, max: number) {
 
 function replaceAxis(tuple: [number, number, number], axis: 0 | 1 | 2, value: number): [number, number, number] {
   return tuple.map((item, index) => (index === axis ? value : item)) as [number, number, number];
-}
-
-function getCaptureErrorMessage(error: unknown, t: TFunction<'translation', undefined>): string {
-  const message = error instanceof Error ? error.message : String(error)
-  if (message === 'DIRECTOR3D_VIEWPORT_CAPTURE_NOT_REGISTERED') {
-    return t('director3d.error.viewportCaptureNotRegistered')
-  }
-  return message
 }
 
 export function CameraPanel() {
@@ -210,7 +210,7 @@ export function CameraPanel() {
     try {
       const saved = await postDirectorDeskCapturesToHost(
         captures,
-        t('director3d.io.captureFallbackFileNameBase')
+        DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
       );
       const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
       if (isEmpty) {
@@ -240,20 +240,19 @@ export function CameraPanel() {
 
   const sendCaptureToCanvas = useCallback(
     async (capture: DirectorCameraCapture, camera: DirectorCameraShot) => {
-      const fileName = getCaptureFileName(capture, camera, t('director3d.io.screenshotFileNameBase'));
+      const fileName = getCaptureFileName(capture, camera, DEFAULT_SCREENSHOT_FILE_NAME_BASE);
       await saveCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
     },
     [saveCapturesToHost, t]
   );
 
   const sendAllCapturesToCanvas = useCallback(async () => {
-    const fileNameBase = t('director3d.io.screenshotFileNameBase');
     const captureEntries = cameraCaptureGroups.flatMap((group) =>
       group.captures.map((capture) => ({ capture, camera: group.camera }))
     );
     const captures = captureEntries.map(({ capture, camera }) => ({
       dataUrl: capture.dataUrl,
-      fileName: getCaptureFileName(capture, camera, fileNameBase),
+      fileName: getCaptureFileName(capture, camera, DEFAULT_SCREENSHOT_FILE_NAME_BASE),
     }));
     await saveCapturesToHost(captures);
   }, [cameraCaptureGroups, saveCapturesToHost, t]);
@@ -275,7 +274,7 @@ export function CameraPanel() {
         addCameraCaptures(currentCamera.id, [preview.dataUrl]);
       }
     } catch (error) {
-      setCaptureError(getCaptureErrorMessage(error, t));
+      setCaptureError(getDirector3dErrorMessage(error, t));
     }
   }
 
@@ -627,7 +626,7 @@ export function CameraPanel() {
             onClick={() =>
               downloadDataUrl(
                 viewerCapture.dataUrl,
-                getCaptureFileName(viewerCapture, viewerCamera, t('director3d.io.screenshotFileNameBase'))
+                getCaptureFileName(viewerCapture, viewerCamera, DEFAULT_SCREENSHOT_FILE_NAME_BASE)
               )
             }
           >

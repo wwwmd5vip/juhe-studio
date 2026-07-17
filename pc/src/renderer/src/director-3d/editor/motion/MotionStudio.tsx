@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { requestReferenceVideoExport, type ReferenceVideoExportQuality } from "../io/referenceVideoExport";
+import { getDirector3dErrorMessage } from "../io/errorMessages";
 import { getCameraMotionPath } from "../schema/cameraMotion";
 import {
   getAnimatedCameraFocusTarget,
@@ -246,9 +247,7 @@ export function MotionStudio({
     } catch (error) {
       setExportStatus(
         error instanceof Error
-          ? (error.message === "DIRECTOR3D_REF_VIDEO_NOT_READY"
-              ? t("director3d.error.refVideoNotReady")
-              : error.message)
+          ? getDirector3dErrorMessage(error, t)
           : t("director3d.motion.referenceVideoExportFailed")
       );
     } finally {
