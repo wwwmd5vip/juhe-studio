@@ -10,6 +10,7 @@ let isShuttingDown = false
 let currentAbort: AbortController | null = null
 let isConsuming = false
 let currentJobId: number | null = null
+let consumerPromise: Promise<void> | null = null
 
 export function shutdown(): void {
   isShuttingDown = true
@@ -18,6 +19,19 @@ export function shutdown(): void {
 
 export function cancelCurrentJob(): void {
   currentAbort?.abort()
+}
+
+export function getConsumerPromise(): Promise<void> | null {
+  return consumerPromise
+}
+
+export function startConsumer(): Promise<void> {
+  if (consumerPromise) return consumerPromise
+  if (isShuttingDown) return Promise.resolve()
+  consumerPromise = runConsumer().finally(() => {
+    consumerPromise = null
+  })
+  return consumerPromise
 }
 
 export function startupRecovery(): void {
@@ -74,7 +88,7 @@ const finalizeJob = db.transaction((jobId: number) => {
   ).run(status, counts.completed, counts.failed, jobId)
 })
 
-export async function startConsumer(): Promise<void> {
+async function runConsumer(): Promise<void> {
   if (isShuttingDown) return
   if (isConsuming) return
 
