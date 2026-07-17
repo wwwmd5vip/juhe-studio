@@ -1,9 +1,10 @@
 /* 3D 导演台路由包装器 - 确保正确填充和 CSS 隔离 */
 .director3d-routing-wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  height: 100vh;
+  width: 100vw;
   overflow: hidden;
+  background: var(--director-bg, rgb(var(--bg-rgb)));
+  position: relative;
 }
 
 /* 确保侧边栏可见 */
