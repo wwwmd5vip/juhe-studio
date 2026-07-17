@@ -2954,6 +2954,11 @@
     "showGrid": "Show Grid",
     "showGround": "Show Ground",
     "captures": "Captures",
+    "capture": {
+      "previewTitle": "Capture Preview",
+      "close": "Close",
+      "download": "Download"
+    },
     "cameras": "Cameras",
     "selectCharacter": "Select a character",
     "selectProp": "Select a prop",

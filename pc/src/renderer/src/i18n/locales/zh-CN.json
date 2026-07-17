@@ -2982,6 +2982,11 @@
     "showGrid": "显示网格",
     "showGround": "显示地面",
     "captures": "截图",
+    "capture": {
+      "previewTitle": "截图预览",
+      "close": "关闭",
+      "download": "下载"
+    },
     "cameras": "机位列表",
     "selectCharacter": "请选择角色",
     "selectProp": "请选择道具",
