@@ -12,8 +12,6 @@ export interface HostCaptureResult {
   error?: string
 }
 
-export const DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE = 'director-desk-capture'
-
 let currentProjectId: string | null = null
 
 export function setDirectorDeskProjectId(projectId: string | null) {
@@ -28,9 +26,15 @@ function normalizeString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+/**
+ * Post director desk capture data URLs to the host canvas, creating assets.
+ *
+ * @param captures - The captures to upload. Items without a fileName will use fallbackFileNameBase.
+ * @param fallbackFileNameBase - Required base string for generated file names.
+ */
 export async function postDirectorDeskCapturesToHost(
   captures: HostCaptureItem[],
-  fallbackFileNameBase = DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
+  fallbackFileNameBase: string
 ): Promise<HostCaptureResult[]> {
   const normalizedCaptures = captures
     .map((capture, index) => {

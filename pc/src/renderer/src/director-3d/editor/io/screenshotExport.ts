@@ -12,16 +12,21 @@ export interface ScreenshotResult {
   meta: ScreenshotMeta;
 }
 
-export const DEFAULT_SCREENSHOT_FILE_NAME_BASE = 'storyai-director-desk';
-
 export function buildScreenshotMeta(input: ScreenshotMeta) {
   return input;
 }
 
+/**
+ * Build a PNG file name for a captured screenshot.
+ *
+ * @param result - The screenshot result containing label and meta.
+ * @param fileNameBase - Required base string for the file name.
+ * @param index - Zero-based index appended to the file name (defaults to 0).
+ */
 export function buildCaptureFileName(
   result: ScreenshotResult,
-  index = 0,
-  fileNameBase = DEFAULT_SCREENSHOT_FILE_NAME_BASE
+  fileNameBase: string,
+  index = 0
 ) {
   const labelSlug = result.label.replace(/\s+/g, "-");
   const cameraSuffix = result.meta.cameraId ? `-${result.meta.cameraId}` : "";
@@ -36,12 +41,18 @@ export function downloadDataUrl(dataUrl: string, fileName: string) {
   anchor.click();
 }
 
+/**
+ * Download all captured screenshots.
+ *
+ * @param results - The screenshot results to download.
+ * @param fileNameBase - Required base string for each file name.
+ */
 export function downloadCaptureResults(
   results: ScreenshotResult[],
-  fileNameBase = DEFAULT_SCREENSHOT_FILE_NAME_BASE
+  fileNameBase: string
 ) {
   results.forEach((result, index) => {
-    downloadDataUrl(result.dataUrl, buildCaptureFileName(result, index, fileNameBase));
+    downloadDataUrl(result.dataUrl, buildCaptureFileName(result, fileNameBase, index));
   });
 
   return results.length;

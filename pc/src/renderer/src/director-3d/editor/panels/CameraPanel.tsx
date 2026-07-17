@@ -36,7 +36,7 @@ function getCaptureFileName(
       target: camera.target,
     },
   };
-  return buildCaptureFileName(result, capture.index - 1, fileNameBase);
+  return buildCaptureFileName(result, fileNameBase, capture.index - 1);
 }
 
 const VIEWER_ZOOM_MIN = 0.25;

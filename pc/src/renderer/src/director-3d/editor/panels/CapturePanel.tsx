@@ -36,7 +36,7 @@ export function CapturePanel() {
       const fileNameBase = t('director3d.io.screenshotFileNameBase');
       const captures = results.map((result, index) => ({
         dataUrl: result.dataUrl,
-        fileName: buildCaptureFileName(result, index, fileNameBase),
+        fileName: buildCaptureFileName(result, fileNameBase, index),
       }));
       const saved = await postDirectorDeskCapturesToHost(
         captures,
