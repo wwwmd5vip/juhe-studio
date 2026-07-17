@@ -2953,6 +2953,12 @@
   },
   "director3d": {
     "title": "3D 导演台",
+    "common": {
+      "loading": "加载中..."
+    },
+    "error": {
+      "loadFailed": "3D 导演台加载失败"
+    },
     "shell": {
       "title": "3D 导演台",
       "defaultDeskName": "导演台",

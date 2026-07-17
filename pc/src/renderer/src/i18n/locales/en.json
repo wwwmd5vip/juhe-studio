@@ -2925,6 +2925,12 @@
   },
   "director3d": {
     "title": "3D Director's Desk",
+    "common": {
+      "loading": "Loading..."
+    },
+    "error": {
+      "loadFailed": "Failed to load 3D Director"
+    },
     "shell": {
       "title": "3D Director's Desk",
       "defaultDeskName": "Director Desk",
