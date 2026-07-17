@@ -640,27 +640,24 @@ function SmartToolsPage() {
               </select>
             </div>
             {allProviders.length > 0 && availableProviders.length === 0 && (
-              <span className='text-[10px] text-red-400'>
-                没有支持图像生成的 Provider，请先在设置中添加 image 模型。
-              </span>
+              <span className='text-[10px] text-red-400'>{t('smartTools.noProviders')}</span>
             )}
             {allProviders.length === 0 && (
               <div className='flex flex-col gap-2'>
-                <span className='text-[10px] text-red-400'>
-                  没有配置任何 Provider。如果已登录 Juhe Management，点击下方按钮同步模型。
-                </span>
+                <span className='text-[10px] text-red-400'>{t('smartTools.noProvidersHint')}</span>
                 <button
                   type='button'
                   onClick={async () => {
                     try {
-                      const result = await (window as any).api.auth.syncModels()
-                      if (result?.ok) {
+                      const result = await window.api.auth.syncModels()
+                      if (result?.success) {
+                        console.log(t('smartTools.syncSuccess'))
                         loadProviders({ force: true })
                       } else {
-                        alert(result?.error || '同步失败，请检查是否已登录 Juhe Management')
+                        alert(result?.error || t('smartTools.syncFailed'))
                       }
                     } catch (e) {
-                      alert(e instanceof Error ? e.message : '同步失败')
+                      alert(e instanceof Error ? e.message : t('smartTools.syncFailed'))
                     }
                   }}
                   className='self-start px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all hover:scale-105'
@@ -669,7 +666,7 @@ function SmartToolsPage() {
                     color: 'white'
                   }}
                 >
-                  同步 Juhe Management 模型
+                  {t('smartTools.syncModels')}
                 </button>
               </div>
             )}

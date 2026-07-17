@@ -2917,7 +2917,12 @@
     },
     "modelSettings": "模型设置",
     "selectProvider": "选择服务商",
-    "selectModel": "选择模型"
+    "selectModel": "选择模型",
+    "noProviders": "没有支持图像生成的 Provider，请先在设置中添加 image 模型。",
+    "noProvidersHint": "没有配置任何 Provider。如果已登录 Juhe Management，点击下方按钮同步模型。",
+    "syncModels": "同步 Juhe Management 模型",
+    "syncSuccess": "模型同步成功",
+    "syncFailed": "同步失败，请检查是否已登录 Juhe Management"
   },
   "feedback": {
     "sendFeedback": "发送反馈",
