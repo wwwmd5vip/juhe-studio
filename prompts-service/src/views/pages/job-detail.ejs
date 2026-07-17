@@ -56,26 +56,60 @@
     document.getElementById('progress-bar').style.width = pct + '%';
 
     const tbody = document.getElementById('items-body');
+    tbody.replaceChildren();
     if (items.data && items.data.length) {
-      tbody.innerHTML = items.data
-        .map(
-          (i) =>
-            `<tr class="border-t">` +
-            `<td class="p-3">${i.id}</td>` +
-            `<td class="p-3">${i.prompt_id}</td>` +
-            `<td class="p-3">${i.status}</td>` +
-            `<td class="p-3">${
-              i.image_path
-                ? `<a href="/images/${i.image_path}" target="_blank" class="text-blue-600 hover:underline">查看</a>`
-                : '-'
-            }</td>` +
-            `<td class="p-3 text-red-500">${i.error_message || ''}</td>` +
-            `<td class="p-3">${i.attempt_count}</td>` +
-            `</tr>`
-        )
-        .join('');
+      for (const item of items.data) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t';
+
+        const tdId = document.createElement('td');
+        tdId.className = 'p-3';
+        tdId.textContent = item.id;
+        tr.appendChild(tdId);
+
+        const tdPromptId = document.createElement('td');
+        tdPromptId.className = 'p-3';
+        tdPromptId.textContent = item.prompt_id;
+        tr.appendChild(tdPromptId);
+
+        const tdStatus = document.createElement('td');
+        tdStatus.className = 'p-3';
+        tdStatus.textContent = item.status;
+        tr.appendChild(tdStatus);
+
+        const tdImage = document.createElement('td');
+        tdImage.className = 'p-3';
+        if (item.image_path) {
+          const img = document.createElement('img');
+          img.src = '/images/' + item.image_path;
+          img.alt = 'Result for prompt ' + item.prompt_id;
+          img.className = 'h-16 w-auto rounded';
+          tdImage.appendChild(img);
+        } else {
+          tdImage.textContent = '-';
+        }
+        tr.appendChild(tdImage);
+
+        const tdError = document.createElement('td');
+        tdError.className = 'p-3 text-red-500';
+        tdError.textContent = item.error_message || '';
+        tr.appendChild(tdError);
+
+        const tdAttempts = document.createElement('td');
+        tdAttempts.className = 'p-3';
+        tdAttempts.textContent = item.attempt_count;
+        tr.appendChild(tdAttempts);
+
+        tbody.appendChild(tr);
+      }
     } else {
-      tbody.innerHTML = '<tr><td colspan="6" class="p-3 text-gray-500">暂无数据</td></tr>';
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.className = 'p-3 text-gray-500';
+      td.textContent = '暂无数据';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
     }
   }
 

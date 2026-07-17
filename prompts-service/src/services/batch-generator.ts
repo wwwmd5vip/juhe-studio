@@ -9,9 +9,14 @@ import { generateImage, replacePlaceholders, type ProviderConfig } from './opena
 let isShuttingDown = false
 let currentAbort: AbortController | null = null
 let isConsuming = false
+let currentJobId: number | null = null
 
 export function shutdown(): void {
   isShuttingDown = true
+  currentAbort?.abort()
+}
+
+export function cancelCurrentJob(): void {
   currentAbort?.abort()
 }
 
@@ -20,7 +25,7 @@ export function startupRecovery(): void {
   for (const job of running) {
     const recover = db.transaction((jobId: number) => {
       const { changes } = db.prepare(
-        "UPDATE job_items SET status = 'failed', error_message = ? WHERE job_id = ? AND status IN ('pending', 'processing')"
+        "UPDATE job_items SET status = 'failed', error_message = CASE WHEN error_message IS NULL OR error_message = '' THEN ? ELSE error_message END WHERE job_id = ? AND status IN ('pending', 'processing')"
       ).run('SERVICE_RESTART', jobId)
       db.prepare(
         "UPDATE prompts SET generation_status = 'failed' WHERE id IN (SELECT prompt_id FROM job_items WHERE job_id = ? AND status = 'failed') AND generation_status = 'processing'"
@@ -41,12 +46,39 @@ export function startupRecovery(): void {
   }
 }
 
+const finalizeJob = db.transaction((jobId: number) => {
+  const job = db.prepare('SELECT status FROM jobs WHERE id = ?').get(jobId) as
+    | { status: string }
+    | undefined
+  if (!job || job.status !== 'running') return
+
+  const counts = db
+    .prepare(
+      `SELECT
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) AS completed,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) AS failed,
+        COUNT(*) AS total
+      FROM job_items
+      WHERE job_id = ?`
+    )
+    .get(jobId) as { completed: number; failed: number; total: number }
+
+  const status =
+    counts.completed === counts.total
+      ? 'completed'
+      : counts.completed > 0 || counts.failed > 0
+        ? 'partially_failed'
+        : 'failed'
+  db.prepare(
+    'UPDATE jobs SET status = ?, completed_count = ?, failed_count = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run(status, counts.completed, counts.failed, jobId)
+})
+
 export async function startConsumer(): Promise<void> {
   if (isShuttingDown) return
   if (isConsuming) return
 
   isConsuming = true
-  let activeJobId: number | null = null
 
   try {
     while (!isShuttingDown) {
@@ -55,7 +87,7 @@ export async function startConsumer(): Promise<void> {
         | undefined
       if (!pending) break
 
-      activeJobId = pending.id
+      currentJobId = pending.id
       console.log(`[batch-consumer] starting job ${pending.id}`)
 
       db.prepare('UPDATE jobs SET status = ?, started_at = CURRENT_TIMESTAMP WHERE id = ?').run('running', pending.id)
@@ -74,35 +106,35 @@ export async function startConsumer(): Promise<void> {
         )
       )
 
-      if (isShuttingDown) {
-        const markRemaining = db.transaction((jobId: number) => {
-          const { changes } = db
-            .prepare("UPDATE job_items SET status = 'failed', error_message = ? WHERE job_id = ? AND status = ?")
-            .run('SHUTDOWN_INTERRUPTED', jobId, 'pending')
-          db.prepare('UPDATE jobs SET failed_count = failed_count + ? WHERE id = ?').run(changes, jobId)
-          return changes
-        })
-        const remaining = markRemaining(pending.id)
-        if (remaining > 0) {
-          console.log(`[batch-consumer] job ${pending.id}: ${remaining} pending items marked failed due to shutdown`)
+      const jobStatus = db.prepare('SELECT status FROM jobs WHERE id = ?').get(pending.id) as
+        | { status: string }
+        | undefined
+
+      if (jobStatus?.status === 'running') {
+        if (isShuttingDown) {
+          const markRemaining = db.transaction((jobId: number) => {
+            const { changes } = db
+              .prepare("UPDATE job_items SET status = 'failed', error_message = ? WHERE job_id = ? AND status = ?")
+              .run('SHUTDOWN_INTERRUPTED', jobId, 'pending')
+            db.prepare('UPDATE jobs SET failed_count = failed_count + ? WHERE id = ?').run(changes, jobId)
+            return changes
+          })
+          const remaining = markRemaining(pending.id)
+          if (remaining > 0) {
+            console.log(`[batch-consumer] job ${pending.id}: ${remaining} pending items marked failed due to shutdown`)
+          }
         }
+
+        finalizeJob(pending.id)
+        console.log(`[batch-consumer] finalized job ${pending.id}`)
+      } else {
+        console.log(`[batch-consumer] job ${pending.id} already finalized, skipping`)
       }
 
-      const finalizeJob = db.transaction((jobId: number) => {
-        const { completed, failed, total } = db
-          .prepare('SELECT completed_count as completed, failed_count as failed, total_count as total FROM jobs WHERE id = ?')
-          .get(jobId) as { completed: number; failed: number; total: number }
-        const status = completed === total ? 'completed' : completed > 0 || failed > 0 ? 'partially_failed' : 'failed'
-        db.prepare('UPDATE jobs SET status = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, jobId)
-      })
-      finalizeJob(pending.id)
-      console.log(`[batch-consumer] finalized job ${pending.id}`)
-
-      activeJobId = null
+      currentJobId = null
+      currentAbort = null
 
       if (isShuttingDown) break
-
-      currentAbort = null
 
       // yield to the event loop before checking the next pending job
       await new Promise<void>((resolve) => setImmediate(resolve))
@@ -110,29 +142,35 @@ export async function startConsumer(): Promise<void> {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error(`[batch-consumer] unexpected error: ${msg}`)
-    if (activeJobId !== null && !isShuttingDown) {
-      const failJob = db.transaction((jobId: number) => {
-        const { changes } = db
-          .prepare("UPDATE job_items SET status = 'failed', error_message = ? WHERE job_id = ? AND status = ?")
-          .run(msg, jobId, 'pending')
-        db.prepare('UPDATE jobs SET failed_count = failed_count + ? WHERE id = ?').run(changes, jobId)
-        db.prepare(
-          "UPDATE prompts SET generation_status = 'failed' WHERE id IN (SELECT prompt_id FROM job_items WHERE job_id = ? AND status = 'failed') AND generation_status = 'processing'"
-        ).run(jobId)
-        const { completed, total } = db
-          .prepare('SELECT completed_count as completed, total_count as total FROM jobs WHERE id = ?')
-          .get(jobId) as { completed: number; total: number }
-        const status = completed === total ? 'completed' : completed > 0 ? 'partially_failed' : 'failed'
-        db.prepare('UPDATE jobs SET status = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, jobId)
-        return changes
-      })
-      const remaining = failJob(activeJobId)
-      if (remaining > 0) {
-        console.log(`[batch-consumer] job ${activeJobId}: ${remaining} pending items marked failed due to unexpected error`)
+    if (currentJobId !== null) {
+      const job = db.prepare('SELECT status FROM jobs WHERE id = ?').get(currentJobId) as
+        | { status: string }
+        | undefined
+      if (job?.status === 'running') {
+        const failJob = db.transaction((jobId: number) => {
+          const { changes } = db
+            .prepare("UPDATE job_items SET status = 'failed', error_message = CASE WHEN error_message IS NULL OR error_message = '' THEN ? ELSE error_message END WHERE job_id = ? AND status IN ('pending', 'processing')")
+            .run(msg, jobId)
+          db.prepare('UPDATE jobs SET failed_count = failed_count + ? WHERE id = ?').run(changes, jobId)
+          db.prepare(
+            "UPDATE prompts SET generation_status = 'failed' WHERE id IN (SELECT prompt_id FROM job_items WHERE job_id = ? AND status = 'failed') AND generation_status = 'processing'"
+          ).run(jobId)
+          const { completed, total } = db
+            .prepare('SELECT completed_count as completed, total_count as total FROM jobs WHERE id = ?')
+            .get(jobId) as { completed: number; total: number }
+          const status = completed === total ? 'completed' : completed > 0 ? 'partially_failed' : 'failed'
+          db.prepare('UPDATE jobs SET status = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, jobId)
+          return changes
+        })
+        const remaining = failJob(currentJobId)
+        if (remaining > 0) {
+          console.log(`[batch-consumer] job ${currentJobId}: ${remaining} items marked failed due to unexpected error`)
+        }
       }
-      activeJobId = null
+      currentJobId = null
     }
   } finally {
+    currentJobId = null
     currentAbort = null
     isConsuming = false
   }
@@ -176,6 +214,16 @@ async function processItem(
     const relPath = `images/${jobId}/${promptId}.png`
     markItemCompleted(itemId, promptId, relPath, jobId)
   } catch (err: unknown) {
+    const job =
+      currentJobId !== null
+        ? (db.prepare('SELECT status FROM jobs WHERE id = ?').get(currentJobId) as { status: string } | undefined)
+        : undefined
+    if (job?.status === 'cancelled') {
+      markItemCancelled(itemId, promptId)
+      console.log(`[batch-consumer] item ${itemId} cancelled`)
+      return
+    }
+
     const msg = err instanceof Error && err.name === 'AbortError' ? 'SHUTDOWN_INTERRUPTED' : getErrorMessage(err)
     markItemFailed(itemId, promptId, jobId, msg)
     console.log(`[batch-consumer] item ${itemId} failed: ${msg}`)
@@ -197,6 +245,11 @@ const markItemFailed = db.transaction((itemId: number, promptId: number, jobId: 
   db.prepare("UPDATE job_items SET status = 'failed', error_message = ? WHERE id = ?").run(msg, itemId)
   db.prepare("UPDATE prompts SET generation_status = 'failed' WHERE id = ?").run(promptId)
   db.prepare('UPDATE jobs SET failed_count = failed_count + 1 WHERE id = ?').run(jobId)
+})
+
+const markItemCancelled = db.transaction((itemId: number, promptId: number) => {
+  db.prepare("UPDATE job_items SET status = 'cancelled', error_message = 'CANCELLED' WHERE id = ?").run(itemId)
+  db.prepare("UPDATE prompts SET generation_status = 'failed' WHERE id = ?").run(promptId)
 })
 
 const markPromptNotFound = db.transaction((itemId: number, jobId: number) => {

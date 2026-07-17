@@ -3,21 +3,43 @@ import '@fastify/secure-session'
 import '@fastify/view'
 import { z } from 'zod'
 import { db } from '../../db/connection.js'
+import { cancelCurrentJob } from '../../services/batch-generator.js'
+import { requireAuth, getCsrfToken, verifyCsrfToken } from './auth.js'
 
 const paramsSchema = z.object({ id: z.coerce.number().int().positive() })
 
+type JobItemRow = {
+  id: number
+  prompt_id: number
+  status: string
+  error_message?: string
+  image_path?: string
+  attempt_count: number
+}
+
 export async function jobsRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth)
   app.addHook('preHandler', async (request, reply) => {
-    if (!request.session.get('user')) {
-      return reply.redirect('/admin/login')
+    if (request.method === 'POST') {
+      await verifyCsrfToken(request, reply)
     }
   })
 
   app.get('/jobs', async (request, reply) => {
-    const rows = db.prepare('SELECT * FROM jobs ORDER BY id DESC LIMIT 100').all() as any[]
+    const rows = db.prepare('SELECT * FROM jobs ORDER BY id DESC LIMIT 100').all() as {
+      id: number
+      name: string
+      status: string
+      completed_count: number
+      total_count: number
+      failed_count: number
+      concurrency: number
+      created_at: string
+    }[]
     return reply.view('pages/jobs.ejs', {
       title: '生成任务',
       error: null,
+      csrfToken: getCsrfToken(request),
       jobs: rows
     })
   })
@@ -37,6 +59,7 @@ export async function jobsRoutes(app: FastifyInstance) {
     return reply.view('pages/job-detail.ejs', {
       title: '任务详情',
       error: null,
+      csrfToken: getCsrfToken(request),
       job
     })
   })
@@ -88,7 +111,7 @@ export async function jobsRoutes(app: FastifyInstance) {
     const offset = (page - 1) * limit
     const items = db
       .prepare('SELECT * FROM job_items WHERE job_id = ? ORDER BY id LIMIT ? OFFSET ?')
-      .all(id, limit, offset) as any[]
+      .all(id, limit, offset) as JobItemRow[]
 
     return { data: items }
   })
@@ -103,12 +126,23 @@ export async function jobsRoutes(app: FastifyInstance) {
     const job = db.prepare('SELECT status FROM jobs WHERE id = ?').get(id) as
       | { status: string }
       | undefined
-    if (!job || job.status !== 'pending') {
-      return reply.status(400).send('Can only cancel pending jobs')
+    if (!job || (job.status !== 'pending' && job.status !== 'running')) {
+      return reply.status(400).send('Can only cancel pending or running jobs')
     }
 
-    db.prepare("UPDATE jobs SET status = 'cancelled' WHERE id = ?").run(id)
-    db.prepare("UPDATE job_items SET status = 'cancelled' WHERE job_id = ? AND status = 'pending'").run(id)
+    if (job.status === 'running') {
+      cancelCurrentJob()
+    }
+
+    const cancelJob = db.transaction((jobId: number) => {
+      db.prepare(
+        "UPDATE job_items SET status = 'cancelled' WHERE job_id = ? AND status IN ('pending', 'processing')"
+      ).run(jobId)
+      db.prepare(
+        "UPDATE jobs SET status = 'cancelled', finished_at = CURRENT_TIMESTAMP WHERE id = ? AND status IN ('pending', 'running')"
+      ).run(jobId)
+    })
+    cancelJob(id)
     return reply.redirect('/admin/jobs')
   })
 }

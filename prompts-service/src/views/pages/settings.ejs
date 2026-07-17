@@ -6,6 +6,7 @@
       <div class="text-red-500 mb-4"><%= error %></div>
     <% } %>
     <form method="post" action="/admin/settings" class="bg-white p-6 rounded shadow space-y-4">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div>
         <label class="block text-sm font-medium mb-1">默认占位符</label>
         <input name="default_placeholder" value="<%= settings.default_placeholder %>" class="w-full border p-2 rounded">

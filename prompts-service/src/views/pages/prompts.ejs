@@ -28,6 +28,7 @@
               <td class="p-3 space-x-3">
                 <a href="/admin/prompts/<%= p.id %>/edit" class="text-blue-600 hover:underline">编辑</a>
                 <form method="post" action="/admin/prompts/<%= p.id %>/toggle" class="inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <button type="submit" class="text-sm text-gray-600 hover:text-gray-900">
                     <%= p.is_enabled ? '禁用' : '启用' %>
                   </button>

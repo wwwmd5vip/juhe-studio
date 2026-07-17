@@ -4,6 +4,7 @@ import '@fastify/view'
 import { z } from 'zod'
 import { db } from '../../db/connection.js'
 import { startConsumer } from '../../services/batch-generator.js'
+import { requireAuth, getCsrfToken, verifyCsrfToken } from './auth.js'
 
 const flatJobSchema = z.object({
   prompt_ids: z.string().min(1),
@@ -30,20 +31,22 @@ function getSetting(key: string, defaultValue: unknown): unknown {
 }
 
 export async function generateRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth)
   app.addHook('preHandler', async (request, reply) => {
-    if (!request.session.get('user')) {
-      return reply.redirect('/admin/login')
+    if (request.method === 'POST') {
+      await verifyCsrfToken(request, reply)
     }
   })
 
   app.get('/generate', async (request, reply) => {
     const rows = db
       .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
-      .all() as any[]
+      .all() as { id: number; title?: string; content: string; category?: string }[]
 
     return reply.view('pages/generate.ejs', {
       title: '批量生成',
       error: null,
+      csrfToken: getCsrfToken(request),
       prompts: rows
     })
   })
@@ -53,10 +56,11 @@ export async function generateRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       const rows = db
         .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
-        .all() as any[]
+        .all() as { id: number; title?: string; content: string; category?: string }[]
       return reply.view('pages/generate.ejs', {
         title: '批量生成',
         error: parsed.error.message,
+        csrfToken: getCsrfToken(request),
         prompts: rows
       })
     }
@@ -70,10 +74,11 @@ export async function generateRoutes(app: FastifyInstance) {
     if (promptIds.length === 0 || promptIds.length > 2000) {
       const rows = db
         .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
-        .all() as any[]
+        .all() as { id: number; title?: string; content: string; category?: string }[]
       return reply.view('pages/generate.ejs', {
         title: '批量生成',
         error: 'Invalid prompt selection',
+        csrfToken: getCsrfToken(request),
         prompts: rows
       })
     }
@@ -82,10 +87,42 @@ export async function generateRoutes(app: FastifyInstance) {
     if (promptIds.length > maxSize) {
       const rows = db
         .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
-        .all() as any[]
+        .all() as { id: number; title?: string; content: string; category?: string }[]
       return reply.view('pages/generate.ejs', {
         title: '批量生成',
         error: `Exceeds max job size (${maxSize})`,
+        csrfToken: getCsrfToken(request),
+        prompts: rows
+      })
+    }
+
+    // Validate all prompt IDs exist and are enabled
+    const placeholders = promptIds.map(() => '?').join(',')
+    const validationRows = db
+      .prepare(`SELECT id, is_enabled FROM prompts WHERE id IN (${placeholders})`)
+      .all(...promptIds) as { id: number; is_enabled: number }[]
+    const foundIds = new Set(validationRows.map((r) => r.id))
+    const missing = promptIds.filter((id) => !foundIds.has(id))
+    if (missing.length > 0) {
+      const rows = db
+        .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
+        .all() as { id: number; title?: string; content: string; category?: string }[]
+      return reply.view('pages/generate.ejs', {
+        title: '批量生成',
+        error: `Prompt IDs not found: ${missing.join(', ')}`,
+        csrfToken: getCsrfToken(request),
+        prompts: rows
+      })
+    }
+    const disabled = validationRows.filter((r) => !r.is_enabled).map((r) => r.id)
+    if (disabled.length > 0) {
+      const rows = db
+        .prepare('SELECT id, title, content, category FROM prompts WHERE is_enabled = 1 ORDER BY id DESC LIMIT 100')
+        .all() as { id: number; title?: string; content: string; category?: string }[]
+      return reply.view('pages/generate.ejs', {
+        title: '批量生成',
+        error: `Prompt IDs disabled: ${disabled.join(', ')}`,
+        csrfToken: getCsrfToken(request),
         prompts: rows
       })
     }
@@ -113,19 +150,26 @@ export async function generateRoutes(app: FastifyInstance) {
         .replace(/[-:T.Z]/g, '')
         .slice(0, 12)}`
 
-    const jobInfo = db
-      .prepare(
-        'INSERT INTO jobs (name, provider_config, placeholder_value, total_count, concurrency) VALUES (?, ?, ?, ?, ?)'
-      )
-      .run(name, JSON.stringify(mergedConfig), placeholder, promptIds.length, concurrency)
-    const jobId = Number(jobInfo.lastInsertRowid)
+    const createJob = db.transaction(
+      (jobName: string, config: string, placeholderValue: string | undefined, count: number, jobConcurrency: number, ids: number[]) => {
+        const jobInfo = db
+          .prepare(
+            'INSERT INTO jobs (name, provider_config, placeholder_value, total_count, concurrency) VALUES (?, ?, ?, ?, ?)'
+          )
+          .run(jobName, config, placeholderValue ?? null, count, jobConcurrency)
+        const jobId = Number(jobInfo.lastInsertRowid)
 
-    const insertItem = db.prepare('INSERT INTO job_items (job_id, prompt_id) VALUES (?, ?)')
-    const updatePrompt = db.prepare("UPDATE prompts SET generation_status = 'pending' WHERE id = ?")
-    for (const pid of promptIds) {
-      insertItem.run(jobId, pid)
-      updatePrompt.run(pid)
-    }
+        const insertItem = db.prepare('INSERT INTO job_items (job_id, prompt_id) VALUES (?, ?)')
+        const updatePrompt = db.prepare("UPDATE prompts SET generation_status = 'pending' WHERE id = ?")
+        for (const pid of ids) {
+          insertItem.run(jobId, pid)
+          updatePrompt.run(pid)
+        }
+        return jobId
+      }
+    )
+
+    const jobId = createJob(name, JSON.stringify(mergedConfig), placeholder, promptIds.length, concurrency, promptIds)
 
     startConsumer().catch(console.error)
     return reply.redirect(`/admin/jobs/${jobId}`)

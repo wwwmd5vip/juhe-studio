@@ -3,6 +3,7 @@ import '@fastify/secure-session'
 import '@fastify/view'
 import { z } from 'zod'
 import { db } from '../../db/connection.js'
+import { requireAuth, getCsrfToken, verifyCsrfToken } from './auth.js'
 
 const paramsSchema = z.object({ id: z.coerce.number().int().positive() })
 
@@ -32,9 +33,10 @@ type PromptListRow = {
 }
 
 export async function adminPromptsRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth)
   app.addHook('preHandler', async (request, reply) => {
-    if (!request.session.get('user')) {
-      return reply.redirect('/admin/login')
+    if (request.method === 'POST') {
+      await verifyCsrfToken(request, reply)
     }
   })
 
@@ -46,6 +48,7 @@ export async function adminPromptsRoutes(app: FastifyInstance) {
     return reply.view('pages/prompts.ejs', {
       title: '提示词管理',
       error: null,
+      csrfToken: getCsrfToken(request),
       prompts: rows
     })
   })
@@ -65,6 +68,7 @@ export async function adminPromptsRoutes(app: FastifyInstance) {
     return reply.view('pages/prompt-edit.ejs', {
       title: '编辑提示词',
       error: null,
+      csrfToken: getCsrfToken(request),
       prompt
     })
   })
@@ -85,6 +89,7 @@ export async function adminPromptsRoutes(app: FastifyInstance) {
       return reply.view('pages/prompt-edit.ejs', {
         title: '编辑提示词',
         error: parsedBody.error.message,
+        csrfToken: getCsrfToken(request),
         prompt
       })
     }

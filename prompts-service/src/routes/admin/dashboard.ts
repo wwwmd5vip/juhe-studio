@@ -2,13 +2,10 @@ import type { FastifyInstance } from 'fastify'
 import '@fastify/secure-session'
 import '@fastify/view'
 import { db } from '../../db/connection.js'
+import { requireAuth, getCsrfToken } from './auth.js'
 
 export async function dashboardRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', async (request, reply) => {
-    if (!request.session.get('user')) {
-      return reply.redirect('/admin/login')
-    }
-  })
+  app.addHook('preHandler', requireAuth)
 
   app.get('/dashboard', async (request, reply) => {
     const total = Number(
@@ -28,6 +25,7 @@ export async function dashboardRoutes(app: FastifyInstance) {
     return reply.view('pages/dashboard.ejs', {
       title: '控制台',
       error: null,
+      csrfToken: getCsrfToken(request),
       total,
       withImage,
       jobs

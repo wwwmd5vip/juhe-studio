@@ -8,6 +8,7 @@
       <a href="/admin/settings" class="text-blue-600 hover:underline">设置</a>
     </nav>
     <form method="post" action="/admin/logout" class="inline">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <button type="submit" class="text-sm text-gray-600 hover:text-gray-900">退出登录</button>
     </form>
   </div>

@@ -6,6 +6,7 @@
       <div class="text-red-500 mb-4"><%= error %></div>
     <% } %>
     <form method="post" action="/admin/jobs" id="generate-form" class="space-y-6">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="bg-white p-6 rounded shadow">
         <h2 class="font-semibold mb-3">选择提示词</h2>
         <input type="hidden" name="prompt_ids" id="prompt_ids">
