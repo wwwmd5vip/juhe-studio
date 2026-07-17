@@ -33,11 +33,15 @@ export function CapturePanel() {
         preset,
         source: "capture-panel",
       });
+      const fileNameBase = t('director3d.io.screenshotFileNameBase');
       const captures = results.map((result, index) => ({
         dataUrl: result.dataUrl,
-        fileName: buildCaptureFileName(result, index),
+        fileName: buildCaptureFileName(result, index, fileNameBase),
       }));
-      const saved = await postDirectorDeskCapturesToHost(captures);
+      const saved = await postDirectorDeskCapturesToHost(
+        captures,
+        t('director3d.io.captureFallbackFileNameBase')
+      );
       const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
       if (isEmpty) {
         setCaptureStatus(t("director3d.capture.emptyCaptures"));

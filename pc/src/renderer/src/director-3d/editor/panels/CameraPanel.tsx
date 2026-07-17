@@ -20,7 +20,11 @@ import { DEFAULT_CAMERA_MOTION_PATH, getCameraMotionPath } from "../schema/camer
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
 
-function getCaptureFileName(capture: DirectorCameraCapture, camera: DirectorCameraShot) {
+function getCaptureFileName(
+  capture: DirectorCameraCapture,
+  camera: DirectorCameraShot,
+  fileNameBase: string
+) {
   const result: ScreenshotResult = {
     label: capture.name,
     dataUrl: capture.dataUrl,
@@ -32,7 +36,7 @@ function getCaptureFileName(capture: DirectorCameraCapture, camera: DirectorCame
       target: camera.target,
     },
   };
-  return buildCaptureFileName(result, capture.index - 1);
+  return buildCaptureFileName(result, capture.index - 1, fileNameBase);
 }
 
 const VIEWER_ZOOM_MIN = 0.25;
@@ -204,7 +208,10 @@ export function CameraPanel() {
     setCaptureStatus(null);
     setCaptureError(null);
     try {
-      const saved = await postDirectorDeskCapturesToHost(captures);
+      const saved = await postDirectorDeskCapturesToHost(
+        captures,
+        t('director3d.io.captureFallbackFileNameBase')
+      );
       const isEmpty = saved.length === 1 && saved[0].error === 'DIRECTOR3D_EMPTY_CAPTURES';
       if (isEmpty) {
         setCaptureStatus(t("director3d.capture.emptyCaptures"));
@@ -233,22 +240,23 @@ export function CameraPanel() {
 
   const sendCaptureToCanvas = useCallback(
     async (capture: DirectorCameraCapture, camera: DirectorCameraShot) => {
-      const fileName = getCaptureFileName(capture, camera);
+      const fileName = getCaptureFileName(capture, camera, t('director3d.io.screenshotFileNameBase'));
       await saveCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
     },
-    [saveCapturesToHost]
+    [saveCapturesToHost, t]
   );
 
   const sendAllCapturesToCanvas = useCallback(async () => {
+    const fileNameBase = t('director3d.io.screenshotFileNameBase');
     const captureEntries = cameraCaptureGroups.flatMap((group) =>
       group.captures.map((capture) => ({ capture, camera: group.camera }))
     );
     const captures = captureEntries.map(({ capture, camera }) => ({
       dataUrl: capture.dataUrl,
-      fileName: getCaptureFileName(capture, camera),
+      fileName: getCaptureFileName(capture, camera, fileNameBase),
     }));
     await saveCapturesToHost(captures);
-  }, [cameraCaptureGroups, saveCapturesToHost]);
+  }, [cameraCaptureGroups, saveCapturesToHost, t]);
 
   if (!camera) return null;
   const currentCamera = camera;
@@ -616,7 +624,12 @@ export function CameraPanel() {
             aria-label={t("director3d.capture.downloadImage")}
             className="camera-capture-viewer-tool"
             type="button"
-            onClick={() => downloadDataUrl(viewerCapture.dataUrl, getCaptureFileName(viewerCapture, viewerCamera))}
+            onClick={() =>
+              downloadDataUrl(
+                viewerCapture.dataUrl,
+                getCaptureFileName(viewerCapture, viewerCamera, t('director3d.io.screenshotFileNameBase'))
+              )
+            }
           >
             <Download aria-hidden="true" size={18} strokeWidth={2} />
           </button>

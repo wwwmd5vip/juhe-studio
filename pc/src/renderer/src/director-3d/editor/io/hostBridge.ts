@@ -12,6 +12,8 @@ export interface HostCaptureResult {
   error?: string
 }
 
+export const DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE = 'director-desk-capture'
+
 let currentProjectId: string | null = null
 
 export function setDirectorDeskProjectId(projectId: string | null) {
@@ -27,7 +29,8 @@ function normalizeString(value: unknown): string {
 }
 
 export async function postDirectorDeskCapturesToHost(
-  captures: HostCaptureItem[]
+  captures: HostCaptureItem[],
+  fallbackFileNameBase = DEFAULT_CAPTURE_FALLBACK_FILE_NAME_BASE
 ): Promise<HostCaptureResult[]> {
   const normalizedCaptures = captures
     .map((capture, index) => {
@@ -35,7 +38,7 @@ export async function postDirectorDeskCapturesToHost(
       if (!dataUrl) return null
       return {
         dataUrl,
-        fileName: normalizeString(capture.fileName) || `director-desk-capture-${index + 1}.png`
+        fileName: normalizeString(capture.fileName) || `${fallbackFileNameBase}-${index + 1}.png`
       }
     })
     .filter((capture): capture is { dataUrl: string; fileName: string } => Boolean(capture))
