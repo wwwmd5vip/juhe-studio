@@ -33,7 +33,15 @@ export function AssetImportPanel() {
             try {
               await handleLocalModel(file);
             } catch (error) {
-              setImportError(error instanceof Error ? error.message : t("director3d.error.importFailed"));
+              setImportError(
+                error instanceof Error
+                  ? (error.message === "DIRECTOR3D_MODEL_READ_FAILED"
+                      ? t("director3d.error.modelReadFailed")
+                      : error.message === "DIRECTOR3D_MODEL_FORMAT_UNSUPPORTED"
+                        ? t("director3d.error.modelFormatUnsupported")
+                        : error.message)
+                  : t("director3d.error.importFailed")
+              );
             } finally {
               input.value = "";
             }

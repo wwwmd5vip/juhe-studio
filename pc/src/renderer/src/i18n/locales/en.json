@@ -2938,7 +2938,13 @@
       "webglLost": "3D rendering context lost. Please refresh the page.",
       "importFailed": "Local model import failed",
       "referenceVideoNotSupported": "Browser does not support reference video export",
-      "referenceVideoRecordingFailed": "Reference video recording failed"
+      "referenceVideoRecordingFailed": "Reference video recording failed",
+      "refVideoNotReady": "Reference video exporter is not ready yet",
+      "modelReadFailed": "Failed to read model file",
+      "modelFormatUnsupported": "Only FBX / OBJ model files are currently supported",
+      "panoramaSizeFailed": "Failed to read panorama size, please select another image",
+      "panoramaGenFailed": "Unable to generate panorama in current environment, please try again later",
+      "panoramaFormatUnsupported": "Panorama only supports JPG / PNG / WEBP"
     },
     "shell": {
       "title": "3D Director's Desk",

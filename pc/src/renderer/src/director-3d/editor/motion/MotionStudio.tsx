@@ -244,7 +244,13 @@ export function MotionStudio({
       });
       setExportStatus(t("director3d.motion.referenceVideoDownloaded"));
     } catch (error) {
-      setExportStatus(error instanceof Error ? error.message : t("director3d.motion.referenceVideoExportFailed"));
+      setExportStatus(
+        error instanceof Error
+          ? (error.message === "DIRECTOR3D_REF_VIDEO_NOT_READY"
+              ? t("director3d.error.refVideoNotReady")
+              : error.message)
+          : t("director3d.motion.referenceVideoExportFailed")
+      );
     } finally {
       setExporting(false);
     }

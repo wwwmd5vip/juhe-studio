@@ -2938,7 +2938,13 @@
       "webglLost": "3D 渲染上下文丢失，请刷新页面重试",
       "importFailed": "本地模型导入失败",
       "referenceVideoNotSupported": "当前浏览器无法导出参考视频",
-      "referenceVideoRecordingFailed": "参考视频录制失败"
+      "referenceVideoRecordingFailed": "参考视频录制失败",
+      "refVideoNotReady": "参考视频导出器尚未就绪",
+      "modelReadFailed": "读取模型文件失败",
+      "modelFormatUnsupported": "仅支持 FBX / OBJ 模型文件",
+      "panoramaSizeFailed": "读取全景图尺寸失败，请选择其他图片",
+      "panoramaGenFailed": "当前环境无法生成全景图，请稍后重试",
+      "panoramaFormatUnsupported": "全景图仅支持 JPG / PNG / WEBP"
     },
     "shell": {
       "title": "3D 导演台",

@@ -10,16 +10,16 @@ function readFileAsDataUrl(file: File) {
         return;
       }
 
-      reject(new Error("Failed to read model file"));
+      reject(new Error("DIRECTOR3D_MODEL_READ_FAILED"));
     });
-    reader.addEventListener("error", () => reject(reader.error ?? new Error("Failed to read model file")));
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("DIRECTOR3D_MODEL_READ_FAILED")));
     reader.readAsDataURL(file);
   });
 }
 
 export async function readLocalModelFile(file: File) {
   if (!LOCAL_MODEL_EXTENSION_RE.test(file.name)) {
-    throw new Error("Only FBX / OBJ model files are currently supported");
+    throw new Error("DIRECTOR3D_MODEL_FORMAT_UNSUPPORTED");
   }
 
   return {
