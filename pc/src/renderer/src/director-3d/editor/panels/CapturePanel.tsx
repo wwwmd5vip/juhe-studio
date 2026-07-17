@@ -18,6 +18,7 @@ export function CapturePanel() {
   const restoreLatestSnapshot = useDirectorStore((state) => state.restoreLatestSnapshot);
 
   async function handleCapture(preset: "current" | "four" | "twelve") {
+    setCaptureStatus(null);
     try {
       const results = await requestViewportCapture({
         preset,
@@ -30,8 +31,21 @@ export function CapturePanel() {
       const saved = await postDirectorDeskCapturesToHost(captures);
       const failures = saved.filter((r) => r.error || !r.asset);
       if (failures.length > 0) {
-        setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+        setPreviewCaptures(
+          failures.map((f) => ({
+            dataUrl: f.dataUrl,
+            fileName: f.fileName,
+            error:
+              f.error === 'DIRECTOR3D_NO_PROJECT_ID'
+                ? t('director3d.capture.noProjectId')
+                : f.error === 'DIRECTOR3D_EMPTY_CAPTURES'
+                  ? t('director3d.capture.emptyCaptures')
+                  : f.error,
+          }))
+        );
         setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+      } else if (saved.length === 0) {
+        setCaptureStatus(t("director3d.capture.emptyCaptures"));
       } else {
         setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
       }

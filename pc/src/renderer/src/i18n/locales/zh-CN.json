@@ -2998,6 +2998,8 @@
       "saveFailed": "保存失败 {{count}} 张",
       "saveSuccess": "已保存 {{count}} 张到项目素材",
       "captureFailed": "截图失败",
+      "emptyCaptures": "没有可保存的截图",
+      "noProjectId": "未关联项目，无法保存截图",
       "sendFailed": "发送失败 {{count}} 张",
       "sectionTitle": "相机截图",
       "tabLabel": "摄像机截图",

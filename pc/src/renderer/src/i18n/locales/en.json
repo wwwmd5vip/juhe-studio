@@ -2970,6 +2970,8 @@
       "saveFailed": "Failed to save {{count}} captures",
       "saveSuccess": "Saved {{count}} captures to project assets",
       "captureFailed": "Capture failed",
+      "emptyCaptures": "No captures to save",
+      "noProjectId": "No project linked; cannot save captures",
       "sendFailed": "Failed to send {{count}} captures",
       "sectionTitle": "Camera captures",
       "tabLabel": "Camera captures",

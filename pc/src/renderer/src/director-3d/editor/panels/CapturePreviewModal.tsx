@@ -51,12 +51,12 @@ export function CapturePreviewModal({ isOpen, captures, onClose, onDownload }: C
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
           <h3 style={{ margin: 0, color: 'var(--director-ink, #fff)' }}>{t('director3d.capture.previewTitle')}</h3>
-          <button onClick={onClose} style={{ color: 'var(--director-ink, #fff)' }}>
+          <button type="button" onClick={onClose} style={{ color: 'var(--director-ink, #fff)' }}>
             {t('director3d.capture.close')}
           </button>
         </div>
         {captures.map((capture, index) => (
-          <div key={index} style={{ marginBottom: 16 }}>
+          <div key={`${capture.fileName}-${index}`} style={{ marginBottom: 16 }}>
             {capture.error && (
               <p style={{ color: '#ff6b6b', fontSize: 12, marginBottom: 4 }}>{capture.error}</p>
             )}
@@ -66,6 +66,7 @@ export function CapturePreviewModal({ isOpen, captures, onClose, onDownload }: C
               style={{ maxWidth: '100%', maxHeight: 300, display: 'block', marginBottom: 8 }}
             />
             <button
+              type="button"
               onClick={() => {
                 const link = document.createElement('a')
                 link.href = capture.dataUrl

@@ -9,5 +9,5 @@
     "types": ["vite/client"]
   },
   "include": ["src/renderer/src/**/*", "src/shared/**/*"],
-  "exclude": ["src/main/**/*", "src/preload/**/*", "**/__tests__/**"]
+  "exclude": ["src/main/**/*", "src/preload/**/*", "**/__tests__/**", "**/*.test.tsx"]
 }

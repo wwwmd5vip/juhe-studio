@@ -41,7 +41,7 @@ export async function postDirectorDeskCapturesToHost(
     .filter((capture): capture is { dataUrl: string; fileName: string } => Boolean(capture))
 
   if (normalizedCaptures.length === 0) {
-    return []
+    return [{ dataUrl: '', fileName: '', error: 'DIRECTOR3D_EMPTY_CAPTURES' }]
   }
 
   console.log('[Director3D] Captures ready:', normalizedCaptures.length)
@@ -50,7 +50,7 @@ export async function postDirectorDeskCapturesToHost(
   if (!projectId) {
     return normalizedCaptures.map((capture) => ({
       ...capture,
-      error: 'NO_PROJECT_ID'
+      error: 'DIRECTOR3D_NO_PROJECT_ID'
     }))
   }
 
