@@ -94,16 +94,17 @@ function SmartToolsPage() {
   }, [loadProviders])
 
   // Available providers: must have at least one image-generation model
+  // Note: resolveModelCapabilities normalizes 'image-generation' -> 'image', so we check 'image'.
   const availableProviders = useMemo(
     () =>
-      allProviders.filter((p) => p.models.some((m) => (m.capabilities ?? []).includes('image-generation'))),
+      allProviders.filter((p) => p.models.some((m) => (m.capabilities ?? []).includes('image'))),
     [allProviders]
   )
 
   // Models of selected provider: only image-generation capable models
   const providerModels = useMemo(() => {
     const p = allProviders.find((pr) => pr.id === providerId)
-    return (p?.models ?? []).filter((m) => (m.capabilities ?? []).includes('image-generation'))
+    return (p?.models ?? []).filter((m) => (m.capabilities ?? []).includes('image'))
   }, [allProviders, providerId])
 
   // Auto-select first provider when none selected
@@ -642,6 +643,35 @@ function SmartToolsPage() {
               <span className='text-[10px] text-red-400'>
                 没有支持图像生成的 Provider，请先在设置中添加 image 模型。
               </span>
+            )}
+            {allProviders.length === 0 && (
+              <div className='flex flex-col gap-2'>
+                <span className='text-[10px] text-red-400'>
+                  没有配置任何 Provider。如果已登录 Juhe Management，点击下方按钮同步模型。
+                </span>
+                <button
+                  type='button'
+                  onClick={async () => {
+                    try {
+                      const result = await (window as any).api.auth.syncModels()
+                      if (result?.ok) {
+                        loadProviders({ force: true })
+                      } else {
+                        alert(result?.error || '同步失败，请检查是否已登录 Juhe Management')
+                      }
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : '同步失败')
+                    }
+                  }}
+                  className='self-start px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all hover:scale-105'
+                  style={{
+                    background: 'linear-gradient(135deg, var(--juhe-cyan), var(--juhe-violet))',
+                    color: 'white'
+                  }}
+                >
+                  同步 Juhe Management 模型
+                </button>
+              </div>
             )}
           </div>
 

@@ -181,10 +181,28 @@ export const useImageProcessStore = create<ImageProcessState>((set, get) => ({
 
       const isDone = progress.status === 'completed' || progress.status === 'failed' || progress.status === 'cancelled'
 
+      // Sync the active localTask so the Smart Tools UI reflects progress/errors immediately
+      const isActive = state.activeTaskId === progress.taskId
+      const localTaskUpdate: Partial<LocalImageProcessTask> = {}
+      if (isActive) {
+        localTaskUpdate.status = progress.status as LocalImageProcessTask['status']
+        localTaskUpdate.progress = progress.progress
+        if (progress.message) localTaskUpdate.error = progress.message
+        if (progress.outputs && progress.outputs.length > 0) {
+          const first = progress.outputs[0]
+          if ('base64' in first) {
+            localTaskUpdate.result = `data:image/png;base64,${first.base64}`
+          }
+        }
+      }
+
       return {
         tasks: newTasks,
         isProcessing: isDone ? false : state.isProcessing,
-        activeTaskId: isDone ? null : state.activeTaskId
+        activeTaskId: isDone ? null : state.activeTaskId,
+        localTask: isActive
+          ? { ...state.localTask, ...localTaskUpdate }
+          : state.localTask
       }
     })
   },
