@@ -1,9 +1,4 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Standalone 3D Director Desk compatibility entry.
+// In pc/ this file is not used; the route imports App.tsx directly.
+export { default } from './App'
+export type { Director3DAppProps } from './App'
