@@ -895,8 +895,8 @@
       "title": "节点面板"
     },
     "empty": {
-      "noNodes": "画布为空，添加第一张卡片开始创作",
-      "startFromTemplate": "从模板开始"
+      "guideText": "点击下方工具栏添加节点，开始创作",
+      "shortcutHint": "Ctrl+V 粘贴图片 · 拖拽文件到画布"
     },
     "lightbox": {
       "close": "关闭",
@@ -2941,7 +2941,6 @@
     },
     "shell": {
       "title": "3D 导演台",
-      "home": "首页",
       "motionWorkbench": "运镜工作台",
       "close": "关闭",
       "defaultDeskName": "导演台 1 号",
@@ -3021,8 +3020,7 @@
       "fullImageAlt": "{{name}} 查看大图",
       "currentCamera": "当前机位",
       "fourPrefix": "四方位",
-      "twelvePrefix": "十二方位",
-      "currentCameraLabel": "当前机位"
+      "twelvePrefix": "十二方位"
     },
     "cameras": "机位列表",
     "selectCharacter": "请选择角色",
@@ -3036,7 +3034,6 @@
       "imported": "已导入本地模型: {{fileName}}"
     },
     "motion": {
-      "title": "运镜工作台",
       "subtitle": "侧边栏不挡画面 · 无需摆放机位",
       "export": "导出运镜",
       "exportSettings": "导出运镜设置",
@@ -3063,13 +3060,6 @@
       "startPilot": "开始掌镜",
       "startPilotHint": "WASD 自由走镜头",
       "addCurrentView": "添加当前视角",
-      "keyMove": "移动",
-      "keyAscend": "上升",
-      "keyDescend": "下降",
-      "keyPlayPause": "播放 / 暂停人物",
-      "keyLook": "看向",
-      "keyLock": "锁定",
-      "keyRecord": "记录",
       "route": "镜头路线",
       "routePoints": "{{count}} 个点",
       "batchMove": "批量移动",
@@ -3119,7 +3109,6 @@
       "close": "关闭运镜工作台",
       "motion": "运镜",
       "selectedWaypointActions": "当前轨迹点操作",
-      "recordingDots": "正在录制...",
       "referenceVideoFileName": "{{name}}-参考视频",
       "transport": {
         "title": "人物和道具动作播放条",
@@ -3159,10 +3148,7 @@
         "timeValue": "{{current}}，共 {{duration}}",
         "routePoint": "路线点",
         "actionPoint": "动作点",
-        "current": "进行中：{{index}}",
-        "selectedKeyframes": "已选 {{count}} 个轨迹点",
-        "locked": "已锁定 · {{name}}",
-        "lockHint": "{{name}} · F 锁定"
+        "current": "进行中：{{index}}"
       }
     },
     "pilot": {
@@ -3181,7 +3167,8 @@
       "record": "Enter 记录轨迹点",
       "recordAria": "记录当前轨迹点",
       "locked": "已锁定：{{name}}",
-      "lockHint": "{{name}} · 按 F 锁定"
+      "lockHint": "{{name}} · 按 F 锁定",
+      "look": "环顾"
     },
     "toolbar": {
       "viewportTools": "3D视口快捷工具",

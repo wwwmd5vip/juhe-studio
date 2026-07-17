@@ -895,8 +895,8 @@
       "title": "Node Panel"
     },
     "empty": {
-      "noNodes": "Canvas is empty, add your first card to start creating",
-      "startFromTemplate": "Start from template"
+      "guideText": "Click the toolbar below to add nodes and start creating",
+      "shortcutHint": "Ctrl+V to paste images · Drag files onto the canvas"
     },
     "lightbox": {
       "close": "Close",
@@ -2941,7 +2941,6 @@
     },
     "shell": {
       "title": "3D Director's Desk",
-      "home": "Home",
       "motionWorkbench": "Motion Workbench",
       "close": "Close",
       "defaultDeskName": "Director Desk 1",
@@ -3021,8 +3020,7 @@
       "fullImageAlt": "{{name}} full image",
       "currentCamera": "Current Camera",
       "fourPrefix": "Four-way",
-      "twelvePrefix": "Twelve-way",
-      "currentCameraLabel": "Current Camera"
+      "twelvePrefix": "Twelve-way"
     },
     "cameras": "Cameras",
     "selectCharacter": "Select a character",
@@ -3036,7 +3034,6 @@
       "imported": "Imported local model: {{fileName}}"
     },
     "motion": {
-      "title": "Motion Workbench",
       "subtitle": "Sidebar-free · No camera placement needed",
       "export": "Export Motion",
       "exportSettings": "Export Motion Settings",
@@ -3063,13 +3060,6 @@
       "startPilot": "Start Piloting",
       "startPilotHint": "WASD free camera movement",
       "addCurrentView": "Add Current View",
-      "keyMove": "Move",
-      "keyAscend": "Ascend",
-      "keyDescend": "Descend",
-      "keyPlayPause": "Play / Pause characters",
-      "keyLook": "Look",
-      "keyLock": "Lock",
-      "keyRecord": "Record",
       "route": "Shot Route",
       "routePoints": "{{count}} points",
       "batchMove": "Batch Move",
@@ -3119,7 +3109,6 @@
       "close": "Close motion workbench",
       "motion": "Motion",
       "selectedWaypointActions": "Current waypoint actions",
-      "recordingDots": "Recording...",
       "referenceVideoFileName": "{{name}}-reference-video",
       "transport": {
         "title": "Character and prop motion transport",
@@ -3159,10 +3148,7 @@
         "timeValue": "{{current}}, total {{duration}}",
         "routePoint": "route point",
         "actionPoint": "action point",
-        "current": "In progress: {{index}}",
-        "selectedKeyframes": "Selected {{count}} waypoints",
-        "locked": "Locked · {{name}}",
-        "lockHint": "{{name}} · Press F to lock"
+        "current": "In progress: {{index}}"
       }
     },
     "pilot": {
@@ -3181,7 +3167,8 @@
       "record": "Enter Record Waypoint",
       "recordAria": "Record current waypoint",
       "locked": "Locked: {{name}}",
-      "lockHint": "{{name}} · Press F to lock"
+      "lockHint": "{{name}} · Press F to lock",
+      "look": "Look around"
     },
     "toolbar": {
       "viewportTools": "3D viewport quick tools",
