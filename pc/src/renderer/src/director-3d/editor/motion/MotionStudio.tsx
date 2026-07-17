@@ -338,8 +338,8 @@ export function MotionStudio({
           <span><kbd>WASD</kbd><small>{t("director3d.pilot.move")}</small></span>
           <span><kbd>E</kbd><small>{t("director3d.pilot.ascendDescend")}</small></span>
           <span><kbd>Q</kbd><small>{t("director3d.pilot.ascendDescend")}</small></span>
-          <span><kbd>空格</kbd><small>{t("director3d.pilot.playPause")}</small></span>
-          <span><kbd>鼠标</kbd><small>{t("director3d.pilot.look")}</small></span>
+          <span><kbd>{t("director3d.common.spaceKey")}</kbd><small>{t("director3d.pilot.playPause")}</small></span>
+          <span><kbd>{t("director3d.common.mouse")}</kbd><small>{t("director3d.pilot.look")}</small></span>
           <span><kbd>F</kbd><small>{t("director3d.pilot.lockSubject")}</small></span>
           <span><kbd>Enter</kbd><small>{t("director3d.pilot.record")}</small></span>
         </div>

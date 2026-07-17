@@ -2926,13 +2926,18 @@
       "cancel": "Cancel",
       "save": "Save",
       "delete": "Delete",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "spaceKey": "Space",
+      "mouse": "Mouse",
+      "scrollWheel": "Scroll Wheel"
     },
     "error": {
       "loadFailed": "Failed to load 3D Director",
       "localStorage": "Local storage failed. Please clear browser data.",
       "webglLost": "3D rendering context lost. Please refresh the page.",
-      "importFailed": "Local model import failed"
+      "importFailed": "Local model import failed",
+      "referenceVideoNotSupported": "Browser does not support reference video export",
+      "referenceVideoRecordingFailed": "Reference video recording failed"
     },
     "shell": {
       "title": "3D Director's Desk",

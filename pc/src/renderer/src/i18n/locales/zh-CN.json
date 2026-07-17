@@ -2926,13 +2926,18 @@
       "cancel": "取消",
       "save": "保存",
       "delete": "删除",
-      "loading": "加载中..."
+      "loading": "加载中...",
+      "spaceKey": "空格",
+      "mouse": "鼠标",
+      "scrollWheel": "滚轮"
     },
     "error": {
       "loadFailed": "3D 导演台加载失败",
       "localStorage": "本地存储失败，请清理浏览器数据",
       "webglLost": "3D 渲染上下文丢失，请刷新页面重试",
-      "importFailed": "本地模型导入失败"
+      "importFailed": "本地模型导入失败",
+      "referenceVideoNotSupported": "当前浏览器无法导出参考视频",
+      "referenceVideoRecordingFailed": "参考视频录制失败"
     },
     "shell": {
       "title": "3D 导演台",

@@ -35,14 +35,14 @@ export function DirectorDeskShell({ children }: { children: ReactNode }) {
       <aside
         className="left-sidebar director-sidebar"
         aria-hidden={viewportPanelsCollapsed ? "true" : undefined}
-        aria-label={t("director3d.scene")}
+        aria-label={t("director3d.shell.scene")}
       >
         <ObjectTreePanel />
       </aside>
       <aside
         className="right-sidebar director-sidebar"
         aria-hidden={viewportPanelsCollapsed ? "true" : undefined}
-        aria-label={t("director3d.properties")}
+        aria-label={t("director3d.shell.properties")}
       >
         <RightPanel />
       </aside>

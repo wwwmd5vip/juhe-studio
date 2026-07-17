@@ -1013,7 +1013,7 @@ export function DirectorCanvas() {
         const canvas = referenceVideoCanvasRef.current;
         const mimeType = getSupportedReferenceVideoMimeType();
         if (!canvas || !mimeType || !activeCamera || !activeCameraMotionPath || activeCameraMotionPath.keyframes.length < 2) {
-          throw new Error("当前浏览器无法导出参考视频");
+          throw new Error(t("director3d.error.referenceVideoNotSupported"));
         }
 
         const stream = canvas.captureStream(fps);
@@ -1027,7 +1027,7 @@ export function DirectorCanvas() {
         });
         const stopped = new Promise<void>((resolve, reject) => {
           recorder.addEventListener("stop", () => resolve(), { once: true });
-          recorder.addEventListener("error", () => reject(new Error("参考视频录制失败")), { once: true });
+          recorder.addEventListener("error", () => reject(new Error(t("director3d.error.referenceVideoRecordingFailed"))), { once: true });
         });
 
         setCameraMotionPlaying(false);

@@ -48,9 +48,9 @@ export function PilotHud({
       <div className="pilot-keyboard-help" aria-label={t("director3d.pilot.keyboardHelp")}>
         <span><kbd>W A S D</kbd> {t("director3d.pilot.move")}</span>
         <span><kbd>E</kbd> {t("director3d.pilot.ascendDescend")}</span>
-        <span><kbd>空格</kbd> {t("director3d.pilot.playPause")}</span>
+        <span><kbd>{t("director3d.common.spaceKey")}</kbd> {t("director3d.pilot.playPause")}</span>
         <span><kbd>F</kbd> {t("director3d.pilot.lockSubject")}</span>
-        <span><kbd>滚轮</kbd> {t("director3d.pilot.zoom")}</span>
+        <span><kbd>{t("director3d.common.scrollWheel")}</kbd> {t("director3d.pilot.zoom")}</span>
       </div>
 
       <div className="pilot-hud-actions">
