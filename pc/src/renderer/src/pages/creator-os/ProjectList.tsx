@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useProjects, useCreateProject } from '@/hooks/useCreatorOs'
 import type { Project } from '@shared/types/creator-os'
@@ -10,6 +10,7 @@ interface ProjectCardProps {
 
 function ProjectCard({ project }: ProjectCardProps) {
   const { t } = useTranslation()
+  const router = useRouter()
 
   const getStatusBadge = (s: string): { label: string; className: string } => {
     const key = `creator-os.status-${s || 'idle'}`
@@ -32,12 +33,14 @@ function ProjectCard({ project }: ProjectCardProps) {
   const badge = getStatusBadge(project.batchStatus || 'idle')
 
   return (
-    <Link
-      to="/projects/$projectId"
-      params={{ projectId: project.id }}
+    <div
+      onClick={() => {
+        console.log('[ProjectList] Navigating to project:', project.id)
+        router.navigate({ to: '/projects/$projectId', params: { projectId: project.id } })
+      }}
       className="block bg-cos-surface border border-cos-border rounded-cos-lg p-5
                  shadow-cos-card hover:shadow-cos-panel hover:border-cos-accent-muted
-                 transition-all duration-200"
+                 cursor-pointer transition-all duration-200"
     >
       <div className="flex items-start justify-between mb-3">
         <h3 className="font-cos-heading text-cos-ink text-lg leading-snug">
@@ -53,7 +56,7 @@ function ProjectCard({ project }: ProjectCardProps) {
       <p className="text-cos-ink-muted text-xs">
         {new Date(project.updatedAt).toLocaleDateString()}
       </p>
-    </Link>
+    </div>
   )
 }
 

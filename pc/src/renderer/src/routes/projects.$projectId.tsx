@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { createFileRoute, Link, useParams } from '@tanstack/react-router'
+import { createFileRoute, Link, useParams, useRouter } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { AssetPanel } from '@/components/creator-os/AssetPanel'
 import { ResultGrid } from '@/components/creator-os/ResultGrid'
@@ -28,6 +28,7 @@ function ProjectDetail() {
   const { data: assets = [] } = useProjectAssets(projectId)
   const updateMutation = useUpdateProject(projectId)
   const deleteMutation = useDeleteProject()
+  const router = useRouter()
 
   if (isLoading || !project) {
     return (
@@ -119,14 +120,16 @@ function ProjectDetail() {
           >
             {t('creator-os.delete-project')}
           </button>
-          <Link
-            to="/projects/$projectId/product-set"
-            params={{ projectId }}
+          <button
+            onClick={() => {
+              console.log('[ProjectDetail] Navigating to product-set:', projectId)
+              router.navigate({ to: '/projects/$projectId/product-set', params: { projectId } })
+            }}
             className="bg-cos-accent hover:bg-cos-accent-hover text-white px-4 py-2
                        rounded-cos-md font-medium transition-colors"
           >
             {t('creator-os.product-set')}
-          </Link>
+          </button>
         </div>
       </div>
 
