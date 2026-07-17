@@ -15,7 +15,8 @@
  * electron-builder is then pointed at app-deploy/ via --config.appDir
  */
 
-import { cp, rm, readdir, lstat, readlink, mkdir, rename, stat } from 'node:fs/promises'
+/* global console, process */
+import { cp, rm, readdir, readlink, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
@@ -31,15 +32,6 @@ const PROD_DEP_DIRS_TO_SKIP = new Set([
   '.node-modules-backup',
   '.modules.yaml',
 ])
-
-async function isSymlink(path) {
-  try {
-    const stats = await lstat(path)
-    return stats.isSymbolicLink()
-  } catch {
-    return false
-  }
-}
 
 async function copySymlinkAsReal(src, dest) {
   const target = await readlink(src)

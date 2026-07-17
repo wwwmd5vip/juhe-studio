@@ -382,7 +382,12 @@ export const useEcommerceWorkflowStore = create<EcommerceWorkflowState>()((set, 
 
       const visionStep = workflow.steps.find((s) => s.id === 'agent-vision')
       const generateStep = workflow.steps.find((s) => s.id === 'agent-generate')
-      if (!visionStep?.config?.providerId || !generateStep?.config?.providerId) {
+      if (
+        !visionStep?.config?.providerId ||
+        !visionStep?.config?.modelId ||
+        !generateStep?.config?.providerId ||
+        !generateStep?.config?.modelId
+      ) {
         set({ error: i18n.t('ecommerceWorkflow.errors.selectModels') })
         return
       }
@@ -405,6 +410,11 @@ export const useEcommerceWorkflowStore = create<EcommerceWorkflowState>()((set, 
         const prompts = afterVision?.context.agentVisionPrompts
         if (!prompts || prompts.length === 0) {
           set({ error: i18n.t('ecommerceWorkflow.errors.noPrompts') })
+          return
+        }
+
+        if (!afterVision?.context.agentVisionPromptsConfirmed) {
+          set({ error: i18n.t('ecommerceWorkflow.errors.promptsNotConfirmed') })
           return
         }
 

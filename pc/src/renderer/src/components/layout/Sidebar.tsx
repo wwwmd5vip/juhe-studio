@@ -55,6 +55,7 @@ const navGroups = [
       { to: '/smart-tools', labelKey: 'nav.smartTools', icon: Wrench },
       { to: '/ecommerce', labelKey: 'nav.ecommerce', icon: ShoppingBag },
       { to: '/ecommerce-workflow', labelKey: 'nav.ecommerceWorkflow', icon: Workflow },
+      { to: '/ecommerce-showcase', labelKey: 'nav.ecommerceShowcase', icon: LayoutGrid },
       { to: '/director-3d', labelKey: 'nav.director3d', icon: Clapperboard },
       { to: '/tts', labelKey: 'nav.tts', icon: Volume2 },
       { to: '/community', labelKey: 'nav.community', icon: Users }

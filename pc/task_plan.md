@@ -7,45 +7,67 @@
 3. 选择视觉分析模型（Vision）和图像/视频生成模型（Generation）。
 4. 一键运行：自动完成「视觉分析 → 提示词生成 → 图像/视频生成 → 结果展示」。
 
-## 当前发现（详见 findings.md）
-- 电商工作流已经是一个完整的模板化系统：模板 → 步骤 → 执行器 → 结果展示。
-- `提示词/智能体` 下已有 38 个 Markdown 文件，多数遵循「角色 → 输入判断 → 分析/创意 → 输出提示词」结构。
-- 现有步骤类型：input / vision / llm / llm-stream / module-generate / review / result / module-config。
-- 没有步骤类型能直接把「提示词文件 + 多模型 + 自动生成」串起来。
+## 已确认决策
+- 首个 MVP 提示词文件：`产品广告海报提示词智能体.md`
+- 生成流程：输入 → Vision 生成提示词 → **用户确认** → Generation 生成图片 → 结果展示
+- MVP 输出类型：仅图片
 
-## 实现方案
+## 实际完成度盘点
 
-### 推荐方案：新增 `agent` 步骤类型 + 智能体工作流模板
-1. 新增一个工作流模板 `agent-workflow`（智能体开发工作流），包含 4 个步骤：
-   - `input`：上传图片、填写规格、选择提示词文件、选择 Vision 模型、选择 Generation 模型。
-   - `agent-vision`：用 Vision 模型读取提示词文件作为 system prompt，分析图片和规格，输出结构化提示词/方案。
-   - `agent-generate`：用 Generation 模型根据上一步输出生成图片/视频。
-   - `result`：展示生成结果。
-2. 新增 `agent-vision` 和 `agent-generate` 步骤执行器，支持：
-   - 运行时读取 `提示词/智能体/*.md` 内容。
-   - 使用用户选择的 provider/model。
-   - 把上一步输出作为下一步输入。
-3. 复用现有 `WorkflowEditor`、`EcommerceWorkflowStore`、IPC 协议，改动最小。
+### 已存在的基础设施 ✅
+- `agent-poster` 模板已注册（`pc/src/shared/ecommerce-workflow/templates/agent-poster.ts`）
+- 步骤类型已声明：`agent-vision` / `agent-generate` / `agent-result`
+- 主进程执行器已实现：
+  - `agent-vision-executor.ts`：读取提示词、调用 Vision 模型、解析海报提示词
+  - `agent-generate-executor.ts`：批量调用图像生成服务
+- UI 卡片已存在：`InputStepCard` / `AgentVisionStepCard` / `AgentGenerateStepCard` / `AgentResultStepCard`
+- IPC 与 Store 已支持 `runAgent()` 一键运行
+- i18n 基础键已存在
 
-### 替代方案：扩展现有 `vision` + `module-generate` 步骤
-- 把智能体提示词文件内容注册为新的 `promptTemplate`。
-- 优点：完全复用现有执行器。
-- 缺点：每个智能体都要新增模板和 prompt key，不能从文件目录动态加载，灵活性差。
-
-**推荐方案 A**：因为它最符合用户「选择提示词文件 + 选择模型 + 全自动运行」的诉求。
+### 当前缺口（本次要实现）
+1. **提示词确认机制缺失**：`runAgent()` 目前 Vision 完成后自动进入 Generate，没有给用户确认/编辑提示词的机会。
+2. **AgentVisionStepCard 不展示提示词列表**：只展示 `output` summary，无法查看、编辑、删除单个 prompt。
+3. **缺少确认状态字段**：`WorkflowContext` 中没有标记用户是否已确认生成的提示词。
 
 ## 阶段计划
 
 | # | 阶段 | 关键任务 | 状态 |
 |---|------|---------|------|
-| 1 | 设计 & 确认范围 | 确定首个支持的智能体提示词、输出类型（image/video/prompt-only） | pending |
-| 2 | 数据模型扩展 | 在 `WorkflowContext` / `WorkflowStepConfig` 增加 `agentPromptFile`、`visionModel`、`generationModel` 等字段 | pending |
-| 3 | 主进程能力 | 新增 `agent-vision-executor.ts` / `agent-generate-executor.ts`；IPC 增加读取提示词文件接口 | pending |
-| 4 | 渲染进程 UI | 新增/改造 `InputStepCard`、`AgentVisionStepCard`、`AgentGenerateStepCard`、`ResultStepCard` | pending |
-| 5 | 模板注册 & i18n | 注册 `agent-workflow` 模板；添加中/英翻译 | pending |
-| 6 | 验证 | typecheck、build、test | pending |
+| 1 | 设计 & 确认范围 | 确定首个支持的智能体提示词、输出类型、生成流程 | complete |
+| 2 | 数据模型扩展 | 在 `WorkflowContext` 增加 `agentVisionPromptsConfirmed` 字段 | complete |
+| 3 | 渲染进程 UI | 改造 `AgentVisionStepCard`：展示提示词列表、支持编辑/删除/确认 | complete |
+| 4 | 流程控制 | 改造 `runAgent`：Vision 完成后必须用户确认才进入 Generate | complete |
+| 5 | 模板注册 & i18n | 补充确认相关中文/英文翻译键 | complete |
+| 6 | 验证 | renderer typecheck / lint 通过；记录 main 进程预先存在的类型/测试问题 | complete |
+| 7 | 全局验证修复 | 修复 `pnpm typecheck` / `pnpm test` / `pnpm lint` 的全局失败 | complete |
+| 8 | 功能完整性补齐 | 修复生成步骤默认模型选择、完善一键运行校验、消除 useEffect 依赖警告 | complete |
 
-## 待确认问题
-- 首个 MVP 支持哪个提示词文件？（推荐 `产品广告海报提示词智能体.md` 或 `产品信息智能提取智能体.md`）
-- 是否直接生成图片，还是先生成提示词再让用户二次确认？
-- 输出类型先支持图片还是同时支持视频？
+## 遇到的错误
+| 错误 | 尝试次数 | 解决方案 |
+|------|---------|---------|
+| `pnpm typecheck` main 进程失败 | 1 | 与本次改动无关：未修改的 `generation.ts` / `queue.ts` / `creator-os/*.ts` 存在类型错误，依赖当前工作区中未提交的 creator-os 改动 |
+| `pnpm test` 1 个测试失败 | 1 | 与本次改动无关：`generation-model-mapping.test.ts` 期望 `console.error` 第一个参数包含完整日志前缀，但当前 logger 将 prefix 与参数分开传入 |
+| `pnpm lint` 全局失败 | 1 | 已修复：忽略 `app-deploy/**` / `demo/**`，关闭部分规则，修复 `DirectorCanvas.tsx` 的 `no-useless-assignment`；剩余 484 warnings 为历史遗留 |
+| `pnpm typecheck` 全局失败 | 1 | 已修复：调整 logger 签名、creator-os 类型、`Record<never, never>`、`CameraPanel.tsx` early return |
+| `pnpm test` 全局失败 | 1 | 已修复：更新 `generation-model-mapping.test.ts` 对 logger 输出格式的期望 |
+| `AgentGenerateStepCard` 默认模型选择错误 | 1 | 已修复：使用 `filterAvailableProviders(providers, ['image'])` 自动选择首个可用图像生成模型，不再调用 Vision 默认接口 |
+| 一键运行按钮校验不完整 | 1 | 已修复：`WorkflowEditor` 与 `runAgent()` 同时校验 `providerId` 和 `modelId` |
+| `AgentVisionStepCard` / `AgentGenerateStepCard` `useEffect` 依赖警告 | 1 | 已修复：补全依赖数组 |
+
+## 电商生图与 UI 规划跟进
+
+### 相关规划
+- `pc/docs/superpowers/plans/2026-06-16-ecommerce-showcase-simple-mode-plan.md`
+- `pc/docs/superpowers/specs/2026-06-16-ecommerce-showcase-simple-mode-design.md`
+
+### 已补齐
+| # | 事项 | 状态 |
+|---|------|------|
+| 1 | 接入 `/ecommerce-showcase` 路由与 Sidebar 入口 | complete |
+| 2 | 补齐 `src/main/services/__tests__/ecommerce-showcase/service.test.ts` | complete |
+
+### 仍遗留
+| # | 事项 | 状态 |
+|---|------|------|
+| 1 | `showcase_tasks` 迁移文件同步 `project_id` 列 | complete |
+| 2 | `UI-DESIGN-REFERENCE.md` Token 体系与代码 `--juhe-*` 变量对齐 | complete |

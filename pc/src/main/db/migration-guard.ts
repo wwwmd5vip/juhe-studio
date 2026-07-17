@@ -7,7 +7,7 @@ const MIGRATION_FLAG_FILE = 'migration_0014_status.json'
 interface MigrationStatus {
   version: number
   applied: boolean
-  error?: string
+  error?: string | null
   timestamp: string
 }
 

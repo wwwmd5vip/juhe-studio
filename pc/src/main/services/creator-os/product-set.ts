@@ -33,18 +33,16 @@ async function readSourceAssetBase64(projectId: string): Promise<string[]> {
     .select({ filePath: assets.filePath })
     .from(assets)
     .where(and(eq(assets.projectId, projectId), eq(assets.kind, 'source')))
-  return sourceAssets
-    .filter((a) => {
-      const fp = a.filePath as string
-      return fp && existsSync(fp)
-    })
-    .map((a) => {
-      const fp = a.filePath as string
-      const ext = extname(fp).toLowerCase().slice(1) || 'png'
-      const mime = ext === 'jpg' ? 'jpeg' : ext
-      const data = readFileSync(fp).toString('base64')
-      return `data:image/${mime};base64,${data}`
-    })
+  const result: string[] = []
+  for (const a of sourceAssets) {
+    const fp = String(a.filePath ?? '')
+    if (!fp || !existsSync(fp)) continue
+    const ext = extname(fp).toLowerCase().slice(1) || 'png'
+    const mime = ext === 'jpg' ? 'jpeg' : ext
+    const buf = readFileSync(fp)
+    result.push(`data:image/${mime};base64,${buf.toString('base64')}`)
+  }
+  return result
 }
 
 /**

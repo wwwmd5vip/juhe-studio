@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global console, process, require, __dirname */
 /**
  * Import crawled prompts JSONL into SQLite.
  *

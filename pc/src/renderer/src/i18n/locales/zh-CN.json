@@ -2740,12 +2740,21 @@
       "generatedImageAlt": "生成的海报 {{index}}",
       "imageGenerationFailed": "生成失败",
       "noImages": "暂无生成结果",
-      "resultSummary": "{{success}} / {{error}}"
+      "resultSummary": "{{success}} / {{error}}",
+      "regeneratePrompts": "重新生成提示词",
+      "generatedPrompts": "已生成 {{count}} 个提示词",
+      "promptsConfirmed": "已确认",
+      "promptPlaceholder": "输入用于图像生成的提示词...",
+      "addPrompt": "添加提示词",
+      "confirmPrompts": "确认提示词并继续",
+      "confirmed": "已确认",
+      "confirmBeforeGenerate": "请先在上一步「视觉分析」中确认提示词，再运行生成。"
     },
     "errors": {
       "selectModels": "请先选择视觉模型和生成模型",
       "uploadProductImage": "请上传产品图片",
       "noPrompts": "视觉分析未返回可用的海报提示词",
+      "promptsNotConfirmed": "请先确认视觉分析生成的提示词",
       "streamError": "流式事件错误",
       "stepAlreadyRunning": "已有步骤正在运行，请先取消"
     }

@@ -11,6 +11,7 @@ export interface WorkflowContext {
   imageCount?: number
   agentPromptId?: string
   agentVisionPrompts?: string[]
+  agentVisionPromptsConfirmed?: boolean
   agentGeneratedImages?: AgentGeneratedImage[]
   outputs: Record<string, string>
   modules?: WorkflowModule[]

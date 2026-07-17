@@ -26,6 +26,7 @@ import { Route as IdPhotoRouteImport } from './routes/id-photo'
 import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as EcommerceWorkflowRouteImport } from './routes/ecommerce-workflow'
+import { Route as EcommerceShowcaseRouteImport } from './routes/ecommerce-showcase'
 import { Route as EcommerceAmazonRouteImport } from './routes/ecommerce-amazon'
 import { Route as EcommerceRouteImport } from './routes/ecommerce'
 import { Route as Director3dRouteImport } from './routes/director-3d'
@@ -126,6 +127,11 @@ const EcommerceWorkflowRoute = EcommerceWorkflowRouteImport.update({
   path: '/ecommerce-workflow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceShowcaseRoute = EcommerceShowcaseRouteImport.update({
+  id: '/ecommerce-showcase',
+  path: '/ecommerce-showcase',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceAmazonRoute = EcommerceAmazonRouteImport.update({
   id: '/ecommerce-amazon',
   path: '/ecommerce-amazon',
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/director-3d': typeof Director3dRoute
   '/ecommerce': typeof EcommerceRoute
   '/ecommerce-amazon': typeof EcommerceAmazonRoute
+  '/ecommerce-showcase': typeof EcommerceShowcaseRoute
   '/ecommerce-workflow': typeof EcommerceWorkflowRoute
   '/favorites': typeof FavoritesRoute
   '/generate': typeof GenerateRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/director-3d': typeof Director3dRoute
   '/ecommerce': typeof EcommerceRoute
   '/ecommerce-amazon': typeof EcommerceAmazonRoute
+  '/ecommerce-showcase': typeof EcommerceShowcaseRoute
   '/ecommerce-workflow': typeof EcommerceWorkflowRoute
   '/favorites': typeof FavoritesRoute
   '/generate': typeof GenerateRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/director-3d': typeof Director3dRoute
   '/ecommerce': typeof EcommerceRoute
   '/ecommerce-amazon': typeof EcommerceAmazonRoute
+  '/ecommerce-showcase': typeof EcommerceShowcaseRoute
   '/ecommerce-workflow': typeof EcommerceWorkflowRoute
   '/favorites': typeof FavoritesRoute
   '/generate': typeof GenerateRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/director-3d'
     | '/ecommerce'
     | '/ecommerce-amazon'
+    | '/ecommerce-showcase'
     | '/ecommerce-workflow'
     | '/favorites'
     | '/generate'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/director-3d'
     | '/ecommerce'
     | '/ecommerce-amazon'
+    | '/ecommerce-showcase'
     | '/ecommerce-workflow'
     | '/favorites'
     | '/generate'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
     | '/director-3d'
     | '/ecommerce'
     | '/ecommerce-amazon'
+    | '/ecommerce-showcase'
     | '/ecommerce-workflow'
     | '/favorites'
     | '/generate'
@@ -412,6 +424,7 @@ export interface RootRouteChildren {
   Director3dRoute: typeof Director3dRoute
   EcommerceRoute: typeof EcommerceRoute
   EcommerceAmazonRoute: typeof EcommerceAmazonRoute
+  EcommerceShowcaseRoute: typeof EcommerceShowcaseRoute
   EcommerceWorkflowRoute: typeof EcommerceWorkflowRoute
   FavoritesRoute: typeof FavoritesRoute
   GenerateRoute: typeof GenerateRoute
@@ -554,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceWorkflowRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce-showcase': {
+      id: '/ecommerce-showcase'
+      path: '/ecommerce-showcase'
+      fullPath: '/ecommerce-showcase'
+      preLoaderRoute: typeof EcommerceShowcaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce-amazon': {
       id: '/ecommerce-amazon'
       path: '/ecommerce-amazon'
@@ -678,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   Director3dRoute: Director3dRoute,
   EcommerceRoute: EcommerceRoute,
   EcommerceAmazonRoute: EcommerceAmazonRoute,
+  EcommerceShowcaseRoute: EcommerceShowcaseRoute,
   EcommerceWorkflowRoute: EcommerceWorkflowRoute,
   FavoritesRoute: FavoritesRoute,
   GenerateRoute: GenerateRoute,

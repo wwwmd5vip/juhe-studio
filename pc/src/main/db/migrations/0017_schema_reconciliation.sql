@@ -47,3 +47,8 @@ CREATE TABLE IF NOT EXISTS `deliverables` (
   `updated_at` text NOT NULL
 );
 CREATE INDEX IF NOT EXISTS `deliverables_project_idx` ON `deliverables` (`project_id`);
+
+-- ==================== showcase_tasks (from 0012) ====================
+-- 补齐 0012 迁移中遗漏的 project_id 列；已有该列的数据库会因 journal 已应用而跳过本迁移，
+-- 启动时的 safeAddMissingColumns 也会再做一次兜底。
+ALTER TABLE `showcase_tasks` ADD COLUMN `project_id` text;

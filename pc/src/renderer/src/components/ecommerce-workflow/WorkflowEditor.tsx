@@ -22,6 +22,14 @@ export function WorkflowEditor() {
   const template = getWorkflowTemplate(currentWorkflow.templateId)
   const isAgent = currentWorkflow.templateId === 'agent-poster'
   const isRunning = runningStepId !== null
+  const visionStep = currentWorkflow.steps.find((s) => s.id === 'agent-vision')
+  const generateStep = currentWorkflow.steps.find((s) => s.id === 'agent-generate')
+  const canRunAgent =
+    !!currentWorkflow.context.productImage &&
+    !!visionStep?.config?.providerId &&
+    !!visionStep?.config?.modelId &&
+    !!generateStep?.config?.providerId &&
+    !!generateStep?.config?.modelId
 
   return (
     <div className='max-w-4xl mx-auto space-y-6'>
@@ -36,7 +44,7 @@ export function WorkflowEditor() {
           <button
             type='button'
             onClick={isRunning ? cancelStep : runAgent}
-            disabled={!currentWorkflow.context.productImage}
+            disabled={!canRunAgent}
             className='flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm bg-[var(--juhe-cyan)]/20 text-[var(--juhe-cyan)] hover:bg-[var(--juhe-cyan)]/30 disabled:opacity-50'
           >
             {isRunning ? <Square className='w-3.5 h-3.5' /> : <Play className='w-3.5 h-3.5' />}

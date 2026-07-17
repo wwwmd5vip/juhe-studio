@@ -48,8 +48,16 @@ export function AssetPanel({ projectId, assets }: AssetPanelProps) {
   )
 
   const getFilePath = useCallback((file: File): string | null => {
-    const fileApi = (window.api as unknown as { file: { getPathForFile: (f: File) => string | null } }).file
-    return fileApi.getPathForFile(file)
+    // Preferred: Electron webUtils.getPathForFile (exposed via preload as api.file.getPathForFile)
+    const fileApi = (window.api as unknown as { file?: { getPathForFile?: (f: File) => string | null } }).file
+    if (fileApi?.getPathForFile) {
+      return fileApi.getPathForFile(file)
+    }
+    // Fallback: Electron < 32 provides File.path directly
+    const path = (file as unknown as { path?: string }).path
+    if (path) return path
+    console.error('[AssetPanel] No way to resolve file path — update preload or Electron version')
+    return null
   }, [])
 
   const handleFileSelect = useCallback(

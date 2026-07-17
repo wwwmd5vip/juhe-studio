@@ -326,7 +326,6 @@ export async function executeImg2Img(task: ImageProcessTask): Promise<void> {
         providerType: provider.type,
         error: err instanceof Error ? err.message : String(err)
       })
-      apiKey = undefined
     }
   }
 
@@ -415,7 +414,6 @@ export async function executeUpscale(task: ImageProcessTask): Promise<void> {
         providerType: provider.type,
         error: err instanceof Error ? err.message : String(err)
       })
-      apiKey = undefined
     }
   }
 
@@ -507,7 +505,6 @@ export async function executeInpaint(task: ImageProcessTask): Promise<void> {
         providerType: provider.type,
         error: err instanceof Error ? err.message : String(err)
       })
-      apiKey = undefined
     }
   }
 
@@ -588,7 +585,6 @@ export async function executeRemoveBg(task: ImageProcessTask): Promise<void> {
         providerType: provider.type,
         error: err instanceof Error ? err.message : String(err)
       })
-      apiKey = undefined
     }
   }
 
@@ -666,7 +662,6 @@ export async function executeOutpaint(task: ImageProcessTask): Promise<void> {
         providerType: provider.type,
         error: err instanceof Error ? err.message : String(err)
       })
-      apiKey = undefined
     }
   }
 

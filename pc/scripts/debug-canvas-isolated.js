@@ -1,3 +1,4 @@
+/* global console, fetch, process, setTimeout, WebSocket */
 const CDP_URL = 'http://localhost:9222/json/list'
 
 async function main() {

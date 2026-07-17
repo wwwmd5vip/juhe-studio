@@ -37,6 +37,9 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'react/no-children-prop': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react/no-unknown-property': ['error', { ignore: ['position', 'rotation', 'args', 'intensity', 'transparent', 'roughness', 'metalness', 'castShadow', 'depthWrite', 'frustumCulled', 'map', 'object', 'polygonOffset', 'polygonOffsetFactor', 'polygonOffsetUnits', 'quaternion', 'renderOrder', 'side', 'toneMapped', 'userData'] }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
@@ -46,7 +49,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ['src/main/**/*.ts', 'packages/*/scripts/**/*.ts'],
+    files: ['src/main/**/*.ts', 'packages/*/scripts/**/*.ts', 'scripts/**/*.js', 'scripts/**/*.mjs'],
     rules: {
       'react-hooks/rules-of-hooks': 'off',
       'react-hooks/exhaustive-deps': 'off',
@@ -59,8 +62,10 @@ export default tseslint.config(
       'node_modules/**',
       '**/dist/**',
       'out/**',
+      'app-deploy/**',
       'build/**',
       'coverage/**',
+      'demo/**',
       '**/*.gen.ts',
       'src/main/db/migrations/**',
       'src/shared/ecommerce-workflow/prompts/generate-registry.js',

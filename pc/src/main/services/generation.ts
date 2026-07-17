@@ -328,8 +328,7 @@ export async function downloadImageAsBase64(
         throw new Error(`HTTP ${response.status} ${text.slice(0, 200)}`)
       }
 
-      const buffer = await response.arrayBuffer()
-      return Buffer.from(buffer).toString('base64')
+      return Buffer.from(await response.arrayBuffer()).toString('base64')
     } catch (err) {
       lastError = err
       // 把 fetch 包装的真实原因打出来：cause.name / cause.code 才是关键信息

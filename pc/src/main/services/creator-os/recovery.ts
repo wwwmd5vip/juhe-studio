@@ -28,8 +28,8 @@ export async function recoverStaleCreatorTasks(): Promise<number> {
         if (gen.status === 'completed') {
           await reconcileCreatorTask(task.runtimeTaskId, 'completed', {
             id: gen.id,
-            resultUrls: gen.resultUrls,
-            errorMessage: gen.errorMessage
+            resultUrls: gen.resultUrls as string | null | undefined,
+            errorMessage: gen.errorMessage ? String(gen.errorMessage) : null
           })
           recovered++
         } else if (gen.status === 'failed') {

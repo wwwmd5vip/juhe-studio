@@ -90,6 +90,7 @@ ipcMain.handle('product-set:submit', async (_event, projectId: string, templateI
 ipcMain.handle(
   'product-set:submitWithParams',
   async (_event, projectId: string, slotParams: Record<string, unknown>) => {
+    console.log('[IPC] product-set:submitWithParams received:', { projectId, slotCount: Object.keys(slotParams || {}).length, keys: Object.keys(slotParams || {}) })
     return submitProductSetWithParams(projectId, slotParams as Record<string, GenerationParams>)
   }
 )

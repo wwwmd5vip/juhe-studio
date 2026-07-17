@@ -135,7 +135,7 @@ async function composeClips(
 
   // 构建滤镜图
   const filterParts: string[] = []
-  let totalOffset = 0
+  const totalOffset = 0
   const transitionDuration = clips[0]?.transitionDuration || 0.5
 
   // 为每个片段构建滤镜 + 转场

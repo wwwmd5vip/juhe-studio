@@ -262,5 +262,6 @@ const VirtualRow = memo(
     )
   }
 )
+VirtualRow.displayName = 'VirtualRow'
 
 export default DraggableVirtualList

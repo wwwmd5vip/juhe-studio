@@ -45,10 +45,8 @@ export function CameraPanel() {
   const setActiveCamera = useDirectorStore((state) => state.setActiveCamera);
   const addCameraCaptures = useDirectorStore((state) => state.addCameraCaptures);
   const updateCamera = useDirectorStore((state) => state.updateCamera);
+  const currentCamera = camera ?? null;
 
-  if (!camera) return null;
-  const currentCamera = camera;
-  const captures = useMemo(() => currentCamera.captures ?? [], [currentCamera.captures]);
   const cameraCaptureGroups = useMemo(
     () =>
       cameras.map((item) => ({
@@ -60,7 +58,7 @@ export function CameraPanel() {
   const hasAnyCameraCapture = cameraCaptureGroups.some((group) => group.captures.length > 0);
   const focusableObjects = useMemo(() => objects.filter(isCameraFocusableObject), [objects]);
   const targetSelectValue =
-    currentCamera.targetMode === "object" && currentCamera.targetObjectId
+    currentCamera?.targetMode === "object" && currentCamera?.targetObjectId
       ? `object:${currentCamera.targetObjectId}`
       : "manual";
 
@@ -150,7 +148,13 @@ export function CameraPanel() {
     );
   }, [cameraCaptureGroups]);
 
-  async function handleCameraCapture() {
+  if (!currentCamera) {
+    return null;
+  }
+
+  const captures = currentCamera.captures ?? [];
+
+  const handleCameraCapture = async () => {
     try {
       setCaptureError(null);
       const results = await requestViewportCapture({
@@ -165,7 +169,7 @@ export function CameraPanel() {
     } catch (error) {
       setCaptureError(error instanceof Error ? error.message : "机位截图失败");
     }
-  }
+  };
 
   function handleDeleteCapture(captureId: string) {
     const captureCamera = cameras.find((item) => (item.captures ?? []).some((capture) => capture.id === captureId));
@@ -224,7 +228,7 @@ export function CameraPanel() {
     setViewerCapture(null);
   }
 
-  function handleTargetSelection(value: string) {
+  const handleTargetSelection = (value: string) => {
     if (value === "manual") {
       updateCamera(currentCamera.id, {
         targetMode: "manual",
@@ -249,15 +253,15 @@ export function CameraPanel() {
       targetObjectId: targetObject.id,
       target: getDirectorObjectFocusTarget(targetObject),
     });
-  }
+  };
 
-  function updateManualTarget(axis: 0 | 1 | 2, value: string) {
+  const updateManualTarget = (axis: 0 | 1 | 2, value: string) => {
     updateCamera(currentCamera.id, {
       targetMode: "manual",
       targetObjectId: null,
       target: replaceAxis(currentCamera.target, axis, Number(value)),
     });
-  }
+  };
 
   function renderCaptureCards(captureList: DirectorCameraCapture[]) {
     return (

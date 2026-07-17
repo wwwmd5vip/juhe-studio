@@ -1,5 +1,9 @@
 -- Migration 0016: Workspaces
 -- 多空间/工作区系统
+--
+-- NOTE: workspace_id columns on chat_sessions, workflows, prompt_templates,
+-- skills, memories are added by safeAddMissingColumns() to avoid "duplicate
+-- column" errors on re-run.
 
 CREATE TABLE IF NOT EXISTS workspaces (
     id TEXT PRIMARY KEY,
@@ -10,10 +14,3 @@ CREATE TABLE IF NOT EXISTS workspaces (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-
--- 添加 workspaceId 外键到核心实体
-ALTER TABLE chat_sessions ADD COLUMN workspace_id TEXT REFERENCES workspaces(id) ON DELETE SET NULL;
-ALTER TABLE workflows ADD COLUMN workspace_id TEXT REFERENCES workspaces(id) ON DELETE SET NULL;
-ALTER TABLE prompt_templates ADD COLUMN workspace_id TEXT REFERENCES workspaces(id) ON DELETE SET NULL;
-ALTER TABLE skills ADD COLUMN workspace_id TEXT REFERENCES workspaces(id) ON DELETE SET NULL;
-ALTER TABLE memories ADD COLUMN workspace_id TEXT REFERENCES workspaces(id) ON DELETE SET NULL;

@@ -25,7 +25,7 @@ export function QueueDrawer() {
       setTasks((prev) => {
         const map = new Map(prev.map((t) => [t.id, t]))
         for (const t of batch) {
-          map.set(t.taskId || t.id, { ...(map.get(t.taskId || t.id) || {}), ...t })
+          map.set(t.taskId || t.id, { ...map.get(t.taskId || t.id), ...t })
         }
         return Array.from(map.values())
       })

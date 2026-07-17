@@ -33,7 +33,7 @@ describe('Type Utilities', () => {
     })
 
     it('should handle empty object', () => {
-      type Result = StringKeys<{}>
+      type Result = StringKeys<Record<never, never>>
 
       expectTypeOf<Result>().toEqualTypeOf<never>()
     })

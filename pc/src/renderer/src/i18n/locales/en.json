@@ -2712,12 +2712,21 @@
       "generatedImageAlt": "Generated poster {{index}}",
       "imageGenerationFailed": "Generation failed",
       "noImages": "No generated images yet",
-      "resultSummary": "{{success}} / {{error}}"
+      "resultSummary": "{{success}} / {{error}}",
+      "regeneratePrompts": "Regenerate Prompts",
+      "generatedPrompts": "{{count}} prompts generated",
+      "promptsConfirmed": "Confirmed",
+      "promptPlaceholder": "Enter an image generation prompt...",
+      "addPrompt": "Add Prompt",
+      "confirmPrompts": "Confirm Prompts & Continue",
+      "confirmed": "Confirmed",
+      "confirmBeforeGenerate": "Please confirm the prompts in the Vision Analysis step before generating."
     },
     "errors": {
       "selectModels": "Please select a vision model and a generation model first",
       "uploadProductImage": "Please upload a product image",
       "noPrompts": "Vision analysis did not return usable poster prompts",
+      "promptsNotConfirmed": "Please confirm the generated prompts first",
       "streamError": "Stream event error",
       "stepAlreadyRunning": "A step is already running. Please cancel it first."
     }
