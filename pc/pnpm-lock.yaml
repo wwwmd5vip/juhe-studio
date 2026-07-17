@@ -84,8 +84,8 @@ importers:
         specifier: ^6.0.116
         version: 6.0.224(zod@4.4.3)
       camera-controls:
-        specifier: ^3.0.0
-        version: 3.1.2(three@0.185.1)
+        specifier: ^2.9.0
+        version: 2.10.1(three@0.185.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -5118,6 +5118,11 @@ packages:
   camelcase@6.3.0:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
+
+  camera-controls@2.10.1:
+    resolution: {integrity: sha512-KnaKdcvkBJ1Irbrzl8XD6WtZltkRjp869Jx8c0ujs9K+9WD+1D7ryBsCiVqJYUqt6i/HR5FxT7RLASieUD+Q5w==}
+    peerDependencies:
+      three: '>=0.126.1'
 
   camera-controls@3.1.2:
     resolution: {integrity: sha512-xkxfpG2ECZ6Ww5/9+kf4mfg1VEYAoe9aDSY+IwF0UEs7qEzwy0aVRfs2grImIECs/PoBtWFrh7RXsQkwG922JA==}
@@ -13421,6 +13426,10 @@ snapshots:
   callsites@3.1.0: {}
 
   camelcase@6.3.0: {}
+
+  camera-controls@2.10.1(three@0.185.1):
+    dependencies:
+      three: 0.185.1
 
   camera-controls@3.1.2(three@0.185.1):
     dependencies:
