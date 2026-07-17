@@ -10,7 +10,7 @@ import { assets } from '../db/schema'
 import type { Asset, Project } from '@shared/types/creator-os'
 import type { GenerationParams } from '@shared/types/generation'
 import { filterAllowed } from '@shared/utils/json-utils'
-import { importAsset } from '../services/creator-os/assets'
+import { importAsset, importAssetFromDataUrl } from '../services/creator-os/assets'
 import {
   createProject,
   deleteProject,
@@ -36,6 +36,16 @@ ipcMain.handle('asset:import', async (_event, projectId: string, sourcePath: str
   const assetsRoot = `${app.getPath('userData')}/assets`
   return importAsset(projectId, sourcePath, assetsRoot)
 })
+
+ipcMain.handle(
+  'asset:create-from-dataurl',
+  async (_event, projectId: string, dataUrl: string, fileName: string, metadata?: Record<string, unknown>) => {
+    if (typeof projectId !== 'string' || projectId.length === 0) throw new Error('Invalid projectId')
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) throw new Error('Invalid dataUrl')
+    const assetsRoot = `${app.getPath('userData')}/assets`
+    return importAssetFromDataUrl(projectId, dataUrl, fileName, assetsRoot, metadata)
+  }
+)
 
 ipcMain.handle('asset:list', async (_event, projectId: string, filter?: { kind?: string }) => {
   const conditions = [eq(assets.projectId, projectId)]
