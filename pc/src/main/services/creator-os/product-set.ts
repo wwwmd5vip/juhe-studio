@@ -16,6 +16,7 @@ import type {
 } from '@shared/types/creator-os'
 import { computeBatchStatus } from '@shared/utils/creator-os-status'
 import { validatePreflight } from './preflight'
+import { createRoutedGenerationTask } from '../generation-router'
 
 async function getDefaultImageModel(): Promise<{ id: string; providerId: string } | null> {
   const modelRow = await db
@@ -54,7 +55,6 @@ export async function submitProductSetWithParams(
   slotParams: Record<string, GenerationParams>
 ): Promise<ProductSetSubmitResult> {
   const now = new Date().toISOString()
-  const queue = getGenerationQueue()
 
   console.log('[ProductSet] submitProductSetWithParams called:', { projectId, slotCount: Object.keys(slotParams).length })
 
@@ -64,8 +64,6 @@ export async function submitProductSetWithParams(
     console.error('[ProductSet] Project not found:', projectId)
     return { ok: false, error: 'Project not found' }
   }
-
-  const sourceAssets = await db.select().from(assets).where(eq(assets.projectId, projectId))
 
   // Read source assets as base64 for reference image injection
   const referenceImages = await readSourceAssetBase64(projectId)
@@ -80,8 +78,10 @@ export async function submitProductSetWithParams(
   const defaultModel = await getDefaultImageModel()
 
   const runtimeTaskIds: string[] = []
+  const enqueueErrors: string[] = []
 
   try {
+    // Phase A: Pre-allocate IDs + insert creatorTasks/deliverables
     for (let i = 0; i < slotIds.length; i++) {
       const slotId = slotIds[i]
       const params = slotParams[slotId]
@@ -116,22 +116,60 @@ export async function submitProductSetWithParams(
       } as typeof deliverables.$inferInsert)
     }
 
-    // Enqueue with auto-resolved model/provider + reference images
+    // Phase B: Enqueue through the provider router so Jimeng/Aliyun/Registry providers work too
+    console.log('[ProductSet] Phase B start:', { slotCount: slotIds.length, hasDefaultModel: !!defaultModel, defaultModelId: defaultModel?.id, defaultProviderId: defaultModel?.providerId, referenceImageCount: referenceImages.length })
     for (let i = 0; i < slotIds.length; i++) {
-      const params = slotParams[slotIds[i]]
+      const slotId = slotIds[i]
+      const params = slotParams[slotId]
+      const modelId = params.model || defaultModel?.id
+      const providerId = params.providerId || defaultModel?.providerId
+      console.log(`[ProductSet] Slot ${i} (${slotId}):`, { modelId, providerId, prompt: params.prompt?.slice(0, 50), hasReferenceImages: !!(params.referenceImages && params.referenceImages.length > 0) })
+      if (!modelId || !providerId) {
+        const err = `Slot ${i} 缺少可用的图片模型（请先配置 image 模型或在槽位中选择模型）`
+        enqueueErrors.push(err)
+        console.warn(`[ProductSet] Slot ${i} skipped:`, err)
+        await db
+          .update(creatorTasks)
+          .set({ runtimeStatus: 'failed', errorMessage: err, updatedAt: new Date().toISOString() })
+          .where(eq(creatorTasks.runtimeTaskId, runtimeTaskIds[i]))
+        continue
+      }
+
       const resolvedParams: GenerationParams = {
         ...params,
-        providerId: params.providerId || defaultModel?.providerId || '',
-        model: params.model || defaultModel?.id || '',
+        model: modelId,
+        providerId,
         referenceImages: params.referenceImages && params.referenceImages.length > 0
           ? params.referenceImages
           : referenceImages.length > 0
-            ? referenceImages.slice(0, 4) // Use up to 4 source assets as reference
+            ? referenceImages.slice(0, 4)
             : undefined,
         referenceMode: params.referenceMode || (referenceImages.length > 0 ? 'fusion' : undefined),
         referenceWeight: params.referenceWeight ?? (referenceImages.length > 0 ? 0.6 : undefined)
       }
-      queue.createTask('image', resolvedParams, 'normal', { id: runtimeTaskIds[i] })
+
+      try {
+        const task = await createRoutedGenerationTask(resolvedParams, 'normal', { id: runtimeTaskIds[i] })
+        console.log(`[ProductSet] Slot ${i} enqueued:`, { runtimeTaskId: runtimeTaskIds[i], queueTaskId: task.id, type: task.type, status: task.status })
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error(`[ProductSet] Slot ${i} enqueue failed:`, msg)
+        enqueueErrors.push(`Slot ${i} 入队失败: ${msg}`)
+        await db
+          .update(creatorTasks)
+          .set({ runtimeStatus: 'failed', errorMessage: msg, updatedAt: new Date().toISOString() })
+          .where(eq(creatorTasks.runtimeTaskId, runtimeTaskIds[i]))
+      }
+    }
+
+    console.log('[ProductSet] Phase B end:', { enqueuedCount: slotIds.length - enqueueErrors.length, errorCount: enqueueErrors.length, errors: enqueueErrors })
+
+    if (enqueueErrors.length === slotIds.length) {
+      await db
+        .update(projects)
+        .set({ batchStatus: 'failed', batchError: enqueueErrors.join('; '), updatedAt: new Date().toISOString() })
+        .where(eq(projects.id, projectId))
+      return { ok: false, error: enqueueErrors.join('; ') }
     }
 
     await db
@@ -140,7 +178,7 @@ export async function submitProductSetWithParams(
       .where(eq(projects.id, projectId))
 
     console.log('[ProductSet] Enqueued', slotIds.length, 'tasks, runtimeTaskIds:', runtimeTaskIds)
-    return { ok: true, taskCount: slotIds.length, runtimeTaskIds }
+    return { ok: true, taskCount: slotIds.length, runtimeTaskIds, warnings: enqueueErrors.length > 0 ? enqueueErrors : undefined }
   } catch (err) {
     console.error('[ProductSet] submitProductSetWithParams failed:', err)
     await db
@@ -177,7 +215,6 @@ export async function submitProductSet(
   templateId: string
 ): Promise<ProductSetSubmitResult> {
   const now = new Date().toISOString()
-  const queue = getGenerationQueue()
 
   const projRows = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   const project = projRows[0]
@@ -236,14 +273,21 @@ export async function submitProductSet(
       } as typeof deliverables.$inferInsert)
     }
 
-    // Enqueue all tasks — auto-resolve empty model/provider
+    // Enqueue all tasks — auto-resolve empty model/provider and route through provider registry
     const defaultModel = await getDefaultImageModel()
     for (let i = 0; i < template.slots.length; i++) {
       const slot = template.slots[i]
-      const providerId = slot.providerId || defaultModel?.providerId || ''
-      const model = slot.modelId || defaultModel?.id || ''
-      queue.createTask(
-        'image',
+      const providerId = slot.providerId || defaultModel?.providerId
+      const model = slot.modelId || defaultModel?.id
+      if (!model || !providerId) {
+        const err = `Slot ${i} 缺少可用的图片模型（请先配置 image 模型）`
+        await db
+          .update(creatorTasks)
+          .set({ runtimeStatus: 'failed', errorMessage: err, updatedAt: new Date().toISOString() })
+          .where(eq(creatorTasks.runtimeTaskId, runtimeTaskIds[i]))
+        continue
+      }
+      await createRoutedGenerationTask(
         {
           providerId,
           model,
@@ -281,7 +325,6 @@ export async function retryProductSetItems(
   projectId: string,
   taskIds: string[]
 ): Promise<ProductSetRetryResult> {
-  const queue = getGenerationQueue()
   const defaultModel = await getDefaultImageModel()
   let retried = 0
   const errors: string[] = []
@@ -308,8 +351,17 @@ export async function retryProductSetItems(
       .set({ runtimeStatus: 'pending', errorMessage: null, updatedAt: new Date().toISOString() })
       .where(eq(creatorTasks.id, taskId))
 
-    queue.createTask('image', params, 'normal', { id: cTask.runtimeTaskId })
-    retried++
+    try {
+      await createRoutedGenerationTask(params, 'normal', { id: cTask.runtimeTaskId })
+      retried++
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      errors.push(`Task ${taskId} 重试入队失败: ${msg}`)
+      await db
+        .update(creatorTasks)
+        .set({ runtimeStatus: 'failed', errorMessage: msg, updatedAt: new Date().toISOString() })
+        .where(eq(creatorTasks.id, taskId))
+    }
   }
 
   return { ok: errors.length === 0, retriedCount: retried, errors }

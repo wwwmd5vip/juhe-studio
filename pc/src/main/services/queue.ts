@@ -76,6 +76,7 @@ class GenerationQueue {
     }
     logger.info('[Queue] Task created:', {
       taskId: task.id,
+      requestedTaskId: options?.id,
       type,
       model: params.model,
       providerId: params.providerId,

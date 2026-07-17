@@ -56,7 +56,7 @@ function ProductSetPage() {
           const m = models.find((x: DbModel) => x.id === modelId)
           slotParams[String(i)] = {
             prompt,
-            model: m?.name,
+            model: m?.id,
             providerId: m?.providerId
           }
         } else {
