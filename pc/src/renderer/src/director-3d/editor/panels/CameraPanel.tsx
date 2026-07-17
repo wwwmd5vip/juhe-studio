@@ -10,13 +10,29 @@ import {
   InspectorTextField,
 } from "./InspectorControls";
 import { requestViewportCapture } from "../io/captureBridge";
-import { downloadDataUrl } from "../io/screenshotExport";
+import { buildCaptureFileName, downloadDataUrl } from "../io/screenshotExport";
 import { postDirectorDeskCapturesToHost } from "../io/hostBridge";
 import { getDirectorObjectFocusTarget, isCameraFocusableObject } from "../schema/cameraTarget";
-import type { DirectorCameraCapture } from "../schema/directorProject";
+import type { DirectorCameraCapture, DirectorCameraShot } from "../schema/directorProject";
+import type { ScreenshotResult } from "../io/screenshotExport";
 import { getCameraMotionPath } from "../schema/cameraMotion";
 import { useDirectorStore } from "../store/directorStore";
 import { CapturePreviewModal } from "./CapturePreviewModal";
+
+function getCaptureFileName(capture: DirectorCameraCapture, camera: DirectorCameraShot) {
+  const result: ScreenshotResult = {
+    label: capture.name,
+    dataUrl: capture.dataUrl,
+    meta: {
+      mode: "camera",
+      cameraId: camera.id,
+      fov: camera.fov,
+      position: camera.transform.position,
+      target: camera.target,
+    },
+  };
+  return buildCaptureFileName(result, capture.index - 1);
+}
 
 const VIEWER_ZOOM_MIN = 0.25;
 const VIEWER_ZOOM_MAX = 5;
@@ -170,36 +186,52 @@ export function CameraPanel() {
   }, [clampViewerScale]);
 
   const sendCaptureToCanvas = useCallback(async (capture: DirectorCameraCapture) => {
-    const saved = await postDirectorDeskCapturesToHost([
-      {
-        dataUrl: capture.dataUrl,
-        fileName: `${capture.name}.png`,
-      },
-    ]);
-    const failures = saved.filter((r) => r.error || !r.asset);
-    if (failures.length > 0) {
-      setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
-      setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
-    } else {
-      setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+    const fileName = getCaptureFileName(capture, currentCamera);
+    try {
+      const saved = await postDirectorDeskCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
+      const failures = saved.filter((r) => r.error || !r.asset);
+      if (failures.length > 0) {
+        setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+        setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+      } else {
+        setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+      }
+    } catch (error) {
+      setPreviewCaptures([
+        {
+          dataUrl: capture.dataUrl,
+          fileName,
+          error: error instanceof Error ? error.message : t("director3d.capture.captureFailed"),
+        },
+      ]);
+      setCaptureStatus(t("director3d.capture.sendFailed", { count: 1 }));
     }
-  }, [t]);
+  }, [currentCamera, t]);
 
   const sendAllCapturesToCanvas = useCallback(async () => {
-    const saved = await postDirectorDeskCapturesToHost(
-      cameraCaptureGroups.flatMap((group) =>
-        group.captures.map((capture) => ({
-          dataUrl: capture.dataUrl,
-          fileName: `${capture.name}.png`,
-        }))
-      )
+    const captures = cameraCaptureGroups.flatMap((group) =>
+      group.captures.map((capture) => ({
+        dataUrl: capture.dataUrl,
+        fileName: getCaptureFileName(capture, group.camera),
+      }))
     );
-    const failures = saved.filter((r) => r.error || !r.asset);
-    if (failures.length > 0) {
-      setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
-      setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
-    } else {
-      setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+    try {
+      const saved = await postDirectorDeskCapturesToHost(captures);
+      const failures = saved.filter((r) => r.error || !r.asset);
+      if (failures.length > 0) {
+        setPreviewCaptures(failures.map((f) => ({ dataUrl: f.dataUrl, fileName: f.fileName, error: f.error })));
+        setCaptureStatus(t("director3d.capture.saveFailed", { count: failures.length }));
+      } else {
+        setCaptureStatus(t("director3d.capture.saveSuccess", { count: saved.length }));
+      }
+    } catch (error) {
+      setPreviewCaptures(
+        captures.map((capture) => ({
+          ...capture,
+          error: error instanceof Error ? error.message : t("director3d.capture.captureFailed"),
+        }))
+      );
+      setCaptureStatus(t("director3d.capture.sendFailed", { count: captures.length }));
     }
   }, [cameraCaptureGroups, t]);
 
@@ -216,7 +248,7 @@ export function CameraPanel() {
         addCameraCaptures(currentCamera.id, [preview.dataUrl]);
       }
     } catch (error) {
-      setCaptureError(error instanceof Error ? error.message : "机位截图失败");
+      setCaptureError(error instanceof Error ? error.message : t("director3d.capture.captureFailed"));
     }
   }
 
@@ -379,7 +411,7 @@ export function CameraPanel() {
 
   function renderCaptureCards(captureList: DirectorCameraCapture[]) {
     return (
-      <div className="camera-capture-grid" aria-label="相机截图列表">
+      <div className="camera-capture-grid" aria-label={t("director3d.capture.captureListAriaLabel")}>
         {captureList.map((capture) => {
           const captureActive = hoveredCaptureId === capture.id;
 
@@ -391,14 +423,18 @@ export function CameraPanel() {
                 onMouseEnter={() => setHoveredCaptureId(capture.id)}
                 onMouseLeave={() => setHoveredCaptureId((current) => (current === capture.id ? null : current))}
               >
-                <img className="camera-capture-thumb" alt={`${capture.name} 缩略图`} src={capture.dataUrl} />
+                <img
+                  className="camera-capture-thumb"
+                  alt={t("director3d.capture.thumbnailAlt", { name: capture.name })}
+                  src={capture.dataUrl}
+                />
                 <div
-                  aria-label={`${capture.name} 缩略图操作`}
+                  aria-label={t("director3d.capture.thumbnailActionsAriaLabel", { name: capture.name })}
                   className={`camera-capture-actions${captureActive ? " is-visible" : ""}`}
                   role="group"
                 >
                   <button
-                    aria-label={`删除截图 ${capture.name}`}
+                    aria-label={t("director3d.capture.deleteAriaLabel", { name: capture.name })}
                     className="camera-capture-action"
                     type="button"
                     onClick={(event) => {
@@ -409,7 +445,7 @@ export function CameraPanel() {
                     <Trash2 aria-hidden="true" size={14} strokeWidth={1.9} />
                   </button>
                   <button
-                    aria-label={`发送到画布 ${capture.name}`}
+                    aria-label={t("director3d.capture.sendToCanvasAriaLabel", { name: capture.name })}
                     className="camera-capture-action"
                     type="button"
                     onClick={(event) => {
@@ -420,7 +456,7 @@ export function CameraPanel() {
                     <Send aria-hidden="true" size={14} strokeWidth={1.9} />
                   </button>
                   <button
-                    aria-label={`查看截图 ${capture.name}`}
+                    aria-label={t("director3d.capture.viewAriaLabel", { name: capture.name })}
                     className="camera-capture-action"
                     type="button"
                     onClick={(event) => {
@@ -442,7 +478,7 @@ export function CameraPanel() {
 
   function renderCurrentCameraCaptureGrid() {
     if (captures.length === 0) {
-      return <div className="capture-list-placeholder">当前还没有机位截图，可先从当前机位生成一张预览。</div>;
+      return <div className="capture-list-placeholder">{t("director3d.capture.emptyCurrentHint")}</div>;
     }
 
     return renderCaptureCards(captures);
@@ -450,11 +486,15 @@ export function CameraPanel() {
 
   function renderCaptureEmptyState() {
     return (
-      <div className="camera-capture-empty object-search-empty-state" role="status" aria-label="暂无摄像机截图">
+      <div
+        className="camera-capture-empty object-search-empty-state"
+        role="status"
+        aria-label={t("director3d.capture.noCapturesAriaLabel")}
+      >
         <span className="object-search-empty-icon" data-testid="camera-capture-empty-icon">
           <Images aria-hidden="true" size={16} strokeWidth={1.8} />
         </span>
-        <span>暂无摄像机截图</span>
+        <span>{t("director3d.capture.noCaptures")}</span>
       </div>
     );
   }
@@ -469,10 +509,10 @@ export function CameraPanel() {
               .map((group) => (
                 <section
                   key={group.camera.id}
-                  aria-label={`${group.camera.name}截图`}
+                  aria-label={t("director3d.capture.cameraGroupTitle", { name: group.camera.name })}
                   className="camera-capture-group"
                 >
-                  <h3>{group.camera.name}截图</h3>
+                  <h3>{t("director3d.capture.cameraGroupTitle", { name: group.camera.name })}</h3>
                   {renderCaptureCards(group.captures)}
                 </section>
               ))
@@ -493,7 +533,7 @@ export function CameraPanel() {
       <div className="camera-capture-overview-footer">
         <button className="camera-capture-clear-all" type="button" onClick={handleClearAllCaptures}>
           <Trash2 aria-hidden="true" data-testid="camera-capture-clear-icon" size={14} strokeWidth={1.9} />
-          <span>清空全部</span>
+          <span>{t("director3d.capture.clearAll")}</span>
         </button>
         <button
           className="camera-capture-send-all viewport-toolbar-crowd-confirm"
@@ -501,7 +541,7 @@ export function CameraPanel() {
           onClick={() => void sendAllCapturesToCanvas()}
         >
           <Send aria-hidden="true" data-testid="camera-capture-send-icon" size={14} strokeWidth={1.9} />
-          <span>发送到画布</span>
+          <span>{t("director3d.capture.sendToCanvas")}</span>
         </button>
       </div>
     );
@@ -522,19 +562,19 @@ export function CameraPanel() {
 
     return (
       <div
-        aria-label="相机截图查看器"
+        aria-label={t("director3d.capture.viewerTitleAriaLabel")}
         className="camera-capture-viewer"
         role="dialog"
         onClick={closeViewer}
       >
         <div
-          aria-label="相机截图查看器工具栏"
+          aria-label={t("director3d.capture.viewerToolbarAriaLabel")}
           className="camera-capture-viewer-toolbar"
           role="toolbar"
           onClick={(event) => event.stopPropagation()}
         >
           <button
-            aria-label="放大图片"
+            aria-label={t("director3d.capture.zoomInImage")}
             className="camera-capture-viewer-tool"
             type="button"
             onClick={() => handleViewerZoom("in")}
@@ -542,7 +582,7 @@ export function CameraPanel() {
             <ZoomIn aria-hidden="true" size={18} strokeWidth={2} />
           </button>
           <button
-            aria-label="缩小图片"
+            aria-label={t("director3d.capture.zoomOutImage")}
             className="camera-capture-viewer-tool"
             type="button"
             onClick={() => handleViewerZoom("out")}
@@ -550,15 +590,15 @@ export function CameraPanel() {
             <ZoomOut aria-hidden="true" size={18} strokeWidth={2} />
           </button>
           <button
-            aria-label="下载图片"
+            aria-label={t("director3d.capture.downloadImage")}
             className="camera-capture-viewer-tool"
             type="button"
-            onClick={() => downloadDataUrl(viewerCapture.dataUrl, `${viewerCapture.name}.png`)}
+            onClick={() => downloadDataUrl(viewerCapture.dataUrl, getCaptureFileName(viewerCapture, currentCamera))}
           >
             <Download aria-hidden="true" size={18} strokeWidth={2} />
           </button>
           <button
-            aria-label="关闭相机截图查看器"
+            aria-label={t("director3d.capture.closeViewer")}
             className="camera-capture-viewer-tool camera-capture-viewer-close"
             type="button"
             onClick={closeViewer}
@@ -569,7 +609,7 @@ export function CameraPanel() {
         <div className="camera-capture-viewer-stage">
           <img
             className={viewerImageClassName}
-            alt={`${viewerCapture.name} 查看大图`}
+            alt={t("director3d.capture.fullImageAlt", { name: viewerCapture.name })}
             src={viewerCapture.dataUrl}
             style={{ transform: `translate(${viewerOffset.x}px, ${viewerOffset.y}px) scale(${viewerScale})` }}
             onClick={(event) => event.stopPropagation()}
@@ -721,14 +761,14 @@ export function CameraPanel() {
 
   return (
     <InspectorPanel
-      title="摄像机"
+      title={t("director3d.camera.title")}
       ariaLabel="摄像机右侧属性面板"
       className={activeTab === "captures" ? "camera-inspector-captures" : undefined}
       footer={renderCaptureOverviewFooter()}
       tabs={[
         { label: "属性", active: activeTab === "properties", onClick: () => setActiveTab("properties") },
         { label: "轨迹", active: activeTab === "motion", onClick: handleOpenMotionTab },
-        { label: "摄像机截图", active: activeTab === "captures", onClick: () => setActiveTab("captures") },
+        { label: t("director3d.capture.tabLabel"), active: activeTab === "captures", onClick: () => setActiveTab("captures") },
       ]}
     >
       {activeTab === "properties" ? (
@@ -838,14 +878,14 @@ export function CameraPanel() {
             value={currentCamera.fov}
             onValueChange={(value) => updateCamera(currentCamera.id, { fov: Number(value) })}
           />
-          <InspectorSection title="相机截图" className="camera-capture-section">
+          <InspectorSection title={t("director3d.capture.sectionTitle")} className="camera-capture-section">
             <button
               className="camera-capture-current-button"
               type="button"
               onClick={() => void handleCameraCapture()}
             >
               <Camera aria-hidden="true" data-testid="camera-current-capture-icon" size={14} strokeWidth={1.9} />
-              <span>当前机位截图</span>
+              <span>{t("director3d.capture.currentCameraButton")}</span>
             </button>
             {captureError ? <p>{captureError}</p> : null}
             {captureStatus ? <p>{captureStatus}</p> : null}
