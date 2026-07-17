@@ -22,12 +22,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: rgb(var(--bg-rgb));
   color: rgb(var(--text-rgb));
 }
 
-.director3d-routing-wrapper[data-theme="dark"],
-.director3d-routing-wrapper.dark {
+.dark .director3d-routing-wrapper,
+[data-theme="dark"] .director3d-routing-wrapper {
   color-scheme: dark;
   --bg-rgb: 9 9 9;
   --surface-rgb: 26 26 26;
