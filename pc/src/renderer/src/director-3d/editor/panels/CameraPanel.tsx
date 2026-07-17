@@ -185,8 +185,8 @@ export function CameraPanel() {
     setViewerScale((currentScale) => clampViewerScale(Number(updater(currentScale).toFixed(2))));
   }, [clampViewerScale]);
 
-  const sendCaptureToCanvas = useCallback(async (capture: DirectorCameraCapture) => {
-    const fileName = getCaptureFileName(capture, currentCamera);
+  const sendCaptureToCanvas = useCallback(async (capture: DirectorCameraCapture, camera: DirectorCameraShot) => {
+    const fileName = getCaptureFileName(capture, camera);
     try {
       const saved = await postDirectorDeskCapturesToHost([{ dataUrl: capture.dataUrl, fileName }]);
       const failures = saved.filter((r) => r.error || !r.asset);
@@ -206,15 +206,16 @@ export function CameraPanel() {
       ]);
       setCaptureStatus(t("director3d.capture.sendFailed", { count: 1 }));
     }
-  }, [currentCamera, t]);
+  }, [t]);
 
   const sendAllCapturesToCanvas = useCallback(async () => {
-    const captures = cameraCaptureGroups.flatMap((group) =>
-      group.captures.map((capture) => ({
-        dataUrl: capture.dataUrl,
-        fileName: getCaptureFileName(capture, group.camera),
-      }))
+    const captureEntries = cameraCaptureGroups.flatMap((group) =>
+      group.captures.map((capture) => ({ capture, camera: group.camera }))
     );
+    const captures = captureEntries.map(({ capture, camera }) => ({
+      dataUrl: capture.dataUrl,
+      fileName: getCaptureFileName(capture, camera),
+    }));
     try {
       const saved = await postDirectorDeskCapturesToHost(captures);
       const failures = saved.filter((r) => r.error || !r.asset);
@@ -409,10 +410,10 @@ export function CameraPanel() {
     return `${(time * motionPath.duration).toFixed(1)}s`;
   }
 
-  function renderCaptureCards(captureList: DirectorCameraCapture[]) {
+  function renderCaptureCards(group: { camera: DirectorCameraShot; captures: DirectorCameraCapture[] }) {
     return (
       <div className="camera-capture-grid" aria-label={t("director3d.capture.captureListAriaLabel")}>
-        {captureList.map((capture) => {
+        {group.captures.map((capture) => {
           const captureActive = hoveredCaptureId === capture.id;
 
           return (
@@ -450,7 +451,7 @@ export function CameraPanel() {
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
-                      void sendCaptureToCanvas(capture);
+                      void sendCaptureToCanvas(capture, group.camera);
                     }}
                   >
                     <Send aria-hidden="true" size={14} strokeWidth={1.9} />
@@ -481,7 +482,7 @@ export function CameraPanel() {
       return <div className="capture-list-placeholder">{t("director3d.capture.emptyCurrentHint")}</div>;
     }
 
-    return renderCaptureCards(captures);
+    return renderCaptureCards({ camera: currentCamera, captures });
   }
 
   function renderCaptureEmptyState() {
@@ -513,7 +514,7 @@ export function CameraPanel() {
                   className="camera-capture-group"
                 >
                   <h3>{t("director3d.capture.cameraGroupTitle", { name: group.camera.name })}</h3>
-                  {renderCaptureCards(group.captures)}
+                  {renderCaptureCards(group)}
                 </section>
               ))
           ) : (
@@ -551,6 +552,10 @@ export function CameraPanel() {
     if (!viewerCapture) {
       return null;
     }
+
+    const viewerCamera =
+      cameraCaptureGroups.find((group) => group.captures.some((capture) => capture.id === viewerCapture.id))?.camera ??
+      currentCamera;
 
     const viewerImageClassName = [
       "camera-capture-viewer-image",
@@ -593,7 +598,7 @@ export function CameraPanel() {
             aria-label={t("director3d.capture.downloadImage")}
             className="camera-capture-viewer-tool"
             type="button"
-            onClick={() => downloadDataUrl(viewerCapture.dataUrl, getCaptureFileName(viewerCapture, currentCamera))}
+            onClick={() => downloadDataUrl(viewerCapture.dataUrl, getCaptureFileName(viewerCapture, viewerCamera))}
           >
             <Download aria-hidden="true" size={18} strokeWidth={2} />
           </button>
