@@ -3049,6 +3049,7 @@
     "no-projects-hint": "创建第一个项目来开始生成产品套图",
     "create-first": "创建第一个项目",
     "back-to-projects": "返回项目列表",
+    "open-director-3d": "打开 3D 导演台",
     "product-set": "生成套图",
     "generate-all": "生成全部 8 张",
     "generating": "生成中...",

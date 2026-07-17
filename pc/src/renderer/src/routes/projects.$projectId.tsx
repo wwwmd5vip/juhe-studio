@@ -110,6 +110,13 @@ function ProjectDetail() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            to="/director-3d"
+            search={{ projectId }}
+            className="text-cos-accent hover:text-cos-accent/80 text-sm transition-colors"
+          >
+            {t('creator-os.open-director-3d')}
+          </Link>
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="text-cos-error hover:text-cos-error/80 text-sm
