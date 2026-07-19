@@ -1,3 +1,6 @@
+/* eslint-disable react/no-unknown-property */
+// Three.js / R3F JSX uses custom three.js properties that the ESLint
+// react plugin does not recognize.
 import { Html, Line, TransformControls, type TransformControlsProps } from "@react-three/drei";
 import { useLoader, type ThreeEvent } from "@react-three/fiber";
 import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";

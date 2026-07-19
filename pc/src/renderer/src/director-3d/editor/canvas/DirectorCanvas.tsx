@@ -346,7 +346,7 @@ function captureViewportCanvas(
   const cropCanvas = document.createElement("canvas");
   cropCanvas.width = sourceWidth;
   cropCanvas.height = sourceHeight;
-  let context: CanvasRenderingContext2D | null = null;
+  let context: CanvasRenderingContext2D | null;
 
   try {
     context = cropCanvas.getContext("2d");

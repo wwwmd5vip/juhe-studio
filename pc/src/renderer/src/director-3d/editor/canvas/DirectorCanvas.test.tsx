@@ -206,22 +206,28 @@ vi.mock("@react-three/drei", async () => {
         type="button"
       />
     ),
-    OrbitControls: forwardRef(({
-      enabled,
-      rotateSpeed,
-      zoomSpeed,
-    }: {
-      enabled?: boolean;
-      rotateSpeed?: number;
-      zoomSpeed?: number;
-    }) => (
-      <div
-        data-enabled={String(enabled)}
-        data-rotate-speed={String(rotateSpeed)}
-        data-zoom-speed={String(zoomSpeed)}
-        data-testid="orbit-controls"
-      />
-    )),
+    OrbitControls: (() => {
+      const OrbitControlsMock = forwardRef(
+        ({
+          enabled,
+          rotateSpeed,
+          zoomSpeed,
+        }: {
+          enabled?: boolean;
+          rotateSpeed?: number;
+          zoomSpeed?: number;
+        }) => (
+          <div
+            data-enabled={String(enabled)}
+            data-rotate-speed={String(rotateSpeed)}
+            data-zoom-speed={String(zoomSpeed)}
+            data-testid="orbit-controls"
+          />
+        )
+      );
+      OrbitControlsMock.displayName = "OrbitControls";
+      return OrbitControlsMock;
+    })(),
     PerspectiveCamera: () => null,
     Html: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
     Line: () => null,

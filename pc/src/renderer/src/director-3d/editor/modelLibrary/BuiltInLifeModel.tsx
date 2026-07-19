@@ -1,3 +1,6 @@
+/* eslint-disable react/no-unknown-property */
+// Three.js / R3F JSX uses custom three.js properties that the ESLint
+// react plugin does not recognize.
 type PartProps = {
   color: string;
   position: [number, number, number];
