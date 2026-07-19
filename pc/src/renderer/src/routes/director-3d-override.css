@@ -8,10 +8,13 @@
   position: relative;
 }
 
-/* 确保侧边栏可见，但不要使用 !important 覆盖折叠状态 */
-.director3d-routing-wrapper .director-shell-fullbleed:not(.is-sidebars-collapsed) .left-sidebar,
-.director3d-routing-wrapper .director-shell-fullbleed:not(.is-sidebars-collapsed) .right-sidebar,
-.director3d-routing-wrapper .director-shell-fullbleed:not(.is-sidebars-collapsed) .director-sidebar {
+/* 确保侧边栏可见，但不要覆盖折叠/运镜/导览/预览等需要隐藏侧栏的状态。
+   注意：运镜打开时仅隐藏右侧栏；导览/预览时两侧都隐藏（见 styles/index.css）。 */
+.director3d-routing-wrapper .director-shell-fullbleed:not(.is-sidebars-collapsed):not(.is-camera-piloting):not(.is-camera-previewing) .left-sidebar {
+  display: flex;
+}
+
+.director3d-routing-wrapper .director-shell-fullbleed:not(.is-sidebars-collapsed):not(.is-motion-studio-open):not(.is-camera-piloting):not(.is-camera-previewing) .right-sidebar {
   display: flex;
 }
 
