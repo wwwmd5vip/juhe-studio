@@ -76,6 +76,10 @@ export default defineConfig({
     }
   },
   renderer: {
+    define: {
+      // pc/ 不随包分发本地 GUO 模型资产，目录中仅保留远程/内置模型
+      __LOCAL_GUO_ASSETS_AVAILABLE__: 'false'
+    },
     resolve: {
       alias: [
         { find: '@', replacement: resolve('src/renderer/src') },
