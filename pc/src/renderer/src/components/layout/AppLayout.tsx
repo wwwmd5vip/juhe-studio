@@ -76,8 +76,8 @@ function LoginOverlay({ isLoading }: { isLoading: boolean }) {
     if (window.api?.auth?.getCredentials) {
       window.api.auth
         .getCredentials()
-        .then((result: { success: boolean; data?: { username: string; password: string } | null }) => {
-          if (result.success && result.data) {
+        .then((result: { data?: { username: string; password: string } | null }) => {
+          if (result?.data) {
             setUsername(result.data.username)
             setPassword(result.data.password)
             setRemember(true)
@@ -99,14 +99,14 @@ function LoginOverlay({ isLoading }: { isLoading: boolean }) {
     setCaptchaLoading(true)
     setCaptchaError('')
     try {
-      const result = await window.api.auth.getCaptcha() as { success: boolean; data?: { captcha_id: string; image: string }; error?: string }
-      if (result.success && result.data) {
+      const result = await window.api.auth.getCaptcha() as { data?: { captcha_id: string; image: string } }
+      if (result?.data) {
         setCaptchaId(result.data.captcha_id)
         setCaptchaImage(result.data.image)
         console.log('[Auth] Captcha fetched', { captchaId: result.data.captcha_id })
       } else {
-        setCaptchaError(result.error || t('newapi.captchaUnavailable'))
-        console.warn('[Auth] Captcha unavailable', result.error)
+        setCaptchaError(t('newapi.captchaUnavailable'))
+        console.warn('[Auth] Captcha unavailable: empty response')
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('newapi.captchaNetworkError')

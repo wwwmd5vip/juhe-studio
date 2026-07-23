@@ -104,8 +104,8 @@ function PromptsPage() {
     }
     api
       .status()
-      .then((res: { success: boolean; data?: { connected: boolean; baseUrl: string } }) => {
-        if (res.success && res.data) {
+      .then((res: { data?: { connected: boolean; baseUrl: string } }) => {
+        if (res?.data) {
           setJuheConnected(res.data.connected)
           setJuheBaseUrl(res.data.baseUrl)
         } else {
@@ -122,12 +122,10 @@ function PromptsPage() {
         console.error('juhePrompts API not available')
         return
       }
-      const res = await api.ensureKey()
-      if (res?.success) {
-        const status = await api.status()
-        if (status?.success && status.data) {
-          setJuheConnected(status.data.connected)
-        }
+      await api.ensureKey()
+      const status = await api.status()
+      if (status?.data) {
+        setJuheConnected(status.data.connected)
       }
     } catch (err) {
       console.error('Failed to connect to Juhe Management:', err)

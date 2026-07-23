@@ -45,14 +45,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null })
     try {
       const result = await window.api.auth.login(username, password, remember, captchaId, captchaCode)
-      if (result.success && result.data) {
+      if (result?.data) {
         set({ user: result.data.user, isAuthenticated: true, isLoading: false, error: null })
         storeLog('Login success', { role: result.data.user.role })
         syncAndReload()
         return true
       }
-      storeLog('Login failed', { error: result.error })
-      set({ isLoading: false, error: result.error || 'Login failed' })
+      storeLog('Login failed: empty response')
+      set({ isLoading: false, error: 'Login failed' })
       return false
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (isAuth) {
         const userResult = await window.api.auth.getUser()
         console.log('[AuthStore] getUser result:', userResult)
-        if (userResult.success && userResult.data) {
+        if (userResult?.data) {
           set({ user: userResult.data, isAuthenticated: true, isLoading: false })
           console.log('[AuthStore] User authenticated, syncing models...')
           syncAndReload()
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshProfile: async () => {
     try {
       const result = await window.api.auth.getProfile()
-      if (result.success && result.data) {
+      if (result?.data) {
         const data = result.data as unknown as AuthUser
         set({ user: data })
       }
@@ -125,32 +125,33 @@ export const useAuthStore = create<AuthState>((set) => ({
 async function syncAndReload() {
   try {
     console.log('[AuthStore] Syncing models from Juhe Management...')
-    const syncResult = await window.api.auth.syncModels()
-    console.log('[AuthStore] Model sync result:', syncResult)
+    await window.api.auth.syncModels()
+    console.log('[AuthStore] Model sync succeeded')
 
-    if (syncResult.success) {
-      // Refresh user profile (quota, etc.)
-      useAuthStore.getState().refreshProfile()
+    // Refresh user profile (quota, etc.)
+    useAuthStore.getState().refreshProfile()
 
-      // Reload the provider store to pick up newly synced models
-      setTimeout(async () => {
-        // Bail out if the user logged out within the 500ms delay to avoid
-        // reloading providers with stale credentials in an unauthenticated state.
-        if (!useAuthStore.getState().isAuthenticated) return
-        try {
-          const { useProviderStore } = await import('../stores/providers')
-          await useProviderStore.getState().loadProviders({ force: true })
-          console.log('[AuthStore] Provider store reloaded after sync')
-        } catch (err) {
-          console.error('[AuthStore] Failed to reload providers:', err)
-        }
-      }, 500)
-    } else if (syncResult.error && /token|auth|401|expired|unauthorized/i.test(syncResult.error)) {
+    // Reload the provider store to pick up newly synced models
+    setTimeout(async () => {
+      // Bail out if the user logged out within the 500ms delay to avoid
+      // reloading providers with stale credentials in an unauthenticated state.
+      if (!useAuthStore.getState().isAuthenticated) return
+      try {
+        const { useProviderStore } = await import('../stores/providers')
+        await useProviderStore.getState().loadProviders({ force: true })
+        console.log('[AuthStore] Provider store reloaded after sync')
+      } catch (err) {
+        console.error('[AuthStore] Failed to reload providers:', err)
+      }
+    }, 500)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (/token|auth|401|expired|unauthorized/i.test(message)) {
       // JWT 过期 — 自动退出登录，让用户重新登录
       console.warn('[AuthStore] JWT expired, logging out...')
       useAuthStore.getState().logout()
+    } else {
+      console.error('[AuthStore] Model sync failed:', err)
     }
-  } catch (err) {
-    console.error('[AuthStore] Model sync failed:', err)
   }
 }

@@ -80,16 +80,12 @@ function BackupPage() {
     setDbBackupResult(null)
     try {
       const result = await window.api.system.backupDatabase()
-      if (result.success) {
-        setDbBackupResult(`Backup saved: ${result.path} (${formatBytes(result.size as number)})`)
-        // Refresh backup list
-        const list = await window.api.system.listBackups()
-        setDbBackups(list)
-      } else {
-        setDbBackupResult(`Backup failed: ${result.error}`)
-      }
+      setDbBackupResult(`Backup saved: ${result.path} (${formatBytes(result.size as number)})`)
+      // Refresh backup list
+      const list = await window.api.system.listBackups()
+      setDbBackups(list)
     } catch (e) {
-      setDbBackupResult(`Backup error: ${String(e)}`)
+      setDbBackupResult(`Backup failed: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       setIsDbBackingUp(false)
     }
@@ -114,16 +110,12 @@ function BackupPage() {
         return
       }
       const result = await window.api.system.restoreDatabase(filePath)
-      if (result.success) {
-        toastSuccess({
-          description: `Database restored successfully! ${result.restored} rows imported. App will now reload.`
-        })
-        window.location.reload()
-      } else {
-        toastError({ description: `Restore failed: ${result.error}` })
-      }
+      toastSuccess({
+        description: `Database restored successfully! ${result.restored} rows imported. App will now reload.`
+      })
+      window.location.reload()
     } catch (e) {
-      toastError({ description: `Restore error: ${String(e)}` })
+      toastError({ description: `Restore failed: ${e instanceof Error ? e.message : String(e)}` })
     } finally {
       setIsDbRestoring(false)
       e.target.value = ''

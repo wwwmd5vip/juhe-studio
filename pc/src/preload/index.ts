@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { ECOMMERCE_WORKFLOW_STREAM_CHANNEL } from '../shared/ecommerce-workflow/constants'
+import { unwrapIpcResult } from '../shared/ipc-result'
 import type {
   GenerateImagesInput,
   GeneratePlanInput,
@@ -25,14 +26,23 @@ interface WorkflowNodeUpdate {
   error?: string
 }
 
+// 统一 IPC 错误处理：主进程 handler 有两种错误形态 —— 直接 throw（Electron
+// 序列化为 renderer reject）或返回 `{ success:false, error }` 信封。这里把
+// 信封统一转换为 throw，renderer 只需 try/catch 一条错误处理路径。
+// 注意：使用绑定的 rawInvoke，避免下方包装函数被误替换后产生递归。
+const rawInvoke = ipcRenderer.invoke.bind(ipcRenderer)
+async function invoke(channel: string, ...args: unknown[]): Promise<unknown> {
+  return unwrapIpcResult(channel, await rawInvoke(channel, ...args))
+}
+
 // Custom APIs for renderer
 const api = {
   // Window controls
   window: {
-    minimize: () => ipcRenderer.invoke('window:minimize'),
-    maximize: () => ipcRenderer.invoke('window:maximize'),
-    close: () => ipcRenderer.invoke('window:close'),
-    isMaximized: () => ipcRenderer.invoke('window:isMaximized')
+    minimize: () => invoke('window:minimize'),
+    maximize: () => invoke('window:maximize'),
+    close: () => invoke('window:close'),
+    isMaximized: () => invoke('window:isMaximized')
   },
 
   // File path resolution (Electron 41+ File.path is deprecated)
@@ -43,47 +53,47 @@ const api = {
   // Generations
   db: {
     generations: {
-      list: (filter?: unknown) => ipcRenderer.invoke('db:generations:list', filter),
-      get: (id: string) => ipcRenderer.invoke('db:generations:get', id),
-      create: (data: unknown) => ipcRenderer.invoke('db:generations:create', data),
-      update: (id: string, data: unknown) => ipcRenderer.invoke('db:generations:update', id, data),
-      delete: (id: string) => ipcRenderer.invoke('db:generations:delete', id)
+      list: (filter?: unknown) => invoke('db:generations:list', filter),
+      get: (id: string) => invoke('db:generations:get', id),
+      create: (data: unknown) => invoke('db:generations:create', data),
+      update: (id: string, data: unknown) => invoke('db:generations:update', id, data),
+      delete: (id: string) => invoke('db:generations:delete', id)
     },
     workflows: {
-      list: (filter?: unknown) => ipcRenderer.invoke('db:workflows:list', filter),
-      create: (data: unknown) => ipcRenderer.invoke('db:workflows:create', data),
-      update: (id: string, data: unknown) => ipcRenderer.invoke('db:workflows:update', id, data),
-      delete: (id: string) => ipcRenderer.invoke('db:workflows:delete', id)
+      list: (filter?: unknown) => invoke('db:workflows:list', filter),
+      create: (data: unknown) => invoke('db:workflows:create', data),
+      update: (id: string, data: unknown) => invoke('db:workflows:update', id, data),
+      delete: (id: string) => invoke('db:workflows:delete', id)
     },
     promptTemplates: {
-      list: (filter?: unknown) => ipcRenderer.invoke('db:promptTemplates:list', filter),
-      create: (data: unknown) => ipcRenderer.invoke('db:promptTemplates:create', data),
-      update: (id: string, data: unknown) => ipcRenderer.invoke('db:promptTemplates:update', id, data),
-      delete: (id: string) => ipcRenderer.invoke('db:promptTemplates:delete', id)
+      list: (filter?: unknown) => invoke('db:promptTemplates:list', filter),
+      create: (data: unknown) => invoke('db:promptTemplates:create', data),
+      update: (id: string, data: unknown) => invoke('db:promptTemplates:update', id, data),
+      delete: (id: string) => invoke('db:promptTemplates:delete', id)
     },
     providers: {
-      list: () => ipcRenderer.invoke('db:providers:list'),
-      create: (data: unknown) => ipcRenderer.invoke('db:providers:create', data),
-      update: (id: string, data: unknown) => ipcRenderer.invoke('db:providers:update', id, data),
-      delete: (id: string) => ipcRenderer.invoke('db:providers:delete', id)
+      list: () => invoke('db:providers:list'),
+      create: (data: unknown) => invoke('db:providers:create', data),
+      update: (id: string, data: unknown) => invoke('db:providers:update', id, data),
+      delete: (id: string) => invoke('db:providers:delete', id)
     },
     models: {
-      list: (filter?: unknown) => ipcRenderer.invoke('db:models:list', filter),
-      create: (data: unknown) => ipcRenderer.invoke('db:models:create', data),
-      update: (id: string, data: unknown) => ipcRenderer.invoke('db:models:update', id, data),
-      delete: (id: string) => ipcRenderer.invoke('db:models:delete', id)
+      list: (filter?: unknown) => invoke('db:models:list', filter),
+      create: (data: unknown) => invoke('db:models:create', data),
+      update: (id: string, data: unknown) => invoke('db:models:update', id, data),
+      delete: (id: string) => invoke('db:models:delete', id)
     },
     settings: {
-      get: (key: string) => ipcRenderer.invoke('db:settings:get', key),
-      set: (key: string, value: string) => ipcRenderer.invoke('db:settings:set', key, value)
+      get: (key: string) => invoke('db:settings:get', key),
+      set: (key: string, value: string) => invoke('db:settings:set', key, value)
     }
   },
 
   // Updater
   updater: {
-    check: () => ipcRenderer.invoke('updater:check'),
-    download: () => ipcRenderer.invoke('updater:download'),
-    install: () => ipcRenderer.invoke('updater:install'),
+    check: () => invoke('updater:check'),
+    download: () => invoke('updater:download'),
+    install: () => invoke('updater:install'),
     onStatus: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('updater:status', handler)
@@ -93,24 +103,24 @@ const api = {
 
   // Configuration (electron-store)
   config: {
-    get: (key: string) => ipcRenderer.invoke('config:get', key),
-    set: (key: string, value: unknown) => ipcRenderer.invoke('config:set', key, value)
+    get: (key: string) => invoke('config:get', key),
+    set: (key: string, value: unknown) => invoke('config:set', key, value)
   },
 
   // Provider operations
   provider: {
-    testConnection: (id: string) => ipcRenderer.invoke('provider:test-connection', id),
-    fetchModels: (id: string) => ipcRenderer.invoke('provider:fetch-models', id),
-    getKey: (providerId: string) => ipcRenderer.invoke('provider:getKey', providerId)
+    testConnection: (id: string) => invoke('provider:test-connection', id),
+    fetchModels: (id: string) => invoke('provider:fetch-models', id),
+    getKey: (providerId: string) => invoke('provider:getKey', providerId)
   },
 
   // Generation operations
   generation: {
-    create: (request: unknown) => ipcRenderer.invoke('generation:create', request),
-    createBatch: (request: unknown) => ipcRenderer.invoke('generation:create-batch', request),
-    get: (taskId: string) => ipcRenderer.invoke('generation:get', taskId),
-    cancel: (taskId: string) => ipcRenderer.invoke('generation:cancel', taskId),
-    list: () => ipcRenderer.invoke('generation:list'),
+    create: (request: unknown) => invoke('generation:create', request),
+    createBatch: (request: unknown) => invoke('generation:create-batch', request),
+    get: (taskId: string) => invoke('generation:get', taskId),
+    cancel: (taskId: string) => invoke('generation:cancel', taskId),
+    list: () => invoke('generation:list'),
     onProgress: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('generation:progress', handler)
@@ -126,8 +136,8 @@ const api = {
   // Workflow operations
   workflow: {
     executeNode: (payload: { nodeId: string; generationParams: GenerationParams }) =>
-      ipcRenderer.invoke('workflow:node:execute', payload),
-    cancelNode: (payload: { nodeId: string }) => ipcRenderer.invoke('workflow:node:cancel', payload),
+      invoke('workflow:node:execute', payload),
+    cancelNode: (payload: { nodeId: string }) => invoke('workflow:node:cancel', payload),
     onNodeUpdate: (callback: (event: unknown, data: WorkflowNodeUpdate) => void) => {
       const handler = (_: unknown, data: WorkflowNodeUpdate) => callback(_, data)
       ipcRenderer.on('workflow:node:update', handler)
@@ -137,36 +147,36 @@ const api = {
 
   // Video generation operations
   videoGeneration: {
-    create: (request: unknown) => ipcRenderer.invoke('video-generation:create', request),
-    cancel: (taskId: string) => ipcRenderer.invoke('video-generation:cancel', taskId),
-    modelscope: (request: unknown) => ipcRenderer.invoke('video-generation:modelscope', request)
+    create: (request: unknown) => invoke('video-generation:create', request),
+    cancel: (taskId: string) => invoke('video-generation:cancel', taskId),
+    modelscope: (request: unknown) => invoke('video-generation:modelscope', request)
   },
 
   // ComfyUI operations
   comfy: {
-    run: (request: unknown) => ipcRenderer.invoke('comfy:run', request),
-    cancel: (taskId: string) => ipcRenderer.invoke('comfy:cancel', taskId)
+    run: (request: unknown) => invoke('comfy:run', request),
+    cancel: (taskId: string) => invoke('comfy:cancel', taskId)
   },
 
   // Chat operations
   chat: {
-    createSession: (req: unknown) => ipcRenderer.invoke('chat:session:create', req),
-    listSessions: () => ipcRenderer.invoke('chat:session:list'),
-    updateSession: (id: string, data: unknown) => ipcRenderer.invoke('chat:session:update', id, data),
-    deleteSession: (id: string) => ipcRenderer.invoke('chat:session:delete', id),
-    listMessages: (sessionId: string) => ipcRenderer.invoke('chat:messages:list', sessionId),
-    send: (req: unknown) => ipcRenderer.invoke('chat:send', req),
-    cancel: () => ipcRenderer.invoke('chat:cancel'),
+    createSession: (req: unknown) => invoke('chat:session:create', req),
+    listSessions: () => invoke('chat:session:list'),
+    updateSession: (id: string, data: unknown) => invoke('chat:session:update', id, data),
+    deleteSession: (id: string) => invoke('chat:session:delete', id),
+    listMessages: (sessionId: string) => invoke('chat:messages:list', sessionId),
+    send: (req: unknown) => invoke('chat:send', req),
+    cancel: () => invoke('chat:cancel'),
     onStream: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('chat:stream', handler)
       return () => ipcRenderer.removeListener('chat:stream', handler)
     },
-    listAssistants: () => ipcRenderer.invoke('chat:assistants:list'),
-    getAssistant: (id: string) => ipcRenderer.invoke('chat:assistants:get', id),
-    createAssistant: (data: unknown) => ipcRenderer.invoke('chat:assistants:create', data),
-    updateAssistant: (id: string, data: unknown) => ipcRenderer.invoke('chat:assistants:update', id, data),
-    deleteAssistant: (id: string) => ipcRenderer.invoke('chat:assistants:delete', id)
+    listAssistants: () => invoke('chat:assistants:list'),
+    getAssistant: (id: string) => invoke('chat:assistants:get', id),
+    createAssistant: (data: unknown) => invoke('chat:assistants:create', data),
+    updateAssistant: (id: string, data: unknown) => invoke('chat:assistants:update', id, data),
+    deleteAssistant: (id: string) => invoke('chat:assistants:delete', id)
   },
 
   // Research operations (direct AI streaming without chat database)
@@ -178,8 +188,8 @@ const api = {
       taskId: string
       systemPrompt?: string
       temperature?: number
-    }) => ipcRenderer.invoke('research:stream', req),
-    cancel: (taskId: string) => ipcRenderer.invoke('research:cancel', taskId),
+    }) => invoke('research:stream', req),
+    cancel: (taskId: string) => invoke('research:cancel', taskId),
     onStream: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('research:stream', handler)
@@ -189,20 +199,20 @@ const api = {
 
   // MCP operations
   mcp: {
-    listServers: () => ipcRenderer.invoke('mcp:servers:list'),
-    saveServers: (configs: unknown) => ipcRenderer.invoke('mcp:servers:save', configs),
-    deleteServer: (id: string) => ipcRenderer.invoke('mcp:servers:delete', id),
-    testServer: (config: unknown) => ipcRenderer.invoke('mcp:servers:test', config),
-    listTools: (serverId?: string) => ipcRenderer.invoke('mcp:tools:list', serverId),
+    listServers: () => invoke('mcp:servers:list'),
+    saveServers: (configs: unknown) => invoke('mcp:servers:save', configs),
+    deleteServer: (id: string) => invoke('mcp:servers:delete', id),
+    testServer: (config: unknown) => invoke('mcp:servers:test', config),
+    listTools: (serverId?: string) => invoke('mcp:tools:list', serverId),
     callTool: (serverId: string, toolName: string, args: unknown) =>
-      ipcRenderer.invoke('mcp:tools:call', serverId, toolName, args),
-    disconnectAll: () => ipcRenderer.invoke('mcp:disconnect-all')
+      invoke('mcp:tools:call', serverId, toolName, args),
+    disconnectAll: () => invoke('mcp:disconnect-all')
   },
 
   // Agent squad operations
   agentSquad: {
-    run: (req: unknown) => ipcRenderer.invoke('agent-squad:run', req),
-    cancel: (taskId: string) => ipcRenderer.invoke('agent-squad:cancel', taskId),
+    run: (req: unknown) => invoke('agent-squad:run', req),
+    cancel: (taskId: string) => invoke('agent-squad:cancel', taskId),
     onStream: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('agent-squad:stream', handler)
@@ -212,30 +222,30 @@ const api = {
 
   // Quick phrases
   quickPhrases: {
-    list: () => ipcRenderer.invoke('quick-phrases:list'),
-    create: (data: { title: string; content: string }) => ipcRenderer.invoke('quick-phrases:create', data),
+    list: () => invoke('quick-phrases:list'),
+    create: (data: { title: string; content: string }) => invoke('quick-phrases:create', data),
     update: (id: string, data: Partial<{ title: string; content: string; isFavorite: boolean }>) =>
-      ipcRenderer.invoke('quick-phrases:update', id, data),
-    delete: (id: string) => ipcRenderer.invoke('quick-phrases:delete', id),
-    search: (query: string) => ipcRenderer.invoke('quick-phrases:search', query)
+      invoke('quick-phrases:update', id, data),
+    delete: (id: string) => invoke('quick-phrases:delete', id),
+    search: (query: string) => invoke('quick-phrases:search', query)
   },
 
   // Prompt system
   prompt: {
-    optimize: (req: unknown) => ipcRenderer.invoke('prompt:optimize', req),
-    listTemplates: () => ipcRenderer.invoke('prompt:list-templates'),
-    createTemplate: (data: unknown) => ipcRenderer.invoke('prompt:create-template', data),
-    updateTemplate: (id: string, data: unknown) => ipcRenderer.invoke('prompt:update-template', id, data),
-    deleteTemplate: (id: string) => ipcRenderer.invoke('prompt:delete-template', id),
-    searchTemplates: (query: string) => ipcRenderer.invoke('prompt:search-templates', query)
+    optimize: (req: unknown) => invoke('prompt:optimize', req),
+    listTemplates: () => invoke('prompt:list-templates'),
+    createTemplate: (data: unknown) => invoke('prompt:create-template', data),
+    updateTemplate: (id: string, data: unknown) => invoke('prompt:update-template', id, data),
+    deleteTemplate: (id: string) => invoke('prompt:delete-template', id),
+    searchTemplates: (query: string) => invoke('prompt:search-templates', query)
   },
 
   // Image processing
   imageProcess: {
-    create: (request: unknown) => ipcRenderer.invoke('image-process:create', request),
-    get: (taskId: string) => ipcRenderer.invoke('image-process:get', taskId),
-    cancel: (taskId: string) => ipcRenderer.invoke('image-process:cancel', taskId),
-    list: () => ipcRenderer.invoke('image-process:list'),
+    create: (request: unknown) => invoke('image-process:create', request),
+    get: (taskId: string) => invoke('image-process:get', taskId),
+    cancel: (taskId: string) => invoke('image-process:cancel', taskId),
+    list: () => invoke('image-process:list'),
     onProgress: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('image-process:progress', handler)
@@ -245,15 +255,15 @@ const api = {
 
   // Queue management
   queue: {
-    getState: () => ipcRenderer.invoke('queue:state'),
-    pause: () => ipcRenderer.invoke('queue:pause'),
-    resume: () => ipcRenderer.invoke('queue:resume'),
-    setConcurrent: (max: number) => ipcRenderer.invoke('queue:set-concurrent', max),
-    cleanup: () => ipcRenderer.invoke('queue:cleanup'),
-    clearAll: () => ipcRenderer.invoke('queue:clear-all'),
-    retry: (taskId: string) => ipcRenderer.invoke('queue:retry', taskId),
-    delete: (taskId: string) => ipcRenderer.invoke('queue:delete', taskId),
-    batchAction: (request: unknown) => ipcRenderer.invoke('queue:batch-action', request),
+    getState: () => invoke('queue:state'),
+    pause: () => invoke('queue:pause'),
+    resume: () => invoke('queue:resume'),
+    setConcurrent: (max: number) => invoke('queue:set-concurrent', max),
+    cleanup: () => invoke('queue:cleanup'),
+    clearAll: () => invoke('queue:clear-all'),
+    retry: (taskId: string) => invoke('queue:retry', taskId),
+    delete: (taskId: string) => invoke('queue:delete', taskId),
+    batchAction: (request: unknown) => invoke('queue:batch-action', request),
     onStateChange: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('queue:state', handler)
@@ -263,9 +273,9 @@ const api = {
 
   // Notifications
   notifications: {
-    requestPermission: () => ipcRenderer.invoke('notifications:request-permission'),
-    getSettings: () => ipcRenderer.invoke('notifications:get-settings'),
-    setSettings: (settings: unknown) => ipcRenderer.invoke('notifications:set-settings', settings),
+    requestPermission: () => invoke('notifications:request-permission'),
+    getSettings: () => invoke('notifications:get-settings'),
+    setSettings: (settings: unknown) => invoke('notifications:set-settings', settings),
     onNotification: (callback: (event: unknown, data: unknown) => void) => {
       const handler = (_: unknown, data: unknown) => callback(_, data)
       ipcRenderer.on('notification:show', handler)
@@ -275,17 +285,17 @@ const api = {
 
   // Web Search
   websearch: {
-    search: (query: string, providerId?: string) => ipcRenderer.invoke('websearch:search', query, providerId),
-    listProviders: () => ipcRenderer.invoke('websearch:providers:list'),
-    createProvider: (data: unknown) => ipcRenderer.invoke('websearch:providers:create', data),
-    updateProvider: (id: string, data: unknown) => ipcRenderer.invoke('websearch:providers:update', id, data),
-    deleteProvider: (id: string) => ipcRenderer.invoke('websearch:providers:delete', id)
+    search: (query: string, providerId?: string) => invoke('websearch:search', query, providerId),
+    listProviders: () => invoke('websearch:providers:list'),
+    createProvider: (data: unknown) => invoke('websearch:providers:create', data),
+    updateProvider: (id: string, data: unknown) => invoke('websearch:providers:update', id, data),
+    deleteProvider: (id: string) => invoke('websearch:providers:delete', id)
   },
 
   // Skills
   skills: {
-    list: () => ipcRenderer.invoke('skills:list'),
-    get: (id: string) => ipcRenderer.invoke('skills:get', id),
+    list: () => invoke('skills:list'),
+    get: (id: string) => invoke('skills:get', id),
     create: (data: {
       name: string
       title: string
@@ -294,7 +304,7 @@ const api = {
       category?: string
       icon?: string
       metadata?: Record<string, unknown>
-    }) => ipcRenderer.invoke('skills:create', data),
+    }) => invoke('skills:create', data),
     update: (
       id: string,
       data: Partial<{
@@ -309,52 +319,52 @@ const api = {
         icon?: string
         orderKey?: number
       }>
-    ) => ipcRenderer.invoke('skills:update', id, data),
-    delete: (id: string) => ipcRenderer.invoke('skills:delete', id),
-    toggle: (id: string) => ipcRenderer.invoke('skills:toggle', id),
-    parseMarkdown: (markdown: string) => ipcRenderer.invoke('skills:parse-markdown', markdown)
+    ) => invoke('skills:update', id, data),
+    delete: (id: string) => invoke('skills:delete', id),
+    toggle: (id: string) => invoke('skills:toggle', id),
+    parseMarkdown: (markdown: string) => invoke('skills:parse-markdown', markdown)
   },
 
   // Memory (MGP Lite)
   memory: {
-    write: (candidate: unknown) => ipcRenderer.invoke('memory:write', candidate),
-    search: (intent: unknown) => ipcRenderer.invoke('memory:search', intent),
-    get: (id: string) => ipcRenderer.invoke('memory:get', id),
-    update: (id: string, patch: unknown) => ipcRenderer.invoke('memory:update', id, patch),
-    expire: (id: string) => ipcRenderer.invoke('memory:expire', id),
-    delete: (id: string) => ipcRenderer.invoke('memory:delete', id),
-    list: (filter?: unknown) => ipcRenderer.invoke('memory:list', filter)
+    write: (candidate: unknown) => invoke('memory:write', candidate),
+    search: (intent: unknown) => invoke('memory:search', intent),
+    get: (id: string) => invoke('memory:get', id),
+    update: (id: string, patch: unknown) => invoke('memory:update', id, patch),
+    expire: (id: string) => invoke('memory:expire', id),
+    delete: (id: string) => invoke('memory:delete', id),
+    list: (filter?: unknown) => invoke('memory:list', filter)
   },
 
   // Prompt library (remote prompts-service)
   promptLibrary: {
-    list: (filters?: PromptListFilters) => ipcRenderer.invoke('prompt-library:list', filters),
-    get: (id: number) => ipcRenderer.invoke('prompt-library:get', id),
-    categories: (type?: string) => ipcRenderer.invoke('prompt-library:categories', type)
+    list: (filters?: PromptListFilters) => invoke('prompt-library:list', filters),
+    get: (id: number) => invoke('prompt-library:get', id),
+    categories: (type?: string) => invoke('prompt-library:categories', type)
   },
 
   // E-commerce fixed workflow engine
   ecommerceWorkflow: {
     templates: {
-      list: () => ipcRenderer.invoke('ecommerce:workflow:templates:list')
+      list: () => invoke('ecommerce:workflow:templates:list')
     },
     create: (req: { templateId: string; name?: string; category?: string }) =>
-      ipcRenderer.invoke('ecommerce:workflow:create', req),
-    list: () => ipcRenderer.invoke('ecommerce:workflow:list'),
-    get: (id: string) => ipcRenderer.invoke('ecommerce:workflow:get', id),
-    update: (id: string, data: Partial<EcommerceWorkflow>) => ipcRenderer.invoke('ecommerce:workflow:update', id, data),
-    delete: (id: string) => ipcRenderer.invoke('ecommerce:workflow:delete', id),
+      invoke('ecommerce:workflow:create', req),
+    list: () => invoke('ecommerce:workflow:list'),
+    get: (id: string) => invoke('ecommerce:workflow:get', id),
+    update: (id: string, data: Partial<EcommerceWorkflow>) => invoke('ecommerce:workflow:update', id, data),
+    delete: (id: string) => invoke('ecommerce:workflow:delete', id),
     saveImage: (req: { dataUrl: string; fileName?: string }) =>
-      ipcRenderer.invoke('ecommerce:workflow:image:save', req),
+      invoke('ecommerce:workflow:image:save', req),
     runStep: (req: { workflowId: string; stepId: string; config: WorkflowStepConfig; requestId?: string }) =>
-      ipcRenderer.invoke('ecommerce:workflow:step:run', req),
-    cancelStep: (requestId: string) => ipcRenderer.invoke('ecommerce:workflow:step:cancel', requestId),
+      invoke('ecommerce:workflow:step:run', req),
+    cancelStep: (requestId: string) => invoke('ecommerce:workflow:step:cancel', requestId),
     submitModules: (req: {
       workflowId: string
       modules?: EcommerceWorkflow['modules']
       referenceImage?: string
       referenceMode?: 'fusion' | 'controlnet' | 'ipadapter'
-    }) => ipcRenderer.invoke('ecommerce:workflow:submit', req),
+    }) => invoke('ecommerce:workflow:submit', req),
     onStream: (callback: (event: unknown, data: EcommerceWorkflowStreamEvent) => void) => {
       const handler = (_: unknown, data: EcommerceWorkflowStreamEvent) => callback(_, data)
       ipcRenderer.on(ECOMMERCE_WORKFLOW_STREAM_CHANNEL, handler)
@@ -365,182 +375,182 @@ const api = {
   // E-commerce showcase simple mode
   showcase: {
     generateSellingPoints: (input: GenerateSellingPointsInput) =>
-      ipcRenderer.invoke('showcase:selling-points:generate', input),
-    generatePlan: (input: GeneratePlanInput) => ipcRenderer.invoke('showcase:plan:generate', input),
-    generateImages: (input: GenerateImagesInput) => ipcRenderer.invoke('showcase:images:generate', input),
-    getTask: (id: string) => ipcRenderer.invoke('showcase:tasks:get', id),
-    listTasks: (limit?: number) => ipcRenderer.invoke('showcase:tasks:list', limit),
-    cancelTask: (id: string) => ipcRenderer.invoke('showcase:tasks:cancel', id)
+      invoke('showcase:selling-points:generate', input),
+    generatePlan: (input: GeneratePlanInput) => invoke('showcase:plan:generate', input),
+    generateImages: (input: GenerateImagesInput) => invoke('showcase:images:generate', input),
+    getTask: (id: string) => invoke('showcase:tasks:get', id),
+    listTasks: (limit?: number) => invoke('showcase:tasks:list', limit),
+    cancelTask: (id: string) => invoke('showcase:tasks:cancel', id)
   },
 
   productSet: {
-    generate: (req: unknown) => ipcRenderer.invoke('ecommerce:product-set:generate', req)
+    generate: (req: unknown) => invoke('ecommerce:product-set:generate', req)
   },
 
   modelCapability: {
     detect: (modelId: string, providerId?: string) =>
-      ipcRenderer.invoke('model-capability:detect', modelId, providerId),
+      invoke('model-capability:detect', modelId, providerId),
     detectMultiple: (models: Array<{ modelId: string; providerId: string }>) =>
-      ipcRenderer.invoke('model-capability:detect-multiple', models),
-    clearCache: () => ipcRenderer.invoke('model-capability:clear-cache')
+      invoke('model-capability:detect-multiple', models),
+    clearCache: () => invoke('model-capability:clear-cache')
   },
 
   workspace: {
-    list: () => ipcRenderer.invoke('workspace:list'),
-    get: (id: string) => ipcRenderer.invoke('workspace:get', id),
-    create: (data: unknown) => ipcRenderer.invoke('workspace:create', data),
-    update: (id: string, data: unknown) => ipcRenderer.invoke('workspace:update', id, data),
-    delete: (id: string) => ipcRenderer.invoke('workspace:delete', id),
-    stats: (id: string) => ipcRenderer.invoke('workspace:stats', id),
-    uncategorizedCount: () => ipcRenderer.invoke('workspace:uncategorized-count')
+    list: () => invoke('workspace:list'),
+    get: (id: string) => invoke('workspace:get', id),
+    create: (data: unknown) => invoke('workspace:create', data),
+    update: (id: string, data: unknown) => invoke('workspace:update', id, data),
+    delete: (id: string) => invoke('workspace:delete', id),
+    stats: (id: string) => invoke('workspace:stats', id),
+    uncategorizedCount: () => invoke('workspace:uncategorized-count')
   },
 
   // Auth — Juhe Management
   auth: {
     login: (username: string, password: string, remember: boolean, captchaId?: string, captchaCode?: string) =>
-      ipcRenderer.invoke('auth:login', username, password, remember, captchaId, captchaCode),
-    getCaptcha: () => ipcRenderer.invoke('auth:getCaptcha'),
-    logout: () => ipcRenderer.invoke('auth:logout'),
-    isAuthenticated: () => ipcRenderer.invoke('auth:isAuthenticated'),
-    getUser: () => ipcRenderer.invoke('auth:getUser'),
-    getProfile: () => ipcRenderer.invoke('auth:getProfile'),
-    getCredentials: () => ipcRenderer.invoke('auth:getCredentials'),
-    clearCredentials: () => ipcRenderer.invoke('auth:clearCredentials'),
-    setBaseUrl: (url: string) => ipcRenderer.invoke('auth:setBaseUrl', url),
-    getBaseUrl: () => ipcRenderer.invoke('auth:getBaseUrl'),
-    listTokens: () => ipcRenderer.invoke('auth:listTokens'),
-    createToken: (name: string) => ipcRenderer.invoke('auth:createToken', name),
-    deleteToken: (id: number) => ipcRenderer.invoke('auth:deleteToken', id),
-    getAPIKey: () => ipcRenderer.invoke('auth:getAPIKey'),
-    listModels: () => ipcRenderer.invoke('auth:listModels'),
-    syncModels: () => ipcRenderer.invoke('auth:syncModels')
+      invoke('auth:login', username, password, remember, captchaId, captchaCode),
+    getCaptcha: () => invoke('auth:getCaptcha'),
+    logout: () => invoke('auth:logout'),
+    isAuthenticated: () => invoke('auth:isAuthenticated'),
+    getUser: () => invoke('auth:getUser'),
+    getProfile: () => invoke('auth:getProfile'),
+    getCredentials: () => invoke('auth:getCredentials'),
+    clearCredentials: () => invoke('auth:clearCredentials'),
+    setBaseUrl: (url: string) => invoke('auth:setBaseUrl', url),
+    getBaseUrl: () => invoke('auth:getBaseUrl'),
+    listTokens: () => invoke('auth:listTokens'),
+    createToken: (name: string) => invoke('auth:createToken', name),
+    deleteToken: (id: number) => invoke('auth:deleteToken', id),
+    getAPIKey: () => invoke('auth:getAPIKey'),
+    listModels: () => invoke('auth:listModels'),
+    syncModels: () => invoke('auth:syncModels')
   },
   // System — storage & data management
   system: {
-    getStorageInfo: () => ipcRenderer.invoke('system:getStorageInfo'),
-    clearCache: () => ipcRenderer.invoke('system:clearCache'),
-    clearDatabase: () => ipcRenderer.invoke('system:clearDatabase'),
-    backupDatabase: () => ipcRenderer.invoke('system:backupDatabase'),
-    restoreDatabase: (filePath: string) => ipcRenderer.invoke('system:restoreDatabase', filePath),
-    listBackups: () => ipcRenderer.invoke('system:listBackups'),
-    getCrashReporting: () => ipcRenderer.invoke('system:getCrashReporting'),
-    setCrashReporting: (enabled: boolean) => ipcRenderer.invoke('system:setCrashReporting', enabled)
+    getStorageInfo: () => invoke('system:getStorageInfo'),
+    clearCache: () => invoke('system:clearCache'),
+    clearDatabase: () => invoke('system:clearDatabase'),
+    backupDatabase: () => invoke('system:backupDatabase'),
+    restoreDatabase: (filePath: string) => invoke('system:restoreDatabase', filePath),
+    listBackups: () => invoke('system:listBackups'),
+    getCrashReporting: () => invoke('system:getCrashReporting'),
+    setCrashReporting: (enabled: boolean) => invoke('system:setCrashReporting', enabled)
   },
 
   // App-level actions
   app: {
-    getEula: () => ipcRenderer.invoke('app:getEula'),
-    quit: () => ipcRenderer.invoke('app:quit')
+    getEula: () => invoke('app:getEula'),
+    quit: () => invoke('app:quit')
   },
 
   // Juhe Management Prompts
   juhePrompts: {
-    status: () => ipcRenderer.invoke('juhe-prompts:status'),
-    ensureKey: () => ipcRenderer.invoke('juhe-prompts:ensureKey'),
-    list: (params?: unknown) => ipcRenderer.invoke('juhe-prompts:list', params),
-    get: (id: number) => ipcRenderer.invoke('juhe-prompts:get', id),
+    status: () => invoke('juhe-prompts:status'),
+    ensureKey: () => invoke('juhe-prompts:ensureKey'),
+    list: (params?: unknown) => invoke('juhe-prompts:list', params),
+    get: (id: number) => invoke('juhe-prompts:get', id),
     render: (params: { id: number; variables: Record<string, string> }) =>
-      ipcRenderer.invoke('juhe-prompts:render', params),
+      invoke('juhe-prompts:render', params),
     renderPackage: (params: { id: number; variables: Record<string, string> }) =>
-      ipcRenderer.invoke('juhe-prompts:renderPackage', params),
-    getDefaultVisionModel: () => ipcRenderer.invoke('juhe:get-default-vision-model'),
-    getDefaultLLMModel: () => ipcRenderer.invoke('juhe:get-default-llm-model')
+      invoke('juhe-prompts:renderPackage', params),
+    getDefaultVisionModel: () => invoke('juhe:get-default-vision-model'),
+    getDefaultLLMModel: () => invoke('juhe:get-default-llm-model')
   },
 
   // Feedback
   feedback: {
     submit: (data: { type: string; title: string; content: string; contact?: string }) =>
-      ipcRenderer.invoke('feedback:submit', data)
+      invoke('feedback:submit', data)
   },
 
   // Plugin system
   plugins: {
-    list: () => ipcRenderer.invoke('plugins:list'),
-    activate: (pluginId: string) => ipcRenderer.invoke('plugins:activate', pluginId),
-    deactivate: (pluginId: string) => ipcRenderer.invoke('plugins:deactivate', pluginId)
+    list: () => invoke('plugins:list'),
+    activate: (pluginId: string) => invoke('plugins:activate', pluginId),
+    deactivate: (pluginId: string) => invoke('plugins:deactivate', pluginId)
   },
 
   // Creator OS
   creatorOs: {
     // Assets
     importAsset: (projectId: string, sourcePath: string) =>
-      ipcRenderer.invoke('asset:import', projectId, sourcePath),
+      invoke('asset:import', projectId, sourcePath),
     createAssetFromDataUrl: (
       projectId: string,
       dataUrl: string,
       fileName: string,
       metadata?: Record<string, unknown>
-    ) => ipcRenderer.invoke('asset:create-from-dataurl', projectId, dataUrl, fileName, metadata),
+    ) => invoke('asset:create-from-dataurl', projectId, dataUrl, fileName, metadata),
     listAssets: (projectId: string, filter?: { kind?: string }) =>
-      ipcRenderer.invoke('asset:list', projectId, filter),
+      invoke('asset:list', projectId, filter),
     deleteAsset: (assetId: string) =>
-      ipcRenderer.invoke('asset:delete', assetId),
+      invoke('asset:delete', assetId),
 
     // Projects
     createProject: (data: Record<string, unknown>) =>
-      ipcRenderer.invoke('project:create', data),
+      invoke('project:create', data),
     listProjects: () =>
-      ipcRenderer.invoke('project:list'),
+      invoke('project:list'),
     getProject: (id: string) =>
-      ipcRenderer.invoke('project:get', id),
+      invoke('project:get', id),
     updateProject: (id: string, data: Record<string, unknown>) =>
-      ipcRenderer.invoke('project:update', id, data),
+      invoke('project:update', id, data),
     deleteProject: (id: string) =>
-      ipcRenderer.invoke('project:delete', id),
+      invoke('project:delete', id),
 
     // Deliverables
     listDeliverables: (projectId: string) =>
-      ipcRenderer.invoke('deliverable:list', projectId),
+      invoke('deliverable:list', projectId),
     updateDeliverable: (id: string, data: Record<string, unknown>) =>
-      ipcRenderer.invoke('deliverable:update', id, data),
+      invoke('deliverable:update', id, data),
 
     // Product Set
     submitProductSet: (projectId: string, templateId: string) =>
-      ipcRenderer.invoke('product-set:submit', projectId, templateId),
+      invoke('product-set:submit', projectId, templateId),
     submitProductSetWithParams: (projectId: string, slotParams: Record<string, unknown>) => {
       console.log('[Preload] submitProductSetWithParams called:', { projectId, slotCount: Object.keys(slotParams || {}).length })
-      return ipcRenderer.invoke('product-set:submitWithParams', projectId, slotParams)
+      return invoke('product-set:submitWithParams', projectId, slotParams)
     },
     productSetStatus: (projectId: string) =>
-      ipcRenderer.invoke('product-set:status', projectId),
+      invoke('product-set:status', projectId),
     retryProductSet: (projectId: string, taskIds: string[]) =>
-      ipcRenderer.invoke('product-set:retry', projectId, taskIds),
+      invoke('product-set:retry', projectId, taskIds),
     cancelProductSet: (projectId: string) =>
-      ipcRenderer.invoke('product-set:cancel', projectId),
+      invoke('product-set:cancel', projectId),
 
     // Export
     exportDeliverables: (projectId: string, outputDir: string) =>
-      ipcRenderer.invoke('deliverable:export', projectId, outputDir)
+      invoke('deliverable:export', projectId, outputDir)
   },
 
   brandKit: {
-    list: () => ipcRenderer.invoke('brand-kit:list'),
-    get: (id: string) => ipcRenderer.invoke('brand-kit:get', id),
-    create: (data: unknown) => ipcRenderer.invoke('brand-kit:create', data),
-    update: (id: string, data: unknown) => ipcRenderer.invoke('brand-kit:update', id, data),
-    delete: (id: string) => ipcRenderer.invoke('brand-kit:delete', id),
-    buildPrompt: (id: string) => ipcRenderer.invoke('brand-kit:build-prompt', id)
+    list: () => invoke('brand-kit:list'),
+    get: (id: string) => invoke('brand-kit:get', id),
+    create: (data: unknown) => invoke('brand-kit:create', data),
+    update: (id: string, data: unknown) => invoke('brand-kit:update', id, data),
+    delete: (id: string) => invoke('brand-kit:delete', id),
+    buildPrompt: (id: string) => invoke('brand-kit:build-prompt', id)
   },
 
   shortVideo: {
     generateScript: (req: unknown) =>
-      ipcRenderer.invoke('short-video:generate-script', req)
+      invoke('short-video:generate-script', req)
   },
 
   canvasAgent: {
     // Renderer → Main
     callTool: (documentId: string, toolName: string, args: Record<string, unknown>) =>
-      ipcRenderer.invoke('canvas-agent:call-tool', documentId, toolName, args),
+      invoke('canvas-agent:call-tool', documentId, toolName, args),
     listTools: () =>
-      ipcRenderer.invoke('canvas-agent:list-tools'),
+      invoke('canvas-agent:list-tools'),
     pushSnapshot: (documentId: string, snapshot: unknown) =>
       ipcRenderer.send('canvas-agent:push-snapshot', documentId, snapshot),
     getSnapshot: (documentId: string) =>
-      ipcRenderer.invoke('canvas-agent:get-snapshot', documentId),
+      invoke('canvas-agent:get-snapshot', documentId),
     sendResult: (result: unknown) =>
       ipcRenderer.send('canvas-agent:result', result),
     destroySession: (documentId: string) =>
-      ipcRenderer.invoke('canvas-agent:destroy-session', documentId),
+      invoke('canvas-agent:destroy-session', documentId),
     // Main → Renderer: MCP 工具触发的画布操作（白名单订阅，替代裸 ipcRenderer.on）
     onExecuteOps: (callback: (payload: { documentId: string; ops: unknown[] }) => void) => {
       const handler = (_: unknown, payload: { documentId: string; ops: unknown[] }) => callback(payload)
@@ -550,9 +560,9 @@ const api = {
   },
 
   ffmpeg: {
-    detect: () => ipcRenderer.invoke('ffmpeg:detect'),
-    compose: (req: unknown) => ipcRenderer.invoke('ffmpeg:compose', req),
-    getDuration: (filePath: string) => ipcRenderer.invoke('ffmpeg:duration', filePath),
+    detect: () => invoke('ffmpeg:detect'),
+    compose: (req: unknown) => invoke('ffmpeg:compose', req),
+    getDuration: (filePath: string) => invoke('ffmpeg:duration', filePath),
     onProgress: (callback: (p: unknown) => void) => {
       const handler = (_event: unknown, progress: unknown) => callback(progress)
       ipcRenderer.on('ffmpeg:progress', handler)

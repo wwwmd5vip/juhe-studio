@@ -106,16 +106,26 @@ function SettingsPage() {
 
   const handleCheckUpdate = useCallback(() => {
     setUpdateStatus('checking')
-    window.api.updater?.check()
+    window.api.updater?.check().catch((err: unknown) => {
+      console.warn('[Settings] Update check failed:', err)
+      setUpdateStatus('error')
+      setUpdateInfo({ message: err instanceof Error ? err.message : String(err) })
+    })
   }, [])
 
   const handleDownload = useCallback(() => {
     setUpdateStatus('downloading')
-    window.api.updater?.download()
+    window.api.updater?.download().catch((err: unknown) => {
+      console.warn('[Settings] Update download failed:', err)
+      setUpdateStatus('error')
+      setUpdateInfo({ message: err instanceof Error ? err.message : String(err) })
+    })
   }, [])
 
   const handleInstall = useCallback(() => {
-    window.api.updater?.install()
+    window.api.updater?.install().catch((err: unknown) => {
+      console.warn('[Settings] Update install failed:', err)
+    })
   }, [])
 
   // Data management

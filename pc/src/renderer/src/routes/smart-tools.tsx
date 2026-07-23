@@ -649,13 +649,9 @@ function SmartToolsPage() {
                   type='button'
                   onClick={async () => {
                     try {
-                      const result = await window.api.auth.syncModels()
-                      if (result?.success) {
-                        console.log(t('smartTools.syncSuccess'))
-                        loadProviders({ force: true })
-                      } else {
-                        alert(result?.error || t('smartTools.syncFailed'))
-                      }
+                      await window.api.auth.syncModels()
+                      console.log(t('smartTools.syncSuccess'))
+                      loadProviders({ force: true })
                     } catch (e) {
                       alert(e instanceof Error ? e.message : t('smartTools.syncFailed'))
                     }

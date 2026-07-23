@@ -46,7 +46,9 @@ function QueuePage() {
     loadData()
     const removeStateListener = window.api.queue.onStateChange((_event, state) => {
       setQueueState(state as QueueState)
-      window.api.generation.list().then((list) => setTasks(list as GenerationTask[]))
+      window.api.generation.list().then((list) => setTasks(list as GenerationTask[])).catch((err) => {
+        console.error('Failed to refresh task list on queue state change:', err)
+      })
     })
     const removeProgressListener = window.api.generation.onProgress((_event, data) => {
       const { taskId, status, progress, stage } = data as { taskId: string; status: string; progress: number; stage: string }
