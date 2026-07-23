@@ -52,6 +52,13 @@ import './ipc'
 
 // Database migrations
 import { runMigrations } from './db/migrate'
+import {
+  buildLoadErrorPageHtml,
+  ERR_ABORTED,
+  loadRetryDelay,
+  READY_TO_SHOW_TIMEOUT_MS,
+  shouldRetryLoad
+} from './load-error-page'
 import { setChatMainWindow } from './ipc/chat'
 import { setMainWindow as setComfyMainWindow } from './ipc/comfy'
 import { setWorkflowMainWindow } from './ipc/ecommerce-workflow'
@@ -181,6 +188,7 @@ protocol.registerSchemesAsPrivileged([
 let mainWindow: BrowserWindow | null = null
 let splashWindow: BrowserWindow | null = null
 let splashSlowTimer: ReturnType<typeof setTimeout> | null = null
+let readyToShowTimer: ReturnType<typeof setTimeout> | null = null
 let isQuitting = false
 // Renderer crash recovery with exponential backoff
 let rendererCrashCount = 0
@@ -336,11 +344,99 @@ function createWindow(): BrowserWindow {
     }
   })
 
+  // ── Renderer load failure fallback（避免永久卡 splash）──
+  let loadFailCount = 0
+  let readyTimeoutExtended = false
+
+  const loadMainContent = (): Promise<void> =>
+    is.dev && process.env.ELECTRON_RENDERER_URL
+      ? mainWindow!.loadURL(process.env.ELECTRON_RENDERER_URL)
+      : mainWindow!.loadFile(join(__dirname, '../renderer/index.html'))
+
+  // 最终兜底：加载静态错误页（data: URL，不依赖任何应用资源），
+  // 关 splash、显示主窗口；生产环境弹窗提供「重新启动」选项。
+  const showLoadErrorPage = (errorCode?: number, errorDescription?: string): void => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    if (splashSlowTimer) {
+      clearTimeout(splashSlowTimer)
+      splashSlowTimer = null
+    }
+    if (readyToShowTimer) {
+      clearTimeout(readyToShowTimer)
+      readyToShowTimer = null
+    }
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.close()
+      splashWindow = null
+    }
+    mainWindow
+      .loadURL(
+        `data:text/html;charset=utf-8,${encodeURIComponent(buildLoadErrorPageHtml({ errorCode, errorDescription }))}`
+      )
+      .catch((err) => console.error('[Main] Failed to load error page:', err))
+    if (!mainWindow.isVisible()) mainWindow.show()
+    if (app.isPackaged) {
+      dialog
+        .showMessageBox(mainWindow, {
+          type: 'error',
+          title: '加载失败',
+          message: '应用界面加载失败',
+          detail: '应用文件可能已损坏，请重新安装。也可以先尝试重新启动应用。',
+          buttons: ['重新启动', '退出'],
+          defaultId: 0,
+          cancelId: 1
+        })
+        .then(({ response }) => {
+          if (response === 0) {
+            app.relaunch()
+            app.exit(0)
+          } else {
+            app.quit()
+          }
+        })
+        .catch(() => {})
+    }
+  }
+
+  const onReadyToShowTimeout = (): void => {
+    readyToShowTimer = null
+    if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isVisible()) return
+    if (mainWindow.webContents.isLoading() && !readyTimeoutExtended) {
+      // 仍在加载（慢速设备/dev 首次编译）—— 再宽限一个周期
+      readyTimeoutExtended = true
+      console.warn('[Main] ready-to-show timeout but page still loading, extending grace period')
+      readyToShowTimer = setTimeout(onReadyToShowTimeout, READY_TO_SHOW_TIMEOUT_MS)
+      return
+    }
+    console.error('[Main] ready-to-show not fired within timeout, falling back to error page')
+    showLoadErrorPage()
+  }
+
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
-    console.error(`[Main] Page load failed: ${errorCode} - ${errorDescription}`)
+    // ERR_ABORTED：正常导航/重载被打断，不算失败
+    if (errorCode === ERR_ABORTED) return
+    loadFailCount++
+    console.error(`[Main] Page load failed (#${loadFailCount}): ${errorCode} - ${errorDescription}`)
+    if (shouldRetryLoad(errorCode, loadFailCount)) {
+      const delay = loadRetryDelay(loadFailCount)
+      console.error(`[Main] Retrying page load in ${delay}ms`)
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          loadMainContent().catch((err) => console.error('[Main] Retry load failed:', err))
+        }
+      }, delay)
+    } else {
+      // 重试耗尽 —— 静态错误页兜底，不再无声卡死
+      showLoadErrorPage(errorCode, errorDescription)
+    }
   })
 
   mainWindow.on('ready-to-show', () => {
+    // Clear ready-to-show watchdog
+    if (readyToShowTimer) {
+      clearTimeout(readyToShowTimer)
+      readyToShowTimer = null
+    }
     // Clear slow-startup timer
     if (splashSlowTimer) {
       clearTimeout(splashSlowTimer)
@@ -416,11 +512,10 @@ function createWindow(): BrowserWindow {
   registerWindowShortcuts(mainWindow)
 
   // HMR for renderer base on electron-vite cli
-  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
+  loadMainContent().catch((err) => console.error('[Main] Initial page load failed:', err))
+
+  // ready-to-show 超时兜底：30 秒未触发则走错误页，避免永久卡 splash
+  readyToShowTimer = setTimeout(onReadyToShowTimeout, READY_TO_SHOW_TIMEOUT_MS)
 
   return mainWindow
 }
@@ -597,6 +692,12 @@ app.whenReady().then(async () => {
 
   app.on('render-process-gone', (_event, _webContents, details) => {
     console.error(`[Main] Render process gone: reason=${details.reason}, exitCode=${details.exitCode}`)
+  })
+
+  app.on('child-process-gone', (_event, details) => {
+    console.error(
+      `[Main] Child process gone: type=${details.type}, reason=${details.reason}, exitCode=${details.exitCode}`
+    )
   })
   // ── Quit / cleanup handlers (registered inside whenReady for Electron API safety) ──
 
