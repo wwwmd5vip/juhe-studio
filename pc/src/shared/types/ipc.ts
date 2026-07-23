@@ -608,14 +608,5 @@ export interface RendererAPI {
 declare global {
   interface Window {
     api: RendererAPI
-    electron: {
-      process: {
-        versions: {
-          chrome: string
-          node: string
-          electron: string
-        }
-      }
-    }
   }
 }

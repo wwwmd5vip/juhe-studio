@@ -1,4 +1,3 @@
-import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { ECOMMERCE_WORKFLOW_STREAM_CHANNEL } from '../shared/ecommerce-workflow/constants'
 import type {
@@ -541,7 +540,13 @@ const api = {
     sendResult: (result: unknown) =>
       ipcRenderer.send('canvas-agent:result', result),
     destroySession: (documentId: string) =>
-      ipcRenderer.invoke('canvas-agent:destroy-session', documentId)
+      ipcRenderer.invoke('canvas-agent:destroy-session', documentId),
+    // Main → Renderer: MCP 工具触发的画布操作（白名单订阅，替代裸 ipcRenderer.on）
+    onExecuteOps: (callback: (payload: { documentId: string; ops: unknown[] }) => void) => {
+      const handler = (_: unknown, payload: { documentId: string; ops: unknown[] }) => callback(payload)
+      ipcRenderer.on('canvas-agent:execute-ops', handler)
+      return () => ipcRenderer.removeListener('canvas-agent:execute-ops', handler)
+    }
   },
 
   ffmpeg: {
@@ -557,9 +562,10 @@ const api = {
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to renderer
+// Security: 不暴露 @electron-toolkit/preload 的裸 electronAPI（含通用 ipcRenderer 代理），
+// 渲染进程只能通过上面裁剪后的 window.api 访问白名单 channel。
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     // Expose Sentry DSN for renderer error tracking
     if (process.env.SENTRY_DSN) {
@@ -569,8 +575,6 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // @ts-expect-error (define in dts)
-  window.electron = electronAPI
   // @ts-expect-error (define in dts)
   window.api = api
 }

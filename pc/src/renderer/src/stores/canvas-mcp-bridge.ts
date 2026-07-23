@@ -30,8 +30,8 @@ export function initCanvasMcpBridge(config: CanvasMcpBridgeConfig): () => void {
   getCanvasState = config.getState
   applyOpsCallback = config.applyOps
 
-  // 监听主进程发来的操作请求
-  const handleExecuteOps = (_event: unknown, payload: { documentId: string; ops: CanvasAgentOp[] }) => {
+  // 监听主进程发来的操作请求（preload 白名单回调只透传 payload）
+  const handleExecuteOps = (payload: { documentId: string; ops: CanvasAgentOp[] }) => {
     if (payload.documentId !== config.documentId) return
 
     try {
@@ -60,18 +60,17 @@ export function initCanvasMcpBridge(config: CanvasMcpBridgeConfig): () => void {
     }
   }
 
-  const api = (window as any).electron
-  if (api?.ipcRenderer) {
-    api.ipcRenderer.on('canvas-agent:execute-ops', handleExecuteOps)
-  }
+  // 通过 preload 暴露的白名单订阅（canvasAgent.onExecuteOps）监听主进程消息，
+  // 不再使用 window.electron.ipcRenderer（该裸通道已移除，见 preload/index.ts）
+  const canvasAgent = (window.api as any).canvasAgent
+  const removeListener: (() => void) | undefined =
+    canvasAgent?.onExecuteOps?.(handleExecuteOps)
 
   // 返回清理函数
   return () => {
     getCanvasState = null
     applyOpsCallback = null
-    if (api?.ipcRenderer) {
-      api.ipcRenderer.removeListener('canvas-agent:execute-ops', handleExecuteOps)
-    }
+    removeListener?.()
   }
 }
 

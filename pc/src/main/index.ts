@@ -272,10 +272,10 @@ function createWindow(): BrowserWindow {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      // sandbox: false is required because the preload script exposes ipcRenderer
-      // via @electron-toolkit/preload. Enabling sandbox would require refactoring
-      // all renderer IPC calls to use contextBridge-exposed methods only.
-      sandbox: false,
+      // sandbox: true — preload 只使用 electron 模块（contextBridge/ipcRenderer/webUtils），
+      // 符合 sandboxed preload 的 require 白名单；渲染进程仅能通过 contextBridge
+      // 暴露的 window.api 访问白名单 IPC channel。
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
       // Performance: limit background throttle
