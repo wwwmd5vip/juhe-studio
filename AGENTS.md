@@ -506,7 +506,7 @@ GitHub Actions 位于 `pc/.github/workflows/`（桌面应用使用）：CI（lin
 | 状态管理 | Zustand（34 store）+ Zundo + TanStack Query |
 | 构建 | `electron-vite` → `electron-builder`（macOS/Windows/Linux） |
 | 代码质量 | Biome + oxlint + ESLint + Vitest |
-| 版本 | 0.1.0，App ID: `com.juhe-studio.app`，Node >= 20.0.0 |
+| 版本 | 1.0.0-rc.0，App ID: `com.juhe-studio.app`，Node >= 20.0.0 |
 
 ### 关键命令
 

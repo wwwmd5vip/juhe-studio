@@ -71,11 +71,11 @@ pnpm build:unpack
 
 | 平台 | 格式 | 架构 | 文件名示例 |
 |------|------|------|-----------|
-| macOS | dmg | x64, arm64 | `聚合创作引擎-0.1.0.dmg` |
-| macOS | zip | x64, arm64 | `聚合创作引擎-0.1.0-mac.zip` |
-| Windows | nsis | x64, arm64 | `聚合创作引擎-0.1.0-setup.exe` |
-| Windows | portable | x64 | `聚合创作引擎-0.1.0-portable.exe` |
-| Linux | AppImage | x64 | `聚合创作引擎-0.1.0.AppImage` |
+| macOS | dmg | x64, arm64 | `聚合创作引擎-1.0.0-rc.0.dmg` |
+| macOS | zip | x64, arm64 | `聚合创作引擎-1.0.0-rc.0-mac.zip` |
+| Windows | nsis | x64, arm64 | `聚合创作引擎-1.0.0-rc.0-setup.exe` |
+| Windows | portable | x64 | `聚合创作引擎-1.0.0-rc.0-portable.exe` |
+| Linux | AppImage | x64 | `聚合创作引擎-1.0.0-rc.0.AppImage` |
 
 ### macOS 代码签名（可选）
 

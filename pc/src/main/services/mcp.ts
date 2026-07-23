@@ -135,7 +135,7 @@ export async function connectServer(config: McpServerConfig): Promise<void> {
     await disconnectServer(config.id)
   }
 
-  const client = new Client({ name: 'juhe-studio', version: '0.1.0' })
+  const client = new Client({ name: 'juhe-studio', version: '1.0.0-rc.0' })
   const transport = createTransport(config)
 
   await client.connect(transport)

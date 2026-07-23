@@ -126,7 +126,7 @@ function HomePage() {
                 className='text-xs mt-1 tracking-wider uppercase'
                 style={{ color: 'var(--juhe-text-3)', fontFamily: 'var(--font-mono)' }}
               >
-                AI Aggregation Platform // v0.1.0
+                AI Aggregation Platform // v1.0.0-rc.0
               </p>
             </div>
             {queueState && queueState.runningCount > 0 && (

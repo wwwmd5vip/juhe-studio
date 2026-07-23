@@ -303,7 +303,7 @@ function SettingsPage() {
           <section className='p-4 rounded-xl bg-[var(--juhe-surface)] border border-[var(--juhe-border)]'>
             <h2 className='text-lg font-semibold mb-4'>{t('settings.about')}</h2>
             <div className='text-sm text-[var(--juhe-text-3)] space-y-1'>
-              <p>{t('app.name')} v0.1.0</p>
+              <p>{t('app.name')} v1.0.0-rc.0</p>
               <p>Electron + React + TypeScript</p>
             </div>
           </section>

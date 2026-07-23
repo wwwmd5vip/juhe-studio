@@ -9,10 +9,10 @@
 
 **聚合创作引擎**（Juhe Studio）是一款面向创作者和设计师的 AI 聚合创作桌面应用，基于 Electron + React + TypeScript 构建。它支持多模型 API 接入，提供从文本到图像、视频的一站式 AI 创作能力，包含无限画布工作流、智能图像处理、提示词系统、AI 聊天、深度研究、MCP 工具调用、NewAPI 账号集成、Agent Squad 多智能体协作、MGP Lite 记忆系统、电商固定工作流、电商橱窗简单模式、ComfyUI 调用等功能。
 
-- **仓库**: `juhe-studio/juhe-studio`
+- **仓库**: `wwwmd5vip/juhe-studio`
 - **产品名称**: 聚合创作引擎
 - **App ID**: `com.juhe-studio.app`
-- **版本**: `0.1.0`
+- **版本**: `1.0.0-rc.0`
 - **License**: MIT
 - **包管理器**: pnpm `10.27.0`（`package.json` 中通过 `packageManager` 锁定）
 - **Node 要求**: `>= 20.0.0`
@@ -27,7 +27,7 @@
 | `package.json` | 根项目依赖、scripts、引擎要求、workspace 依赖声明 |
 | `pnpm-workspace.yaml` | pnpm workspace 定义，包含 `packages/*` 和 `packages/vectorstores/*` |
 | `electron.vite.config.ts` | electron-vite 构建配置，定义 main/preload/renderer 三端入口、别名、chunk 拆分 |
-| `electron-builder.yml` | 应用打包与分发配置（dmg/zip、nsis/portable、AppImage/deb/snap、GitHub Releases draft） |
+| `electron-builder.yml` | 应用打包与分发配置（dmg/zip、nsis/portable、AppImage/deb、GitHub Releases draft） |
 | `tsconfig.json` / `tsconfig.node.json` / `tsconfig.web.json` | TypeScript 基础配置、主进程/预加载配置、渲染进程配置 |
 | `biome.json` | 代码格式化与 lint 规则（缩进、引号、import 排序等） |
 | `eslint.config.mjs` | ESLint 配置（TS + React + Hooks 规则） |
@@ -238,7 +238,7 @@ pnpm build              # Vite 编译主进程(CJS)/预加载(CJS)/渲染进程(
 pnpm build:unpack       # 构建 + 本地解包（不调签名）
 pnpm build:mac          # 构建 + macOS 打包 (dmg + zip, x64 + arm64)
 pnpm build:win          # 构建 + Windows 打包 (nsis + portable, x64 + arm64)
-pnpm build:linux        # 构建 + Linux 打包 (AppImage + deb + snap)
+pnpm build:linux        # 构建 + Linux 打包 (AppImage + deb)
 pnpm build:all          # 一键打包 Mac + Windows（先构建 workspace 包，再编译，最后同时打包两平台）
 
 # 类型检查
@@ -464,7 +464,7 @@ GitHub Actions 工作流：
 - **`.github/workflows/build.yml`** — push 到 `main`、tag `v*` 或 PR 到 `main` 时触发：
   - 并行在 `macos-latest`、`windows-latest`、`ubuntu-latest` 上构建
   - 每个平台先执行 `pnpm packages:build`，再执行对应平台打包脚本
-  - 产物：`.dmg`、`.zip`、`.exe`、`.portable`、`.AppImage`、`.deb`、`.snap`
+  - 产物：`.dmg`、`.zip`、`.exe`、`.portable`、`.AppImage`、`.deb`
   - PR 不上传 artifact
   - 当 push tag `v*` 时，自动创建 GitHub Draft Release 并上传所有产物
 

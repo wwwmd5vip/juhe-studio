@@ -16,7 +16,7 @@ export default function FeedbackModal({ open, onClose }: FeedbackModalProps) {
   const [contact, setContact] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const appVersion = navigator.userAgent.match(/CherryStudio\/([\d.]+)/)?.[1] || '0.1.0'
+  const appVersion = navigator.userAgent.match(/CherryStudio\/([\d.]+)/)?.[1] || '1.0.0-rc.0'
   const platform = (() => {
     const p = navigator.platform || ''
     if (p.includes('Win')) return 'Windows'
