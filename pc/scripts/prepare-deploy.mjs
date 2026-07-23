@@ -88,8 +88,8 @@ async function main() {
     await cp(migrationsSrc, migrationsDest, { recursive: true })
   }
 
-  // Copy EULA.md and LICENSE.md if they exist
-  for (const file of ['EULA.md', 'LICENSE.md']) {
+  // Copy legal/compliance docs referenced by electron-builder.yml extraResources
+  for (const file of ['EULA.md', 'LICENSE.md', 'PRIVACY.md', 'THIRD-PARTY-LICENSES.txt']) {
     const src = join(root, file)
     if (existsSync(src)) {
       await cp(src, join(deployDir, file))
