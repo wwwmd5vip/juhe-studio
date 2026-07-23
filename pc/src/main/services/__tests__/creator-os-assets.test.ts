@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { tmpdir } from 'node:os'
+import { tmpdir, homedir } from 'node:os'
 
 // Mock electron
 vi.mock('electron', () => ({
@@ -98,8 +98,26 @@ describe('asset service', () => {
 
   it('importAsset throws when source file does not exist', async () => {
     const { importAsset } = await import('../creator-os/assets')
+    // 路径位于允许根（tmpdir）内但文件不存在 → Source file not found
     await expect(
-      importAsset('proj-1', '/nonexistent/file.png', join(testDir, 'assets'))
+      importAsset('proj-1', join(testDir, 'nonexistent-file.png'), join(testDir, 'assets'))
     ).rejects.toThrow('Source file not found')
+  })
+
+  it('importAsset rejects paths outside allowed roots', async () => {
+    const { importAsset } = await import('../creator-os/assets')
+    // 系统文件
+    await expect(
+      importAsset('proj-1', '/etc/passwd', join(testDir, 'assets'))
+    ).rejects.toThrow('Access denied')
+    // home 下敏感目录（home 本身不在允许根内）
+    const sshKey = join(homedir(), '.ssh', 'id_rsa')
+    await expect(
+      importAsset('proj-1', sshKey, join(testDir, 'assets'))
+    ).rejects.toThrow('Access denied')
+    // 路径遍历：从 tmpdir 逃到 /etc
+    await expect(
+      importAsset('proj-1', join(testDir, '..', '..', 'etc', 'passwd'), join(testDir, 'assets'))
+    ).rejects.toThrow('Access denied')
   })
 })

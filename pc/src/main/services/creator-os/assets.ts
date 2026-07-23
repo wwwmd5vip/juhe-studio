@@ -1,8 +1,9 @@
 import { copyFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
-import { extname, join, resolve } from 'node:path'
+import { extname, join } from 'node:path'
 import { db } from '../../db'
 import { assets } from '../../db/schema'
 import type { Asset, AssetKind } from '@shared/types/creator-os'
+import { getAllowedUserFileRoots, isPathWithinRoot, isPathWithinRoots } from './paths'
 
 function parseDataUrl(dataUrl: string): { mimeType: string; base64: string; ext: string } {
   const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
@@ -27,9 +28,7 @@ export function ensureAssetDir(projectId: string, root: string): string {
 
 /** 路径安全检查：禁止遍历到 userDataRoot 之外 */
 export function isPathAllowed(sourcePath: string, userDataRoot: string): boolean {
-  const normalized = resolve(sourcePath)
-  const allowed = resolve(userDataRoot)
-  return normalized.startsWith(allowed + '/') || normalized.startsWith(allowed + '\\')
+  return isPathWithinRoot(sourcePath, userDataRoot)
 }
 
 /** 根据扩展名推断 MIME 类型 */
@@ -58,6 +57,11 @@ export async function importAsset(
   sourcePath: string,
   assetsRoot: string
 ): Promise<Asset> {
+  // 安全校验：源文件必须位于允许的用户目录内（文件对话框/拖拽选择的文件所在位置），
+  // 拒绝 /etc/passwd、~/.ssh/* 等任意系统/敏感路径读取
+  if (!isPathWithinRoots(sourcePath, getAllowedUserFileRoots())) {
+    throw new Error(`Access denied: source path is outside allowed directories: ${sourcePath}`)
+  }
   if (!existsSync(sourcePath)) {
     throw new Error(`Source file not found: ${sourcePath}`)
   }

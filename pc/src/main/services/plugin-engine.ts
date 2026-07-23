@@ -17,12 +17,17 @@ import type {
 import { errorMessage } from '@shared/utils/error-classifier'
 import { app, ipcMain } from 'electron'
 import { getGenerationQueue } from './queue'
+import { isPluginSourceAllowed, parseRegistryPrefixes } from './plugin-source'
 import store from '../stores/config'
 
 const PLUGIN_FETCH_TIMEOUT = 30_000 // 30 seconds
 
 const PLUGINS_DIR = join(app.getPath('userData'), 'plugins')
 const PLUGIN_REGISTRY_FILE = join(PLUGINS_DIR, 'registry.json')
+// 允许安装本地插件的目录：用户需手动把插件目录放到这里才能安装
+const PLUGINS_AVAILABLE_DIR = join(app.getPath('userData'), 'plugins-available')
+// 允许的官方插件 registry URL 前缀（环境变量配置，逗号分隔，仅 https）
+const PLUGIN_REGISTRY_PREFIXES = parseRegistryPrefixes(process.env.PLUGIN_REGISTRY_URLS)
 
 function mapGenerationTypeToOutputType(type: GenerationType): 'image' | 'video' | 'text' | 'audio' {
   if (type === 'aliyun-image' || type === 'jimeng') return 'image'
@@ -122,6 +127,27 @@ class PluginEngine {
   // ===== 插件生命周期 =====
 
   async installPlugin(source: string): Promise<PluginRecord> {
+    // 安全闸门 1：插件系统默认关闭，未显式启用时拒绝一切安装
+    // （构造函数在禁用时仍注册了 IPC，因此必须在入口处再校验一次）
+    if (store.get('pluginsEnabled') !== true) {
+      throw new Error('ERR_PLUGINS_DISABLED: Plugin system is disabled. Enable "pluginsEnabled" in config to install plugins.')
+    }
+
+    // 安全闸门 2：来源白名单 —— 仅允许 userData/plugins-available 内的本地目录，
+    // 或 PLUGIN_REGISTRY_URLS 配置的官方 registry URL 前缀；拒绝任意路径/任意外部 URL
+    if (
+      !isPluginSourceAllowed(source, {
+        allowedDir: PLUGINS_AVAILABLE_DIR,
+        registryPrefixes: PLUGIN_REGISTRY_PREFIXES
+      })
+    ) {
+      throw new Error(
+        `ERR_PLUGIN_SOURCE_NOT_ALLOWED: Plugin source is not allowed: ${source}. ` +
+        `Local plugins must be placed under ${PLUGINS_AVAILABLE_DIR}, ` +
+        'remote installs require a configured official registry (PLUGIN_REGISTRY_URLS).'
+      )
+    }
+
     // 1. 下载/复制插件包
     const pluginDir = await this.downloadPlugin(source)
 

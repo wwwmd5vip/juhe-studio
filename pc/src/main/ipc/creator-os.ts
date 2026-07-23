@@ -120,6 +120,8 @@ ipcMain.handle('product-set:cancel', async (_event, projectId: string) => {
 // ── Export IPC ──
 
 ipcMain.handle('deliverable:export', async (_event, projectId: string, outputDir: string) => {
+  if (typeof projectId !== 'string' || projectId.length === 0) throw new Error('Invalid projectId')
+  if (typeof outputDir !== 'string' || outputDir.length === 0) throw new Error('Invalid outputDir')
   return exportAssets(projectId, outputDir)
 })
 

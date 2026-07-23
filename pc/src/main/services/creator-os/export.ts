@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { deliverables, versions } from '../../db/schema'
 import type { ExportResult } from '@shared/types/creator-os'
+import { getAllowedUserFileRoots, isPathWithinRoots } from './paths'
 
 export function resolveConflict(filename: string, existing: Set<string>): string {
   if (!existing.has(filename)) return filename
@@ -23,6 +24,15 @@ export async function exportAssets(
   projectId: string,
   outputDir: string
 ): Promise<ExportResult> {
+  // 安全校验：导出目录必须位于允许的用户目录内，拒绝 /System、/usr 等任意系统目录写入
+  if (!isPathWithinRoots(outputDir, getAllowedUserFileRoots())) {
+    return {
+      ok: false,
+      exportedCount: 0,
+      errors: [`Access denied: output directory is outside allowed directories: ${outputDir}`]
+    }
+  }
+
   const items = await db
     .select()
     .from(deliverables)
