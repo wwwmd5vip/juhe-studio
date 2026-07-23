@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { migrate } from 'drizzle-orm/libsql/migrator'
 import { app } from 'electron'
 import { db } from './index'
-import { setMigrationStatus } from './migration-guard'
 import { migrateProviderKeysToPlaintext } from './migrate-provider-keys'
 
 async function findMigrationsFolder(): Promise<string | null> {
@@ -31,8 +30,9 @@ export async function runMigrations() {
   const migrationsFolder = await findMigrationsFolder()
 
   if (!migrationsFolder) {
-    console.error('[DB] No valid migration folder found with meta/_journal.json')
-    return
+    // 缺少迁移文件等同于安装损坏 —— 带残缺 schema 继续运行只会把错误推迟到
+    // 运行期零散爆发。明确失败，由调用方（index.ts）弹窗并退出。
+    throw new Error('No valid migration folder found with meta/_journal.json')
   }
 
   // Back up the database before migration
@@ -50,7 +50,6 @@ export async function runMigrations() {
   try {
     await migrate(db, { migrationsFolder })
     console.log('[DB] Migrations completed successfully from:', migrationsFolder)
-    setMigrationStatus(true)
 
     // 安全添加缺失的列（处理 journal 已记录但 DDL 未实际执行的情况）
     await safeAddMissingColumns()
@@ -59,9 +58,9 @@ export async function runMigrations() {
   } catch (error: unknown) {
     const msg = (error as Error)?.message || String(error)
     console.error('[DB] Migration failed:', msg)
-    setMigrationStatus(false, msg)
-    console.warn('[DB] Continuing in read-only compatibility mode — Creator OS features disabled')
-    // Don't rethrow — allow app to start in degraded mode
+    // 不做静默降级：迁移失败后继续运行意味着带残缺 schema 运行，数据完整性
+    // 风险太高。向上抛出，由 index.ts 弹窗（含备份位置提示）并退出。
+    throw new Error(`数据库迁移失败: ${msg}`)
   }
 }
 

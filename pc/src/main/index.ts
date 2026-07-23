@@ -528,9 +528,10 @@ app.whenReady().then(async () => {
     await recoverRunningTasksOnStartup()
   } catch (err) {
     console.error('[App] Migration or queue restore failed:', err)
+    const backupDir = app.getPath('userData')
     dialog.showErrorBox(
       '启动失败',
-      `数据库迁移失败，请从备份恢复后重启应用。\n\n错误: ${err instanceof Error ? err.message : String(err)}`
+      `数据库迁移失败，应用无法继续运行。\n\n迁移前的数据库备份位于：\n${backupDir}\n（文件名形如 app.db.pre-migration-*.bak）\n\n请从备份恢复后重启应用。\n\n错误: ${err instanceof Error ? err.message : String(err)}`
     )
     app.quit()
     return
