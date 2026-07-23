@@ -30,7 +30,6 @@ const ALL_CATEGORIES: BackupCategory[] = [
   'providers',
   'history',
   'favorites',
-  'workflows',
   'agents',
   'shortcuts'
 ]

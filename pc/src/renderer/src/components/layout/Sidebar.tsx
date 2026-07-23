@@ -14,7 +14,6 @@ import {
   Layers,
   LayoutGrid,
   MessageSquare,
-  Puzzle,
   Search,
   Settings,
   ShoppingBag,
@@ -100,7 +99,6 @@ const navGroups = [
     items: [
       { to: '/settings', labelKey: 'nav.settings', icon: Settings },
       { to: '/usage', labelKey: 'nav.usage', icon: BarChart3 },
-      { to: '/plugins', labelKey: 'nav.plugins', icon: Puzzle },
       { to: '/backup', labelKey: 'nav.backup', icon: HardDrive }
     ]
   }
