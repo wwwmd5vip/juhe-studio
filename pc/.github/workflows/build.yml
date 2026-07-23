@@ -28,6 +28,9 @@ jobs:
       - run: pnpm build:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For code signing (optional, base64-encoded .p12 + its password):
+          # CSC_LINK: ${{ secrets.CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           # For notarization (optional):
           # APPLE_ID: ${{ secrets.APPLE_ID }}
           # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
@@ -56,6 +59,9 @@ jobs:
       - run: pnpm build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # For code signing (optional, base64-encoded .p12 + its password):
+          # CSC_LINK: ${{ secrets.CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
       - uses: actions/upload-artifact@v4
         if: github.event_name != 'pull_request'
         with:
@@ -87,7 +93,6 @@ jobs:
           path: |
             dist/*.AppImage
             dist/*.deb
-            dist/*.snap
 
   release:
     needs: [build-macos, build-windows, build-linux]

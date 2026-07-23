@@ -67,8 +67,14 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  # 签名：使用 ad-hoc 签名（identity: "-"）解决 Gatekeeper 拦截问题
-  # 正式发布需设置 APPLE_ID/APPLE_APP_SPECIFIC_PASSWORD/APPLE_TEAM_ID 并将 identity 改为 "Developer ID Application: ..."
+  # ── 签名与公证（当前为临时方案：ad-hoc 签名 + 不公证）──
+  # 正式签名启用步骤：
+  #   1. 将 Developer ID Application 证书导出为 .p12 并 base64 后设置环境变量
+  #      CSC_LINK（base64 内容或 .p12 路径）与 CSC_KEY_PASSWORD（.p12 密码），
+  #      electron-builder 会自动发现证书，届时删除下面的 identity: "-" 一行。
+  #   2. 设置 APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID，
+  #      并将 notarize 改为 true。
+  # CI 中对应 secrets 占位见 .github/workflows/build.yml。
   identity: "-"
   notarize: false
   target:
@@ -85,7 +91,6 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
   maintainer: juhe-studio.com
   category: Utility
@@ -93,7 +98,7 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 publish:
   provider: github
-  owner: juhe-studio
+  owner: wwwmd5vip
   repo: juhe-studio
   releaseType: draft
   # NOTE: `draft` keeps releases unpublished for manual QA review before going live.
@@ -102,5 +107,5 @@ npmRebuild: false
 extraResources:
   - from: EULA.md
   - from: LICENSE.md
-  - from: .env
-    to: .env
+  - from: PRIVACY.md
+  - from: THIRD-PARTY-LICENSES.txt
