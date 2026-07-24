@@ -111,6 +111,14 @@ async function main() {
     }
   }
 
+  // Copy build/ (icons, entitlements) — electron-builder resolves buildResources
+  // relative to --projectDir, so app-deploy needs its own copy
+  const buildSrc = join(root, 'build')
+  if (existsSync(buildSrc)) {
+    console.log('[prepare-deploy] Copying build/ (icons, entitlements)...')
+    await cp(buildSrc, join(deployDir, 'build'), { recursive: true })
+  }
+
   // Copy node_modules/ (resolving all symlinks to real files)
   console.log('[prepare-deploy] Copying node_modules/ (resolving symlinks)...')
   const destModules = join(deployDir, 'node_modules')
