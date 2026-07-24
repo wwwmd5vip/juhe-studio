@@ -49,7 +49,7 @@
     "@openrouter/ai-sdk-provider": "^2.3.3",
     "@sentry/electron": "^7.14.0",
     "ai": "^6.0.116",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.45.2",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.7.0",
     "electron-window-state": "^5.0.3",
@@ -119,6 +119,12 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "fast-uri": ">=3.1.4",
+      "@hono/node-server": ">=2.0.5"
+    }
   },
   "packageManager": "pnpm@10.27.0"
 }

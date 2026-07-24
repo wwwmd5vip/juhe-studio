@@ -16,7 +16,7 @@
  */
 
 /* global console, process */
-import { cp, rm, readdir, readlink, mkdir } from 'node:fs/promises'
+import { cp, rm, readdir, readlink, mkdir, stat } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
@@ -33,17 +33,32 @@ const PROD_DEP_DIRS_TO_SKIP = new Set([
   '.modules.yaml',
 ])
 
-async function copySymlinkAsReal(src, dest) {
-  const target = await readlink(src)
-  const resolvedTarget = resolve(join(src, '..'), target)
-  await copyDirRecursive(resolvedTarget, dest)
+// Package subdirectories to skip when copying (package name -> immediate child names).
+// electron ships a 1GB+ dist/ (Electron.app with symlinked frameworks); electron-builder
+// only needs the package metadata here and uses its own cached Electron distribution.
+const PKG_SUBDIRS_TO_SKIP = {
+  electron: new Set(['dist']),
 }
 
-async function copyDirRecursive(src, dest) {
+async function copySymlinkAsReal(src, dest, skipNames) {
+  const target = await readlink(src)
+  const resolvedTarget = resolve(join(src, '..'), target)
+  const targetStat = await stat(resolvedTarget)
+  if (targetStat.isDirectory()) {
+    await copyDirRecursive(resolvedTarget, dest, skipNames)
+  } else {
+    // Symlink pointing at a regular file (e.g. macOS framework binaries)
+    await cp(resolvedTarget, dest)
+  }
+}
+
+async function copyDirRecursive(src, dest, skipNames) {
   await mkdir(dest, { recursive: true })
   const entries = await readdir(src, { withFileTypes: true })
 
   for (const entry of entries) {
+    if (skipNames?.has(entry.name)) continue
+
     const srcPath = join(src, entry.name)
     const destPath = join(dest, entry.name)
 
@@ -108,11 +123,12 @@ async function main() {
 
     const srcPath = join(nodeModules, entry.name)
     const destPath = join(destModules, entry.name)
+    const skipNames = PKG_SUBDIRS_TO_SKIP[entry.name]
 
     if (entry.isSymbolicLink()) {
-      await copySymlinkAsReal(srcPath, destPath)
+      await copySymlinkAsReal(srcPath, destPath, skipNames)
     } else if (entry.isDirectory()) {
-      await copyDirRecursive(srcPath, destPath)
+      await copyDirRecursive(srcPath, destPath, skipNames)
     } else {
       await cp(srcPath, destPath)
     }
