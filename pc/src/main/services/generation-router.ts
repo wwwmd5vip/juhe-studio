@@ -128,13 +128,18 @@ export async function createRoutedGenerationTask(
   return queue.createTask(type, resolvedParams, priority, options)
 }
 
+function hasVideoUrls(params: GenerationParams): boolean {
+  // videoUrls 默认是空数组（truthy），必须按长度判断，否则普通图像任务会被误判为视频
+  return Array.isArray(params.videoUrls) ? params.videoUrls.length > 0 : Boolean(params.videoUrls)
+}
+
 function inferGenerationType(params: GenerationParams): GenerationType {
   // 优先使用显式生成模式
   if (params.generationMode === 'audio') return 'audio'
   if (params.generationMode === 'video') return 'video'
   if (params.generationMode === 'text') return 'text'
   // 回退到旧逻辑
-  if (params.videoUrl || params.videoUrls) return 'video'
+  if (params.videoUrl || hasVideoUrls(params)) return 'video'
   if (params.firstFrame || params.lastFrame) return 'video'
   return 'image'
 }
@@ -145,7 +150,7 @@ function getRequiredCapability(params: GenerationParams): ModelCapability | null
   if (params.generationMode === 'text') return 'chat'
   if (params.generationMode === 'image') return 'image'
   // 回退到旧逻辑
-  if (params.videoUrl || params.videoUrls || params.firstFrame || params.lastFrame) return 'video'
+  if (params.videoUrl || hasVideoUrls(params) || params.firstFrame || params.lastFrame) return 'video'
   return 'image'
 }
 

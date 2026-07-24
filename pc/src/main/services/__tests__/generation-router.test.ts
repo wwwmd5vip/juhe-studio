@@ -130,4 +130,41 @@ describe('createRoutedGenerationTask', () => {
 
     expect(mockCreateTask).not.toHaveBeenCalled()
   })
+
+  it('videoUrls 为空数组时按图像任务路由（空数组是 truthy，不得误判为视频）', async () => {
+    mockDbSelect.mockReturnValue(
+      makeSelectChain({
+        models: [{ providerId: 'prov-from-model', type: 'image', capabilities: ['image'] }],
+        providers: []
+      })
+    )
+
+    await createRoutedGenerationTask({
+      prompt: '换装',
+      model: 'juhe-gpt-image-2',
+      referenceImages: ['data:image/png;base64,xxx'],
+      videoUrls: []
+    })
+
+    expect(mockCreateTask).toHaveBeenCalledTimes(1)
+    expect(mockCreateTask.mock.calls[0][0]).toBe('image')
+  })
+
+  it('videoUrls 有内容时才路由为视频任务', async () => {
+    mockDbSelect.mockReturnValue(
+      makeSelectChain({
+        models: [{ providerId: 'prov-from-model', type: 'video', capabilities: ['video'] }],
+        providers: []
+      })
+    )
+
+    await createRoutedGenerationTask({
+      prompt: 'a walking cat',
+      model: 'kling-3.0',
+      videoUrls: ['https://example.com/ref.mp4']
+    })
+
+    expect(mockCreateTask).toHaveBeenCalledTimes(1)
+    expect(mockCreateTask.mock.calls[0][0]).toBe('video')
+  })
 })

@@ -52,6 +52,16 @@ export async function submitVideoGeneration(task: GenerationTask): Promise<void>
     throw new Error('ERR_NO_PROVIDER_MODEL: Please select a provider and model for video generation')
   }
 
+  // 防误路由：FAL 执行器只服务 FAL provider。
+  // 非 FAL provider（如 juhe-management）的视频任务发到这里说明上游类型推断出错，
+  // 绝不能静默地用错误的凭据调用 fal.run。
+  const presetId = await getProviderPresetId(params.providerId)
+  if (presetId !== 'fal') {
+    throw new Error(
+      `ERR_VIDEO_UNSUPPORTED_PROVIDER: 视频生成当前仅支持 FAL 渠道（当前 provider: ${params.providerId}）。请确认没有误选视频生成类型，或在设置中配置 FAL provider`
+    )
+  }
+
   // 获取 API Key (从 provider 配置或环境变量)
   const apiKey = await getApiKey(params.providerId)
   if (!apiKey) {
@@ -245,6 +255,23 @@ async function pollFalResult(
     totalTimeMs: maxAttempts * pollInterval
   })
   throw new Error('ERR_VIDEO_TIMEOUT: Video generation timed out (exceeded 10 minutes)')
+}
+
+/**
+ * 查询 provider 的 presetId（用于校验执行器与 provider 是否匹配）
+ */
+async function getProviderPresetId(providerId: string): Promise<string | null> {
+  const { db } = await import('../db')
+  const { providers } = await import('../db/schema')
+  const { eq } = await import('drizzle-orm')
+
+  const result = await db
+    .select({ presetId: providers.presetId })
+    .from(providers)
+    .where(eq(providers.id, providerId))
+    .limit(1)
+
+  return result[0]?.presetId ?? null
 }
 
 /**
