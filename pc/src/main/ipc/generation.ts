@@ -206,7 +206,9 @@ export function registerGenerationIpc() {
       referenceImageLengths: params.referenceImages?.map((img: string) => img.length) ?? []
     })
 
-    const task = await createRoutedGenerationTask(params, request.priority)
+    const task = await createRoutedGenerationTask(params, request.priority, {
+      requestedType: request.type
+    })
     console.log('[IPC:generation:create] Routed:', {
       taskId: task.id,
       type: task.type,

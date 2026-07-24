@@ -17,12 +17,15 @@ const JIMENG_MODEL_ALIASES: Record<string, string> = {
 export async function createRoutedGenerationTask(
   params: GenerationParams,
   priority: TaskPriority = 'normal',
-  options?: { id?: string }
+  options?: { id?: string; requestedType?: GenerationType }
 ): Promise<GenerationTask> {
   const queue = getGenerationQueue()
 
   let resolvedParams = params
-  const requiredCapability = getRequiredCapability(resolvedParams)
+  // 调用方显式声明的类型（如 img2img 传 'image'）优先于从参数推断的结果：
+  // 参数里的 firstFrame 等字段可能来自共享的 UI 状态，并不代表真实意图。
+  const requestedType = options?.requestedType
+  const requiredCapability = getRequiredCapability(resolvedParams, requestedType)
 
   // 如果调用方只给了 model 没给 providerId（例如旧 workflow 节点只存了 model），
   // 按 model id 反查所属 provider 并补全，避免下游执行器因缺少 providerId 拒绝。
@@ -116,14 +119,14 @@ export async function createRoutedGenerationTask(
   }
 
   // Provider Registry 路由（新 Provider 通过工厂注册即可自动路由）
-  const registryType = resolveQueueTypeViaRegistry(providerPresetId, resolvedParams)
+  const registryType = resolveQueueTypeViaRegistry(providerPresetId, resolvedParams, requestedType)
   if (registryType) {
     console.log('[GenerationRouter] Routed via registry:', { taskId: options?.id, type: registryType, providerPresetId })
     return queue.createTask(registryType, resolvedParams, priority, options)
   }
 
-  // 默认路由：根据 params 推断 type
-  const type: GenerationType = inferGenerationType(resolvedParams)
+  // 默认路由：显式类型优先，否则根据 params 推断 type
+  const type: GenerationType = requestedType ?? inferGenerationType(resolvedParams)
   console.log('[GenerationRouter] Routed to default:', { taskId: options?.id, type, model: resolvedParams.model, providerId: resolvedParams.providerId })
   return queue.createTask(type, resolvedParams, priority, options)
 }
@@ -144,7 +147,29 @@ function inferGenerationType(params: GenerationParams): GenerationType {
   return 'image'
 }
 
-function getRequiredCapability(params: GenerationParams): ModelCapability | null {
+function capabilityForType(type: GenerationType): ModelCapability | null {
+  switch (type) {
+    case 'image':
+      return 'image'
+    case 'video':
+      return 'video'
+    case 'audio':
+      return 'audio'
+    case 'text':
+      return 'chat'
+    default:
+      return null
+  }
+}
+
+function getRequiredCapability(
+  params: GenerationParams,
+  requestedType?: GenerationType
+): ModelCapability | null {
+  if (requestedType) {
+    const cap = capabilityForType(requestedType)
+    if (cap) return cap
+  }
   if (params.generationMode === 'audio') return 'audio'
   if (params.generationMode === 'video') return 'video'
   if (params.generationMode === 'text') return 'chat'
@@ -175,7 +200,8 @@ function capabilityLabel(cap: ModelCapability): string {
  */
 function resolveQueueTypeViaRegistry(
   providerPresetId: string | null,
-  params: GenerationParams
+  params: GenerationParams,
+  requestedType?: GenerationType
 ): GenerationType | null {
   if (!providerPresetId) return null
 
@@ -188,7 +214,7 @@ function resolveQueueTypeViaRegistry(
   // 根据 Provider ID 映射到队列任务类型
   switch (provider.providerId) {
     case 'openai':
-      return inferGenerationType(params)
+      return requestedType ?? inferGenerationType(params)
     case 'jimeng':
       return 'jimeng'
     case 'aliyun':

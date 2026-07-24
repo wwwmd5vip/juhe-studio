@@ -167,4 +167,27 @@ describe('createRoutedGenerationTask', () => {
     expect(mockCreateTask).toHaveBeenCalledTimes(1)
     expect(mockCreateTask.mock.calls[0][0]).toBe('video')
   })
+
+  it('调用方显式 requestedType 优先于参数推断（img2img 的 firstFrame 不应误判为视频）', async () => {
+    mockDbSelect.mockReturnValue(
+      makeSelectChain({
+        models: [{ providerId: 'prov-from-model', type: 'image', capabilities: ['image'] }],
+        providers: []
+      })
+    )
+
+    await createRoutedGenerationTask(
+      {
+        prompt: '换装',
+        model: 'juhe-gpt-image-2',
+        firstFrame: 'data:image/png;base64,xxx',
+        referenceImages: ['data:image/png;base64,xxx']
+      },
+      'normal',
+      { requestedType: 'image' }
+    )
+
+    expect(mockCreateTask).toHaveBeenCalledTimes(1)
+    expect(mockCreateTask.mock.calls[0][0]).toBe('image')
+  })
 })
