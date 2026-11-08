@@ -98,19 +98,6 @@ export default function AdminTokens() {
     queryFn: () => listTokens(page, 20, keyword, true),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const createMutation = useMutation({
     mutationFn: (values: FormValues) => {
       const payload: TokenForm = {
@@ -331,6 +318,19 @@ export default function AdminTokens() {
 
   const modalTitle = editingId !== null ? '编辑 Token' : '新增 Token'
   const submitLoading = createMutation.isPending || updateMutation.isPending
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   return (
     <div>

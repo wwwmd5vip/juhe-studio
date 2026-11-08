@@ -67,19 +67,6 @@ export default function Redemptions() {
     queryFn: () => listRedemptions(page, 20, status),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const generateMutation = useMutation({
     mutationFn: generateRedemptions,
     onSuccess: (res) => {
@@ -202,6 +189,19 @@ export default function Redemptions() {
       ),
     },
   ]
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   return (
     <div>

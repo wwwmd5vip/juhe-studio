@@ -340,6 +340,7 @@ func main() {
 		v1.POST("/chat/completions", relayH.ChatCompletions)
 		v1.POST("/images/generations", relayH.ImageGenerations)
 		v1.POST("/embeddings", relayH.Embeddings)
+		v1.POST("/rerank", relayH.Rerank)
 		v1.POST("/audio/speech", relayH.AudioSpeech)
 		v1.POST("/audio/transcriptions", relayH.AudioTranscriptions)
 		v1.GET("/prompts", relayPromptHandler.ListPrompts)

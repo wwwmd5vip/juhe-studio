@@ -218,6 +218,49 @@ func (h *RelayHandler) ImageGenerations(c *gin.Context) {
 	h.writeRelayResponse(c, resp)
 }
 
+// Rerank 文本重排
+// @Summary      文本重排（Rerank 兼容）
+// @Tags         Relay
+// @Accept       json
+// @Produce      json
+// @Param        body  body      object  true  "Rerank 请求体"
+// @Success      200   {object}  object
+// @Failure      401   {object}  dto.OpenAIErrorResponse
+// @Failure      404   {object}  dto.OpenAIErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /v1/rerank [post]
+func (h *RelayHandler) Rerank(c *gin.Context) {
+	token, user := h.currentTokenAndUser(c)
+	if token == nil {
+		return
+	}
+
+	body, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, h.getMaxRequestBody(c.Request.Context())))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, openAIError("request body too large"))
+		return
+	}
+
+	resp, _, err := h.relayService.Rerank(c.Request.Context(), token, user, body, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err == service.ErrModelNotSupported {
+			status = http.StatusNotFound
+		} else if err == service.ErrInsufficientQuota {
+			c.AbortWithStatusJSON(http.StatusPaymentRequired, openAIError("额度不足，请充值后重试。"))
+			return
+		} else if errors.Is(err, relay.ErrNoAvailableChannel) {
+			c.AbortWithStatusJSON(http.StatusServiceUnavailable, openAIError("service temporarily unavailable, please retry later"))
+			return
+		}
+		slog.Error("relay internal error", "error", sanitizeError(err))
+		c.AbortWithStatusJSON(status, openAIError("internal error"))
+		return
+	}
+
+	h.writeRelayResponse(c, resp)
+}
+
 // Embeddings 文本嵌入
 // @Summary      文本嵌入（OpenAI 兼容）
 // @Tags         Relay

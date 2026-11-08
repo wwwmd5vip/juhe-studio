@@ -134,19 +134,6 @@ export default function Prompts() {
     queryFn: () => listPrompts(type, page, 20, keyword),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const { data: categoriesData } = useQuery({
     queryKey: ['promptCategories', type],
     queryFn: () => listPromptCategories(type, 1, 100),
@@ -394,6 +381,19 @@ export default function Prompts() {
       ),
     },
   ]
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   return (
     <div>

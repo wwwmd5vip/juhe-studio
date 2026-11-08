@@ -9,6 +9,7 @@ const (
 	LogTypeImage     LogType = "image"
 	LogTypeAudio     LogType = "audio"
 	LogTypeEmbedding LogType = "embedding"
+	LogTypeRerank    LogType = "rerank"
 )
 
 type LogMode string

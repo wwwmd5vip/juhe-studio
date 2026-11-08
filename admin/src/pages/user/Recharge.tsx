@@ -99,8 +99,39 @@ export default function Recharge() {
 
   // Load quota packages on mount and when token changes
   useEffect(() => {
-    loadPackages()
-  }, [loadPackages])
+    let ignore = false
+    const fetchPackages = async () => {
+      if (!token) return
+      setLoading(true)
+      setLoadError(null)
+      try {
+        const res = await relayFetch<PagedData<QuotaPackage>>('/quota-packages', token)
+        if (!ignore) {
+          if (res.code === 0 && res.data) {
+            setPackages(res.data.data || [])
+          } else {
+            const errMsg = res.message || '获取额度包失败'
+            setLoadError(errMsg)
+            message.error(errMsg)
+          }
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const errMsg = err instanceof Error ? err.message : '网络错误'
+          setLoadError(errMsg)
+          message.error(errMsg)
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false)
+        }
+      }
+    }
+    fetchPackages()
+    return () => {
+      ignore = true
+    }
+  }, [token, message])
 
   const handleBuy = async (pkg: QuotaPackage) => {
     setBuyingId(pkg.id)

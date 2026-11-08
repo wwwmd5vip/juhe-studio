@@ -30,9 +30,9 @@ export type ChannelType =
 export type AuthType = 'api-key' | 'api-key-header' | 'oauth' | 'aws-sigv4' | 'gcp-sa'
 
 export type BillingMode = 'token' | 'fixed' | 'tiered'
-export type ModelType = 'llm' | 'image' | 'video' | 'audio' | 'embedding'
+export type ModelType = 'llm' | 'image' | 'video' | 'audio' | 'embedding' | 'rerank'
 export type MatchRule = 0 | 1 | 2 | 3 // exact | prefix | suffix | contain
-export type LogType = 'chat' | 'image' | 'audio' | 'embedding'
+export type LogType = 'chat' | 'image' | 'audio' | 'embedding' | 'rerank'
 export type LogMode = 'stream' | 'non-stream'
 export type PromptType = 'image' | 'agent' | 'package'
 export type PromptStatus = 0 | 1 | 2 // draft | published | archived
@@ -851,6 +851,37 @@ export interface AudioSpeechRequest {
   model: string
   input: string
   voice?: string
+}
+
+export interface RerankRequest {
+  model: string
+  query: string
+  documents: string[]
+  top_n?: number
+  return_documents?: boolean
+  max_chunks_per_doc?: number
+  overlap_tokens?: number
+}
+
+export interface RerankDocumentItem {
+  text?: string
+}
+
+export interface RerankResultItem {
+  index: number
+  relevance_score: number
+  document?: RerankDocumentItem
+}
+
+export interface RerankUsage {
+  total_tokens: number
+  prompt_tokens?: number
+}
+
+export interface RerankResponse {
+  id?: string
+  results: RerankResultItem[]
+  usage?: RerankUsage
 }
 
 export interface OpenAIModel {

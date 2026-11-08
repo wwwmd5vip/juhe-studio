@@ -52,19 +52,6 @@ export default function QuotaPackages() {
     queryFn: () => listQuotaPackages(page, 20, keyword),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const createMutation = useMutation({
     mutationFn: createQuotaPackage,
     onSuccess: (res) => {
@@ -318,6 +305,17 @@ export default function QuotaPackages() {
           新增额度包
         </Button>
       </div>
+
+      {isError && (
+        <div style={{ padding: 24 }}>
+          <Alert
+            type="error"
+            message="加载失败"
+            description={(error as Error)?.message || '请稍后重试'}
+            showIcon
+          />
+        </div>
+      )}
 
       {selectedRowKeys.length > 0 && (
         <Space style={{ marginBottom: 16 }}>

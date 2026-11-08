@@ -148,6 +148,26 @@ func (s *BillingService) CalculateEmbeddingCost(pricing *domain.Pricing, estimat
 	return int64(math.Ceil(cost))
 }
 
+// CalculateRerankCost estimates cost based on token count (or documents count) and model ratio.
+func (s *BillingService) CalculateRerankCost(pricing *domain.Pricing, estimatedTokens int) int64 {
+	if pricing == nil {
+		return 0
+	}
+	if pricing.FixedPriceCents != nil && *pricing.FixedPriceCents > 0 {
+		ratio := pricing.ModelRatio
+		if ratio == 0 {
+			ratio = 1
+		}
+		return int64(math.Ceil(float64(*pricing.FixedPriceCents) * ratio))
+	}
+	ratio := pricing.ModelRatio
+	if ratio == 0 {
+		ratio = 1
+	}
+	cost := float64(estimatedTokens) * ratio / 1000.0
+	return int64(math.Ceil(cost))
+}
+
 // CalculateAudioCost calculates fixed audio generation cost per request.
 func (s *BillingService) CalculateAudioCost(pricing *domain.Pricing) (int64, error) {
 	if pricing == nil {

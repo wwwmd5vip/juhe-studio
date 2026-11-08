@@ -16,6 +16,8 @@ import type {
   ChatCompletionChunk,
   ImageGenerationRequest,
   ImageGenerationResponse,
+  RerankRequest,
+  RerankResponse,
   QuotaInfo,
   TopUpResult,
   RedemptionResult,
@@ -456,6 +458,15 @@ export class JuheClient {
     return this.unwrap(
       await this.rpost<ApiResponse<ImageGenerationResponse>>('/images/generations', body),
       'createImage',
+    )
+  }
+
+  // Relay: rerank
+
+  async rerank(body: RerankRequest, config?: AxiosRequestConfig): Promise<RerankResponse> {
+    return this.unwrap(
+      await this.rpost<ApiResponse<RerankResponse>>('/rerank', body, config),
+      'rerank',
     )
   }
 

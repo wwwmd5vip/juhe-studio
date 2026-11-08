@@ -280,6 +280,54 @@ func (s *RelayService) ImageGenerations(ctx context.Context, token *domain.Token
 	})
 }
 
+func (s *RelayService) Rerank(ctx context.Context, token *domain.Token, user *domain.User, body []byte, ipAddress, userAgent string) (*relay.RelayResponse, *domain.Log, error) {
+	var req dto.RerankRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		return nil, nil, err
+	}
+
+	group := resolveGroup(token, user)
+
+	if err := checkModelLimits(token, req.Model); err != nil {
+		return nil, nil, err
+	}
+
+	pricing, err := s.billing.GetPricing(ctx, req.Model, group)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Estimate tokens roughly based on query + documents length
+	estTokens := (len(req.Query) + 3) / 4
+	for _, doc := range req.Documents {
+		estTokens += (len(doc) + 3) / 4
+	}
+	if estTokens <= 0 {
+		estTokens = 1
+	}
+
+	estimatedCost := s.billing.CalculateRerankCost(pricing, estTokens)
+
+	if err := s.billing.PreConsume(ctx, user.ID, token.ID, estimatedCost); err != nil {
+		return nil, nil, err
+	}
+
+	info := s.buildRelayInfo(ctx, user, token, req.Model, group, ipAddress, userAgent)
+
+	return s.doNonStreamRelay(ctx, user, token, info, nonStreamRelayParams{
+		body:         body,
+		upstreamPath: "/rerank",
+		logType:      domain.LogTypeRerank,
+		preConsumed:  estimatedCost,
+		actualCostFn: func(resp *relay.RelayResponse) int64 {
+			return estimatedCost
+		},
+		extraLogFields: func(lr *domain.Log) {
+			lr.TotalTokens = estTokens
+		},
+	})
+}
+
 func (s *RelayService) Embeddings(ctx context.Context, token *domain.Token, user *domain.User, body []byte, ipAddress, userAgent string) (*relay.RelayResponse, *domain.Log, error) {
 	var req dto.EmbeddingRequest
 	if err := json.Unmarshal(body, &req); err != nil {
@@ -799,16 +847,20 @@ func (s *RelayService) doRelayWithRetry(ctx context.Context, info *relay.RelayIn
 
 		resp, logRecord, err := s.doRelay(ctx, adaptor, info, body, upstreamPath)
 		if err == nil {
-			if err := s.channelService.RecordSuccess(ctx, ch.ID, 0); err != nil {
-				slog.Warn("failed to record channel success", "channel_id", ch.ID, "error", err)
+			if s.channelService != nil {
+				if err := s.channelService.RecordSuccess(ctx, ch.ID, 0); err != nil {
+					slog.Warn("failed to record channel success", "channel_id", ch.ID, "error", err)
+				}
 			}
 			return resp, logRecord, nil
 		}
 
 		lastErr = err
 		exclude = append(exclude, ch.ID)
-		if err := s.channelService.RecordFailure(ctx, ch.ID, err.Error(), s.autoBanThreshold); err != nil {
-			slog.Warn("failed to record channel failure", "channel_id", ch.ID, "error", err)
+		if s.channelService != nil {
+			if err := s.channelService.RecordFailure(ctx, ch.ID, err.Error(), s.autoBanThreshold); err != nil {
+				slog.Warn("failed to record channel failure", "channel_id", ch.ID, "error", err)
+			}
 		}
 	}
 
