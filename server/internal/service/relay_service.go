@@ -339,6 +339,8 @@ func (s *RelayService) Rerank(ctx context.Context, token *domain.Token, user *do
 		},
 		extraLogFields: func(lr *domain.Log) {
 			lr.TotalTokens = estTokens
+			// Rerank responses may echo user-provided document content; avoid persisting sensitive payloads.
+			lr.ResponseContent = ""
 		},
 	})
 }
