@@ -182,19 +182,6 @@ export default function PricingPage() {
     queryFn: () => listPricing(page, 20, modelName, group),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const { data: modelsData } = useQuery({
     queryKey: ['models-for-pricing'],
     queryFn: () => listModels(1, 500),
@@ -419,6 +406,19 @@ export default function PricingPage() {
   const watchedCachedRatio = Form.useWatch('cached_tokens_ratio', form)
   const watchedFixedPrice = Form.useWatch('fixed_price_cents', form)
   const watchedTieredExpr = Form.useWatch('tiered_expr', form)
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   return (
     <div>
