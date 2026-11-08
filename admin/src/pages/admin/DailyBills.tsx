@@ -122,20 +122,6 @@ export default function DailyBills() {
     enabled: activeTab === 'monthly',
   })
 
-  if (dailyQuery.isError || monthlyQuery.isError) {
-    const err = dailyQuery.error || monthlyQuery.error
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(err as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const aggregateMutation = useMutation({
     mutationFn: aggregateDailyBills,
     onSuccess: (res) => {
@@ -183,6 +169,20 @@ export default function DailyBills() {
       ? { ...col, render: (id: number) => <a onClick={() => openFinanceDrawer(id)} style={{ cursor: 'pointer' }}>{id}</a> }
       : col
   ), [openFinanceDrawer])
+
+  if (dailyQuery.isError || monthlyQuery.isError) {
+    const err = dailyQuery.error || monthlyQuery.error
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(err as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   const tabItems = [
     {

@@ -81,19 +81,6 @@ export default function QuotaTransactions() {
     }),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const columns: ColumnsType<TransactionRecord> = useMemo(
     () => [
       { title: 'ID', dataIndex: 'id', width: 80 },
@@ -160,6 +147,19 @@ export default function QuotaTransactions() {
   )
 
   const total = data?.data?.pagination?.total || 0
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   return (
     <div>

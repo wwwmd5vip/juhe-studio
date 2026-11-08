@@ -98,19 +98,6 @@ export default function AdminTokens() {
     queryFn: () => listTokens(page, 20, keyword, true),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const createMutation = useMutation({
     mutationFn: (values: FormValues) => {
       const payload: TokenForm = {
@@ -185,6 +172,19 @@ export default function AdminTokens() {
     },
     onError: (error: Error) => message.error(error.message),
   })
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   // Reserved: endpoint not yet implemented on server
   // const handleRevealKey = async () => {

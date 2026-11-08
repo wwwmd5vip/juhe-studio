@@ -195,6 +195,7 @@ export default function Channels() {
 
   // Initial form snapshot for dirty detection
   const initialValuesRef = useRef('')
+  const closeForceRef = useRef(false)
 
   // Confirm password modal
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -239,8 +240,6 @@ export default function Channels() {
     queryFn: () => listChannels(page, 20, keyword),
   })
 
-  const channels: Channel[] = data?.data?.data || []
-
   // Load overview
   const { data: loadData, isLoading: loadLoading } = useQuery({
     queryKey: ['channels', 'load-overview'],
@@ -251,14 +250,14 @@ export default function Channels() {
   const loadChannels: ChannelLoadItem[] = loadData?.data?.channels ?? []
 
   const channelStats = useMemo(() => {
-    if (!channels) return { total: 0, enabled: 0, autoBanned: 0, failing: 0 }
+    const list = data?.data?.data || []
     return {
-      total: channels.length,
-      enabled: channels.filter((c) => c.status === 1).length,
-      autoBanned: channels.filter((c) => c.auto_ban).length,
-      failing: channels.filter((c) => (c.consecutive_failures || 0) >= 3).length,
+      total: list.length,
+      enabled: list.filter((c) => c.status === 1).length,
+      autoBanned: list.filter((c) => c.auto_ban).length,
+      failing: list.filter((c) => (c.consecutive_failures || 0) >= 3).length,
     }
-  }, [channels])
+  }, [data?.data?.data])
 
   const [testLoading, setTestLoading] = useState<Record<number, boolean>>({})
 
@@ -547,8 +546,6 @@ export default function Channels() {
     setTestResult('idle')
     setIsModalOpen(true)
   }
-
-  const closeForceRef = useRef(false)
 
   const handleCloseModal = () => {
     if (!closeForceRef.current && dirty()) {

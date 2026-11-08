@@ -64,4 +64,5 @@ window-state.json
 server.zip
 demo/
 docs/
+!server/docs/
 .planning
