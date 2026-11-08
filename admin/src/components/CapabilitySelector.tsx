@@ -92,7 +92,8 @@ const CAPABILITY_CATEGORIES: CapabilityCategory[] = [
   },
 ]
 
-export const ALL_CAPABILITIES = CAPABILITY_CATEGORIES.flatMap((c) => c.items.map((i) => i.value))
+const ALL_CAPABILITIES = CAPABILITY_CATEGORIES.flatMap((c) => c.items.map((i) => i.value))
+export { ALL_CAPABILITIES }
 
 interface CapabilitySelectorProps {
   value?: string[]

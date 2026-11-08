@@ -89,19 +89,6 @@ export default function TopUps() {
       ),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const createMutation = useMutation({
     mutationFn: createTopUp,
     onSuccess: (res) => {
@@ -185,6 +172,19 @@ export default function TopUps() {
       message.error(error.message)
     },
   })
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   const handleSubmit = (values: TopUpForm) => {
     createMutation.mutate(values)

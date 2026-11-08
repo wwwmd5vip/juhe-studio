@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Tabs, Card, Button, Input, App, Row, Col, Typography, Spin, Empty, Badge, Modal, Result } from 'antd'
 import { ShoppingCartOutlined, GiftOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../../stores/authStore'
 
 interface QuotaPackage {
@@ -65,42 +66,28 @@ export default function Recharge() {
   const { message } = App.useApp()
   const token = useAuthStore((s) => s.token)
   const apiKey = token || ''
-  const [packages, setPackages] = useState<QuotaPackage[]>([])
-  const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [buyingId, setBuyingId] = useState<number | null>(null)
   const [redeemCode, setRedeemCode] = useState('')
   const [redeeming, setRedeeming] = useState(false)
 
-  const loadPackages = useCallback(async () => {
-    if (!token) {
-      message.error('未登录，请先登录')
-      return
-    }
-    setLoading(true)
-    setLoadError(null)
-    try {
+  const {
+    data: packagesData,
+    isLoading: loading,
+    error: queryError,
+    refetch: loadPackages,
+  } = useQuery({
+    queryKey: ['user-quota-packages', token],
+    queryFn: async () => {
+      if (!token) throw new Error('未登录，请先登录')
       const res = await relayFetch<PagedData<QuotaPackage>>('/quota-packages', token)
-      if (res.code === 0 && res.data) {
-        setPackages(res.data.data || [])
-      } else {
-        const errMsg = res.message || '获取额度包失败'
-        setLoadError(errMsg)
-        message.error(errMsg)
-      }
-    } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : '网络错误'
-      setLoadError(errMsg)
-      message.error(errMsg)
-    } finally {
-      setLoading(false)
-    }
-  }, [token, message])
+      if (res.code !== 0) throw new Error(res.message || '获取额度包失败')
+      return res.data?.data || []
+    },
+    enabled: !!token,
+  })
 
-  // Load quota packages on mount and when token changes
-  useEffect(() => {
-    loadPackages()
-  }, [loadPackages])
+  const packages = packagesData || []
+  const loadError = queryError instanceof Error ? queryError.message : null
 
   const handleBuy = async (pkg: QuotaPackage) => {
     setBuyingId(pkg.id)
@@ -163,7 +150,7 @@ export default function Recharge() {
           title="加载失败"
           subTitle={loadError}
           extra={
-            <Button type="primary" onClick={loadPackages}>
+            <Button type="primary" onClick={() => { void loadPackages() }}>
               重试
             </Button>
           }

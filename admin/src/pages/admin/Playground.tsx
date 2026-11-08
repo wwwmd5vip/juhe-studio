@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import {
   Alert,
   Card,
@@ -38,7 +38,8 @@ import { listPromptTemplates, usePromptTemplate, type PromptTemplate as PromptTe
 import { useThemeStore } from '../../stores/themeStore'
 import { useAuthStore } from '../../stores/authStore'
 import TrialStatus from '../../components/playground/TrialStatus'
-import ModelSelector, { buildModelOptions } from '../../components/playground/ModelSelector'
+import ModelSelector from '../../components/playground/ModelSelector'
+import { buildModelOptions } from '../../components/playground/modelOptions'
 import ChatMessages, { type Message } from '../../components/playground/ChatMessages'
 
 const { Text } = Typography
@@ -174,7 +175,7 @@ export default function Playground() {
     onError: (err: unknown) => { message.error(err instanceof Error ? err.message : '应用模板失败') },
   })
 
-  const models = modelsData?.data?.data ?? []
+  const models = useMemo(() => modelsData?.data?.data ?? [], [modelsData?.data?.data])
 
   // ── Auto-scroll to bottom ──
   useEffect(() => {

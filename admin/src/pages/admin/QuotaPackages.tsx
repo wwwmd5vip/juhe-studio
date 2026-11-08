@@ -52,19 +52,6 @@ export default function QuotaPackages() {
     queryFn: () => listQuotaPackages(page, 20, keyword),
   })
 
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const createMutation = useMutation({
     mutationFn: createQuotaPackage,
     onSuccess: (res) => {
@@ -235,6 +222,19 @@ export default function QuotaPackages() {
     const newStatus = record.status === 1 ? 0 : 1
     setTogglingId(record.id)
     statusToggleMutation.mutate({ id: record.id, status: newStatus })
+  }
+
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
   }
 
   const columns = [

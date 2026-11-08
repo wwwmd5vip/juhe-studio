@@ -214,12 +214,12 @@ export default function Dashboard() {
 
   const countdownPct = (countdown / REFRESH_INTERVAL) * 100
 
-  const trends = trendsData?.data ?? []
-  const chartData = trends.map((item) => ({
+  const trends = useMemo(() => trendsData?.data ?? [], [trendsData?.data])
+  const chartData = useMemo(() => trends.map((item) => ({
     date: item.date,
     requests: item.requests,
     quotaYuan: item.quota / 100,
-  }))
+  })), [trends])
 
   const CAPABILITY_LABEL_MAP: Record<string, string> = {
     'function-call': '函数调用',
@@ -246,7 +246,7 @@ export default function Dashboard() {
     .sort((a, b) => b.count - a.count)
 
   // Heatmap processing
-  const heatmapItems = heatmapData?.data ?? []
+  const heatmapItems = useMemo(() => heatmapData?.data ?? [], [heatmapData?.data])
   const heatmapModels = [...new Set(heatmapItems.map((h) => h.model_name))].sort()
   const heatmapMatrix: Record<string, Record<number, number>> = {}
   for (const model of heatmapModels) {

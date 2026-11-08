@@ -141,20 +141,6 @@ export default function Subscriptions() {
     enabled: activeTab === 'subscriptions',
   })
 
-  if (plansQuery.isError || subsQuery.isError) {
-    const err = plansQuery.error || subsQuery.error
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(err as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
-
   const subColumns = [
     { title: 'ID', dataIndex: 'id', width: 60 },
     { title: '用户ID', dataIndex: 'user_id' },
@@ -182,6 +168,20 @@ export default function Subscriptions() {
       : col
   // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [openFinanceDrawer])
+
+  if (plansQuery.isError || subsQuery.isError) {
+    const err = plansQuery.error || subsQuery.error
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(err as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
 
   const closeModal = () => {
     if (closeForceRef.current) {

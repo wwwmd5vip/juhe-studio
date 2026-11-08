@@ -1,12 +1,7 @@
-import { Select, Typography, Space, Tag, Spin } from 'antd'
-import type { Model } from '../../api/model'
+import { Select, Typography, Spin } from 'antd'
+import type { ModelOption } from './modelOptions'
 
 const { Text } = Typography
-
-interface ModelOption {
-  value: string
-  label: React.ReactNode
-}
 
 interface ModelSelectorProps {
   compareMode: boolean
@@ -84,23 +79,4 @@ export default function ModelSelector({
       />
     </div>
   )
-}
-
-/** Build model options for Select from the Model list */
-export function buildModelOptions(models: Model[]) {
-  return models
-    .filter((m) => m.status !== 0)
-    .map((m) => ({
-      value: m.model_name,
-      label: (
-        <Space>
-          <span>{m.display_name || m.model_name}</span>
-          {m.capabilities?.slice(0, 2).map((cap: string) => (
-            <Tag key={cap} color="blue" style={{ fontSize: 10, lineHeight: '16px', marginRight: 0 }}>
-              {cap}
-            </Tag>
-          ))}
-        </Space>
-      ),
-    }))
 }

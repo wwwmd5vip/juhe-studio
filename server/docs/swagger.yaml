@@ -1,0 +1,6620 @@
+basePath: /
+definitions:
+  admin.BatchDeleteRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+    required:
+    - ids
+    type: object
+  admin.BatchPricingRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.BatchPricingItem'
+        minItems: 1
+        type: array
+      model_name:
+        type: string
+      overwrite:
+        type: boolean
+    required:
+    - items
+    - model_name
+    type: object
+  admin.BatchUpdateQuotaPackageStatusRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    required:
+    - ids
+    - status
+    type: object
+  admin.BatchUpdateTopUpStatusRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      status:
+        enum:
+        - paid
+        - failed
+        type: string
+    required:
+    - ids
+    - status
+    type: object
+  domain.Feedback:
+    properties:
+      app_version:
+        type: string
+      contact:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      os:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.QuotaTransaction:
+    properties:
+      amount:
+        type: integer
+      balance_after:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      related_id:
+        type: string
+      related_type:
+        type: string
+      token_id:
+        type: integer
+      type:
+        $ref: '#/definitions/domain.QuotaTransactionType'
+      user_id:
+        type: integer
+    type: object
+  domain.QuotaTransactionType:
+    enum:
+    - recharge
+    - consume
+    - refund
+    - adjust
+    - freeze
+    - unfreeze
+    type: string
+    x-enum-varnames:
+    - QuotaTransactionTypeRecharge
+    - QuotaTransactionTypeConsume
+    - QuotaTransactionTypeRefund
+    - QuotaTransactionTypeAdjust
+    - QuotaTransactionTypeFreeze
+    - QuotaTransactionTypeUnfreeze
+  domain.UserSubscription:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      last_billed_at:
+        type: string
+      plan_id:
+        type: integer
+      started_at:
+        type: string
+      status:
+        $ref: '#/definitions/domain.UserSubscriptionStatus'
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.UserSubscriptionStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - UserSubscriptionInactive
+    - UserSubscriptionActive
+    - UserSubscriptionCancelled
+    - UserSubscriptionExpired
+  dto.AdjustQuotaRequest:
+    properties:
+      amount:
+        type: integer
+      description:
+        maxLength: 255
+        type: string
+    required:
+    - amount
+    type: object
+  dto.BatchDeleteUsersRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+    required:
+    - ids
+    type: object
+  dto.BatchPricingItem:
+    properties:
+      billing_mode:
+        enum:
+        - token
+        - fixed
+        - tiered
+        type: string
+      cached_tokens_ratio:
+        minimum: 0
+        type: number
+      completion_ratio:
+        minimum: 0
+        type: number
+      effective_from:
+        type: string
+      fixed_price_cents:
+        type: integer
+      group:
+        maxLength: 64
+        type: string
+      image_ratio:
+        minimum: 0
+        type: number
+      model_ratio:
+        minimum: 0
+        type: number
+      tiered_expr:
+        type: string
+    required:
+    - billing_mode
+    type: object
+  dto.BatchUpdateUserStatusRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    required:
+    - ids
+    - status
+    type: object
+  dto.BulkUpsertSettingRequest:
+    properties:
+      settings:
+        items:
+          $ref: '#/definitions/dto.SettingItem'
+        minItems: 1
+        type: array
+    required:
+    - settings
+    type: object
+  dto.CaptchaResponse:
+    properties:
+      captcha_id:
+        type: string
+      image:
+        description: base64 data URI
+        type: string
+    type: object
+  dto.CategoryInfo:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      sort_order:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ChannelInfo:
+    properties:
+      auth_type:
+        type: string
+      auto_ban:
+        type: boolean
+      base_url:
+        type: string
+      created_at:
+        type: string
+      fail_count:
+        type: integer
+      groups:
+        type: string
+      id:
+        type: integer
+      keys:
+        type: string
+      last_error:
+        type: string
+      model_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      models:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      status:
+        type: integer
+      status_code_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      timeout_seconds:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      weight:
+        type: integer
+    type: object
+  dto.CreateCategoryRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 128
+        minLength: 1
+        type: string
+      sort_order:
+        type: integer
+    required:
+    - name
+    type: object
+  dto.CreateChannelRequest:
+    properties:
+      auth_type:
+        enum:
+        - api-key
+        - api-key-header
+        type: string
+      auto_ban:
+        type: boolean
+      base_url:
+        type: string
+      groups:
+        type: string
+      keys:
+        type: string
+      model_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      models:
+        type: string
+      name:
+        maxLength: 128
+        type: string
+      priority:
+        type: integer
+      status_code_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      timeout_seconds:
+        maximum: 300
+        minimum: 1
+        type: integer
+      type:
+        maxLength: 32
+        type: string
+      weight:
+        minimum: 0
+        type: integer
+    required:
+    - keys
+    - models
+    - name
+    - type
+    type: object
+  dto.CreateModelRequest:
+    properties:
+      capabilities:
+        items:
+          type: string
+        type: array
+      channel_ids:
+        items:
+          type: integer
+        type: array
+      context_window:
+        minimum: 0
+        type: integer
+      display_name:
+        maxLength: 255
+        type: string
+      endpoints:
+        items:
+          type: string
+        type: array
+      match_rule:
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        type: integer
+      max_output_tokens:
+        minimum: 0
+        type: integer
+      model_name:
+        maxLength: 128
+        type: string
+      type:
+        enum:
+        - llm
+        - image
+        - video
+        - audio
+        - embedding
+        type: string
+      upstream_name:
+        maxLength: 128
+        type: string
+    required:
+    - model_name
+    - type
+    type: object
+  dto.CreatePackageOrderRequest:
+    properties:
+      package_id:
+        type: integer
+      payment_method:
+        enum:
+        - alipay
+        - wechat
+        - stripe
+        type: string
+    required:
+    - package_id
+    - payment_method
+    type: object
+  dto.CreatePricingRequest:
+    properties:
+      billing_mode:
+        enum:
+        - token
+        - fixed
+        - tiered
+        type: string
+      cached_tokens_ratio:
+        minimum: 0
+        type: number
+      completion_ratio:
+        minimum: 0
+        type: number
+      effective_from:
+        type: string
+      fixed_price_cents:
+        type: integer
+      group:
+        maxLength: 64
+        type: string
+      image_ratio:
+        minimum: 0
+        type: number
+      model_name:
+        maxLength: 128
+        type: string
+      model_ratio:
+        minimum: 0
+        type: number
+      tiered_expr:
+        type: string
+    required:
+    - billing_mode
+    - model_name
+    type: object
+  dto.CreatePromptRequest:
+    properties:
+      category_id:
+        type: integer
+      content:
+        maxLength: 65535
+        minLength: 1
+        type: string
+      status:
+        enum:
+        - 0
+        - 1
+        - 2
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - category_id
+    - content
+    - status
+    - title
+    type: object
+  dto.CreateQuotaPackageRequest:
+    properties:
+      currency:
+        maxLength: 8
+        type: string
+      name:
+        maxLength: 128
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+    required:
+    - name
+    - price_cents
+    - quota_value
+    type: object
+  dto.CreateSubscriptionPlanRequest:
+    properties:
+      currency:
+        maxLength: 8
+        type: string
+      interval_months:
+        type: integer
+      name:
+        maxLength: 128
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+    required:
+    - name
+    - price_cents
+    - quota_value
+    type: object
+  dto.CreateTopUpRequest:
+    properties:
+      payment_method:
+        enum:
+        - manual
+        - alipay
+        - wechat
+        - stripe
+        type: string
+      quota_granted:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - quota_granted
+    - user_id
+    type: object
+  dto.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      group:
+        maxLength: 64
+        type: string
+      password:
+        minLength: 8
+        type: string
+      role:
+        enum:
+        - 1
+        - 10
+        - 100
+        type: integer
+      username:
+        maxLength: 64
+        minLength: 3
+        type: string
+    required:
+    - password
+    - role
+    - username
+    type: object
+  dto.CreateVendorRequest:
+    properties:
+      description:
+        type: string
+      icon_url:
+        type: string
+      name:
+        maxLength: 128
+        type: string
+    required:
+    - name
+    type: object
+  dto.DailyBillInfo:
+    properties:
+      bill_date:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      model_name:
+        type: string
+      quota_consumed:
+        type: integer
+      quota_recharged:
+        type: integer
+      request_count:
+        type: integer
+      token_count:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.DashboardStats:
+    properties:
+      active_channel_count:
+        type: integer
+      channel_count:
+        type: integer
+      error_channel_count:
+        type: integer
+      model_count:
+        type: integer
+      month_quota_consumed:
+        type: integer
+      today_quota_consumed:
+        type: integer
+      today_quota_recharged:
+        type: integer
+      today_request_count:
+        type: integer
+      today_token_count:
+        type: integer
+      token_count:
+        type: integer
+      user_count:
+        type: integer
+    type: object
+  dto.DashboardTrendItem:
+    properties:
+      date:
+        type: string
+      quota:
+        type: integer
+      requests:
+        type: integer
+    type: object
+  dto.ErrorRateChannelItem:
+    properties:
+      channel_id:
+        type: integer
+      channel_name:
+        type: string
+      error_count:
+        type: integer
+      error_rate:
+        type: number
+      total_requests:
+        type: integer
+      type:
+        type: string
+    type: object
+  dto.ErrorRateModelItem:
+    properties:
+      error_count:
+        type: integer
+      error_rate:
+        type: number
+      model_name:
+        type: string
+      total_requests:
+        type: integer
+    type: object
+  dto.ErrorRateResponse:
+    properties:
+      channels:
+        items:
+          $ref: '#/definitions/dto.ErrorRateChannelItem'
+        type: array
+      models:
+        items:
+          $ref: '#/definitions/dto.ErrorRateModelItem'
+        type: array
+    type: object
+  dto.GenerateRedemptionCodesRequest:
+    properties:
+      count:
+        maximum: 1000
+        minimum: 1
+        type: integer
+      expires_at:
+        type: string
+      prefix:
+        maxLength: 16
+        type: string
+      quota_value:
+        type: integer
+    required:
+    - count
+    - quota_value
+    type: object
+  dto.LogInfo:
+    properties:
+      channel_id:
+        type: integer
+      completion_tokens:
+        type: integer
+      created_at:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: integer
+      image_n:
+        type: integer
+      ip_address:
+        type: string
+      mode:
+        type: string
+      model_name:
+        type: string
+      prompt_tokens:
+        type: integer
+      quota_pre_consumed:
+        type: integer
+      quota_used:
+        type: integer
+      request_content:
+        type: string
+      request_id:
+        type: string
+      response_content:
+        type: string
+      status_code:
+        type: integer
+      token_id:
+        type: integer
+      total_tokens:
+        type: integer
+      type:
+        type: string
+      upstream_status:
+        type: string
+      use_time_ms:
+        type: integer
+      user_agent:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.LoginRequest:
+    properties:
+      captcha_code:
+        type: string
+      captcha_id:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - captcha_code
+    - captcha_id
+    - password
+    - username
+    type: object
+  dto.LoginResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserInfo'
+    type: object
+  dto.ModelChannelInfo:
+    properties:
+      base_url:
+        type: string
+      group:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+    type: object
+  dto.ModelInfo:
+    properties:
+      capabilities:
+        items:
+          type: string
+        type: array
+      context_window:
+        type: integer
+      created_at:
+        type: string
+      display_name:
+        type: string
+      endpoints:
+        items:
+          type: string
+        type: array
+      has_pricing:
+        type: boolean
+      id:
+        type: integer
+      match_rule:
+        type: integer
+      max_output_tokens:
+        type: integer
+      model_name:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      upstream_name:
+        type: string
+      vendor_id:
+        type: integer
+    type: object
+  dto.OpenAIError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      param:
+        type: string
+      type:
+        type: string
+    type: object
+  dto.OpenAIErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/dto.OpenAIError'
+    type: object
+  dto.OpenAIModel:
+    properties:
+      capabilities:
+        items:
+          type: string
+        type: array
+      created:
+        type: integer
+      id:
+        type: string
+      object:
+        type: string
+      owned_by:
+        type: string
+    type: object
+  dto.OpenAIModelList:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.OpenAIModel'
+        type: array
+      object:
+        type: string
+    type: object
+  dto.PagedResponse:
+    properties:
+      data: {}
+      pagination:
+        $ref: '#/definitions/dto.Pagination'
+    type: object
+  dto.Pagination:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.PreviewModelsFromConfigRequest:
+    properties:
+      base_url:
+        type: string
+      keys:
+        type: string
+      type:
+        maxLength: 32
+        type: string
+    required:
+    - type
+    type: object
+  dto.PricingInfo:
+    properties:
+      billing_mode:
+        type: string
+      cached_tokens_ratio:
+        type: number
+      completion_ratio:
+        type: number
+      created_at:
+        type: string
+      effective_from:
+        type: string
+      fixed_price_cents:
+        type: integer
+      group:
+        type: string
+      id:
+        type: integer
+      image_ratio:
+        type: number
+      model_name:
+        type: string
+      model_ratio:
+        type: number
+      tiered_expr:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.PromptInfo:
+    properties:
+      author_id:
+        type: integer
+      category_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.PromptPackageItemInfo:
+    properties:
+      id:
+        type: integer
+      prompt_id:
+        type: integer
+      sort_order:
+        type: integer
+    type: object
+  dto.PromptVersionInfo:
+    properties:
+      author_id:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      prompt_id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.QuotaInfo:
+    properties:
+      quota:
+        type: integer
+      used_quota:
+        type: integer
+    type: object
+  dto.QuotaPackageInfo:
+    properties:
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  dto.QuotaTransactionInfo:
+    properties:
+      amount:
+        type: integer
+      balance_after:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      related_id:
+        type: string
+      related_type:
+        type: string
+      token_id:
+        type: integer
+      type:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.RedeemRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  dto.RedemptionInfo:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      quota_value:
+        type: integer
+      status:
+        type: integer
+      used_at:
+        type: string
+      used_by:
+        type: integer
+    type: object
+  dto.RegisterRequest:
+    properties:
+      captcha_code:
+        type: string
+      captcha_id:
+        type: string
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      username:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - captcha_code
+    - captcha_id
+    - email
+    - password
+    - username
+    type: object
+  dto.RenderPackageItemResult:
+    properties:
+      content:
+        type: string
+      prompt_id:
+        type: integer
+      title:
+        type: string
+    type: object
+  dto.RenderPackageResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/dto.RenderPackageItemResult'
+        type: array
+    type: object
+  dto.RenderPromptRequest:
+    properties:
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.RenderPromptResponse:
+    properties:
+      content:
+        type: string
+    type: object
+  dto.ResendVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  dto.SetPackageItemsRequest:
+    properties:
+      items:
+        items:
+          properties:
+            prompt_id:
+              type: integer
+            sort_order:
+              type: integer
+          required:
+          - prompt_id
+          type: object
+        type: array
+    required:
+    - items
+    type: object
+  dto.SettingInfo:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      key:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
+  dto.SettingItem:
+    properties:
+      category:
+        maxLength: 64
+        type: string
+      description:
+        maxLength: 255
+        type: string
+      key:
+        maxLength: 128
+        type: string
+      type:
+        enum:
+        - string
+        - json
+        - bool
+        - number
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  dto.SubscriptionPlanInfo:
+    properties:
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      interval_months:
+        type: integer
+      name:
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  dto.SyncModelItem:
+    properties:
+      capabilities:
+        items:
+          type: string
+        type: array
+      endpoints:
+        items:
+          type: string
+        type: array
+      model_name:
+        maxLength: 128
+        type: string
+      type:
+        enum:
+        - llm
+        - image
+        - video
+        - audio
+        - embedding
+        type: string
+    required:
+    - model_name
+    - type
+    type: object
+  dto.SyncUpstreamModelsRequest:
+    properties:
+      models:
+        items:
+          $ref: '#/definitions/dto.SyncModelItem'
+        minItems: 1
+        type: array
+    required:
+    - models
+    type: object
+  dto.TestChannelFromConfigRequest:
+    properties:
+      base_url:
+        type: string
+      keys:
+        type: string
+      timeout_seconds:
+        type: integer
+      type:
+        maxLength: 32
+        type: string
+    required:
+    - type
+    type: object
+  dto.TestEmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.TopTokenItem:
+    properties:
+      key_mask:
+        type: string
+      name:
+        type: string
+      quota_consumed:
+        type: integer
+      request_count:
+        type: integer
+      token_id:
+        type: integer
+    type: object
+  dto.TopUpInfo:
+    properties:
+      amount_cents:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      package_id:
+        type: integer
+      paid_at:
+        type: string
+      payment_method:
+        type: string
+      payment_status:
+        type: integer
+      quota_granted:
+        type: integer
+      transaction_id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.TopUserItem:
+    properties:
+      quota_consumed:
+        type: integer
+      request_count:
+        type: integer
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  dto.TrendRow:
+    properties:
+      consumed:
+        type: integer
+      date:
+        type: string
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      name:
+        maxLength: 128
+        minLength: 1
+        type: string
+      sort_order:
+        type: integer
+    type: object
+  dto.UpdateChannelRequest:
+    properties:
+      auth_type:
+        enum:
+        - api-key
+        - api-key-header
+        type: string
+      auto_ban:
+        type: boolean
+      base_url:
+        type: string
+      groups:
+        type: string
+      keys:
+        type: string
+      model_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      models:
+        type: string
+      name:
+        maxLength: 128
+        type: string
+      priority:
+        type: integer
+      status:
+        enum:
+        - 0
+        - 1
+        - 2
+        type: integer
+      status_code_mapping:
+        additionalProperties:
+          type: string
+        type: object
+      timeout_seconds:
+        maximum: 300
+        minimum: 1
+        type: integer
+      type:
+        maxLength: 32
+        type: string
+      weight:
+        minimum: 0
+        type: integer
+    type: object
+  dto.UpdateModelRequest:
+    properties:
+      capabilities:
+        items:
+          type: string
+        type: array
+      channel_ids:
+        items:
+          type: integer
+        type: array
+      context_window:
+        minimum: 0
+        type: integer
+      display_name:
+        maxLength: 255
+        type: string
+      endpoints:
+        items:
+          type: string
+        type: array
+      match_rule:
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        type: integer
+      max_output_tokens:
+        minimum: 0
+        type: integer
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+      type:
+        enum:
+        - llm
+        - image
+        - video
+        - audio
+        - embedding
+        type: string
+      upstream_name:
+        maxLength: 128
+        type: string
+    type: object
+  dto.UpdatePasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  dto.UpdatePricingRequest:
+    properties:
+      billing_mode:
+        enum:
+        - token
+        - fixed
+        - tiered
+        type: string
+      cached_tokens_ratio:
+        minimum: 0
+        type: number
+      completion_ratio:
+        minimum: 0
+        type: number
+      effective_from:
+        type: string
+      fixed_price_cents:
+        type: integer
+      image_ratio:
+        minimum: 0
+        type: number
+      model_ratio:
+        minimum: 0
+        type: number
+      tiered_expr:
+        type: string
+    type: object
+  dto.UpdatePromptRequest:
+    properties:
+      category_id:
+        type: integer
+      content:
+        maxLength: 65535
+        minLength: 1
+        type: string
+      status:
+        enum:
+        - 0
+        - 1
+        - 2
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  dto.UpdateQuotaPackageRequest:
+    properties:
+      name:
+        maxLength: 128
+        minLength: 1
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
+  dto.UpdateSubscriptionPlanRequest:
+    properties:
+      currency:
+        maxLength: 8
+        type: string
+      interval_months:
+        type: integer
+      name:
+        maxLength: 128
+        type: string
+      price_cents:
+        type: integer
+      quota_value:
+        type: integer
+      sort_order:
+        type: integer
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      group:
+        maxLength: 64
+        type: string
+      quota:
+        type: integer
+      role:
+        enum:
+        - 1
+        - 10
+        - 100
+        type: integer
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
+  dto.UpdateVendorRequest:
+    properties:
+      description:
+        type: string
+      icon_url:
+        type: string
+      name:
+        maxLength: 128
+        type: string
+    type: object
+  dto.UpsertSettingRequest:
+    properties:
+      category:
+        maxLength: 64
+        type: string
+      description:
+        maxLength: 255
+        type: string
+      key:
+        maxLength: 128
+        type: string
+      type:
+        enum:
+        - string
+        - json
+        - bool
+        - number
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  dto.UsageHeatmapItem:
+    properties:
+      count:
+        type: integer
+      hour:
+        type: integer
+      model_name:
+        type: string
+    type: object
+  dto.UserFinanceData:
+    properties:
+      quota:
+        type: integer
+      recent_transactions:
+        items:
+          $ref: '#/definitions/domain.QuotaTransaction'
+        type: array
+      subscriptions:
+        items:
+          $ref: '#/definitions/domain.UserSubscription'
+        type: array
+      today_consumed:
+        type: integer
+      today_requests:
+        type: integer
+      today_tokens:
+        type: integer
+      trends:
+        items:
+          $ref: '#/definitions/dto.TrendRow'
+        type: array
+      used_quota:
+        type: integer
+    type: object
+  dto.UserInfo:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      group:
+        type: string
+      id:
+        type: integer
+      playground_trials_used:
+        type: integer
+      quota:
+        type: integer
+      role:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        type: string
+      used_quota:
+        type: integer
+      username:
+        type: string
+    type: object
+  dto.UserSubscriptionInfo:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: integer
+      last_billed_at:
+        type: string
+      plan_id:
+        type: integer
+      started_at:
+        type: string
+      status:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.VendorInfo:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      icon_url:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.VerifyPasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+host: localhost:7075
+info:
+  contact:
+    email: support@juhe.studio
+    name: Juhe Studio
+    url: https://juhe.studio
+  description: Juhe Studio AI 管理中台 API — OpenAI 兼容接口、多渠道转发、提示词管理、计费财务
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://juhe.studio/terms
+  title: Juhe Management API
+  version: "1.0"
+paths:
+  /api/audit-logs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 操作人 ID
+        in: query
+        name: operator_id
+        type: integer
+      - description: 操作人用户名
+        in: query
+        name: operator_name
+        type: string
+      - description: 操作类型
+        in: query
+        name: action
+        type: string
+      - description: 目标类型
+        in: query
+        name: target_type
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取管理操作审计日志
+      tags:
+      - AuditLogs
+  /api/auth/captcha:
+    get:
+      description: 返回图形验证码的 base64 图片和唯一 ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CaptchaResponse'
+              type: object
+      summary: 生成验证码
+      tags:
+      - Auth
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名和密码登录，返回 JWT Token
+      parameters:
+      - description: 登录信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 用户登录
+      tags:
+      - Auth
+  /api/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前 JWT Token 对应的用户信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserInfo'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取当前登录用户信息
+      tags:
+      - Users
+  /api/auth/password:
+    put:
+      consumes:
+      - application/json
+      description: 需要先登录，提供旧密码和新密码
+      parameters:
+      - description: 密码信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 修改当前用户密码
+      tags:
+      - Auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 用户自助注册账号，需要邮箱验证
+      parameters:
+      - description: 注册信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 用户注册
+      tags:
+      - Auth
+  /api/auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: 对于未验证的注册邮箱重新发送验证码
+      parameters:
+      - description: 邮箱
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 重新发送验证邮件
+      tags:
+      - Auth
+  /api/auth/verify-email:
+    get:
+      consumes:
+      - application/json
+      description: 通过验证码验证邮箱
+      parameters:
+      - description: 验证码
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 邮箱验证
+      tags:
+      - Auth
+  /api/auth/verify-password:
+    post:
+      consumes:
+      - application/json
+      description: 用于危险操作前的二次确认
+      parameters:
+      - description: 密码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: boolean
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 验证当前用户密码
+      tags:
+      - Auth
+  /api/channels:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询渠道，支持筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 渠道类型
+        in: query
+        name: type
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.ChannelInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取渠道列表
+      tags:
+      - Channels
+    post:
+      consumes:
+      - application/json
+      description: 创建上游 AI 渠道
+      parameters:
+      - description: 渠道信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ChannelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建渠道
+      tags:
+      - Channels
+  /api/channels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 管理员删除渠道
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除渠道
+      tags:
+      - Channels
+    get:
+      consumes:
+      - application/json
+      description: 根据 ID 获取单个渠道信息
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ChannelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取渠道详情
+      tags:
+      - Channels
+    put:
+      consumes:
+      - application/json
+      description: 管理员更新渠道配置
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 渠道信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ChannelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新渠道信息
+      tags:
+      - Channels
+  /api/channels/{id}/fetch-models:
+    post:
+      consumes:
+      - application/json
+      description: 从渠道的上游 API 拉取可用模型列表
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 从上游拉取模型列表
+      tags:
+      - Channels
+  /api/channels/{id}/preview-models:
+    post:
+      consumes:
+      - application/json
+      description: 预览渠道上游的模型列表
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 预览上游模型
+      tags:
+      - Channels
+  /api/channels/{id}/sync-models:
+    post:
+      consumes:
+      - application/json
+      description: 将上游模型同步到本地模型库
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 同步配置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SyncUpstreamModelsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 同步上游模型到本地
+      tags:
+      - Channels
+  /api/channels/{id}/test:
+    post:
+      consumes:
+      - application/json
+      description: 对指定渠道进行连通性探测
+      parameters:
+      - description: 渠道 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 测试渠道连通性
+      tags:
+      - Channels
+  /api/channels/groups:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有已使用的渠道分组名称列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取所有渠道分组
+      tags:
+      - Channels
+  /api/channels/preview-models-direct:
+    post:
+      consumes:
+      - application/json
+      description: 不创建渠道，直接根据配置参数预览上游模型列表
+      parameters:
+      - description: 渠道配置参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PreviewModelsFromConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 从配置参数预览上游模型
+      tags:
+      - Channels
+  /api/channels/test-direct:
+    post:
+      consumes:
+      - application/json
+      description: 不创建渠道，直接根据配置参数测试连通性
+      parameters:
+      - description: 渠道配置参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TestChannelFromConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 从配置参数测试渠道连通性
+      tags:
+      - Channels
+  /api/channels/types:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有支持的渠道类型
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取渠道类型列表
+      tags:
+      - Channels
+  /api/daily-bills:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.DailyBillInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取日账单列表
+      tags:
+      - DailyBills
+  /api/daily-bills/aggregate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 日期 YYYY-MM-DD
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 手动聚合日账单
+      tags:
+      - DailyBills
+  /api/daily-bills/monthly:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 开始月份 YYYY-MM
+        in: query
+        name: start_month
+        required: true
+        type: string
+      - description: 结束月份 YYYY-MM
+        in: query
+        name: end_month
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取月账单列表
+      tags:
+      - DailyBills
+  /api/dashboard/error-rate:
+    get:
+      consumes:
+      - application/json
+      description: 获取渠道和模型维度的错误率统计
+      parameters:
+      - default: 7
+        description: 天数范围
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ErrorRateResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取 API 错误率
+      tags:
+      - Dashboard
+  /api/dashboard/model-capability-stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有模型的能力标签分布统计
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: integer
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取模型能力分布
+      tags:
+      - Dashboard
+  /api/dashboard/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统概览统计数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DashboardStats'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取仪表盘统计数据
+      tags:
+      - Dashboard
+  /api/dashboard/top-tokens:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定天数内消费最高的 Token 排行
+      parameters:
+      - default: 30
+        description: 天数范围
+        in: query
+        name: days
+        type: integer
+      - default: 10
+        description: 返回条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.TopTokenItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取 Token 消费 Top N
+      tags:
+      - Dashboard
+  /api/dashboard/top-users:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定天数内消费最高的用户排行
+      parameters:
+      - default: 30
+        description: 天数范围
+        in: query
+        name: days
+        type: integer
+      - default: 10
+        description: 返回条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.TopUserItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户消费 Top N
+      tags:
+      - Dashboard
+  /api/dashboard/trends:
+    get:
+      consumes:
+      - application/json
+      description: 获取消费趋势数据（可用于图表）
+      parameters:
+      - default: 30
+        description: 天数范围
+        in: query
+        name: days
+        type: integer
+      - description: 用户 ID（可选）
+        in: query
+        name: user_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.DashboardTrendItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取趋势数据
+      tags:
+      - Dashboard
+  /api/dashboard/usage-heatmap:
+    get:
+      consumes:
+      - application/json
+      description: 获取24小时×模型的使用热力图矩阵
+      parameters:
+      - default: 7
+        description: 天数范围
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.UsageHeatmapItem'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取模型使用热力图
+      tags:
+      - Dashboard
+  /api/feedbacks:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询反馈，支持按类型和日期筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 反馈类型 (bug/feature/other)
+        in: query
+        name: type
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/domain.Feedback'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取反馈列表
+      tags:
+      - Feedbacks
+  /api/feedbacks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据 ID 删除单条反馈
+      parameters:
+      - description: 反馈 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除反馈
+      tags:
+      - Feedbacks
+  /api/logs:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询消费日志，支持多条件筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Token ID
+        in: query
+        name: token_id
+        type: integer
+      - description: 模型名称
+        in: query
+        name: model_name
+        type: string
+      - description: 关键词搜索（请求内容/响应内容/错误信息）
+        in: query
+        name: keyword
+        type: string
+      - description: 日志类型
+        in: query
+        name: type
+        type: string
+      - description: HTTP 状态码
+        in: query
+        name: status_code
+        type: integer
+      - description: 渠道 ID
+        in: query
+        name: channel_id
+        type: integer
+      - description: IP 地址
+        in: query
+        name: ip_address
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.LogInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取消费日志列表
+      tags:
+      - Logs
+  /api/logs/export/csv:
+    get:
+      consumes:
+      - application/json
+      description: 按筛选条件导出消费日志为 CSV 文件
+      parameters:
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Token ID
+        in: query
+        name: token_id
+        type: integer
+      - description: 模型名称
+        in: query
+        name: model_name
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      - description: 日志类型
+        in: query
+        name: type
+        type: string
+      - description: HTTP 状态码
+        in: query
+        name: status_code
+        type: integer
+      - description: 渠道 ID
+        in: query
+        name: channel_id
+        type: integer
+      - description: IP 地址
+        in: query
+        name: ip_address
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 导出消费日志 CSV
+      tags:
+      - Logs
+  /api/models:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询模型，支持筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 模型类型
+        in: query
+        name: type
+        type: string
+      - description: 渠道 ID
+        in: query
+        name: channel_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.ModelInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取模型列表
+      tags:
+      - Models
+    post:
+      consumes:
+      - application/json
+      description: 创建 AI 模型并关联渠道
+      parameters:
+      - description: 模型信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateModelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ModelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建模型
+      tags:
+      - Models
+  /api/models/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的模型
+      parameters:
+      - description: 模型 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除模型
+      tags:
+      - Models
+    get:
+      consumes:
+      - application/json
+      description: 根据 ID 获取单个模型信息
+      parameters:
+      - description: 模型 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ModelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取模型详情
+      tags:
+      - Models
+    put:
+      consumes:
+      - application/json
+      description: 更新模型配置
+      parameters:
+      - description: 模型 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 模型信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateModelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ModelInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新模型信息
+      tags:
+      - Models
+  /api/models/{id}/channels:
+    get:
+      consumes:
+      - application/json
+      description: 查看某个模型关联的所有渠道
+      parameters:
+      - description: 模型 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.ModelChannelInfo'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取模型关联的渠道列表
+      tags:
+      - Models
+  /api/playground/chat:
+    post:
+      consumes:
+      - application/json
+      description: 接受 JWT 认证的 Chat Completions 请求，服务端查找用户 API Key 后转发
+      parameters:
+      - description: OpenAI Chat Completions 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: Playground 对话代理（JWT 认证）
+      tags:
+      - Playground
+  /api/pricing:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询定价规则
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 模型名称
+        in: query
+        name: model_name
+        type: string
+      - description: 分组
+        in: query
+        name: group
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.PricingInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取定价列表
+      tags:
+      - Pricing
+    post:
+      consumes:
+      - application/json
+      description: 为模型创建定价规则
+      parameters:
+      - description: 定价信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePricingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PricingInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建定价
+      tags:
+      - Pricing
+  /api/pricing/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的定价规则
+      parameters:
+      - description: 定价 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除定价规则
+      tags:
+      - Pricing
+    get:
+      consumes:
+      - application/json
+      description: 根据 ID 获取单个定价规则
+      parameters:
+      - description: 定价 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PricingInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取定价详情
+      tags:
+      - Pricing
+    put:
+      consumes:
+      - application/json
+      description: 更新定价配置
+      parameters:
+      - description: 定价 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 定价信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePricingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PricingInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新定价规则
+      tags:
+      - Pricing
+  /api/pricing/batch:
+    post:
+      consumes:
+      - application/json
+      description: 批量 upsert 定价规则
+      parameters:
+      - description: 批量定价信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/admin.BatchPricingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量创建或更新定价
+      tags:
+      - Pricing
+  /api/prompt-templates:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询提示词模板，支持分类和关键词筛选
+      parameters:
+      - description: '分类: coding/writing/analysis/creative/business'
+        in: query
+        name: category
+        type: string
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取提示词模板列表
+      tags:
+      - PromptTemplates
+  /api/prompt-templates/:id/use:
+    post:
+      consumes:
+      - application/json
+      description: 使用模板时调用，增加 usage_count
+      parameters:
+      - description: 模板 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 增加模板使用次数
+      tags:
+      - PromptTemplates
+  /api/prompts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: image
+        description: 提示词类型
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 分类 ID
+        in: query
+        name: category_id
+        type: integer
+      - description: 标签
+        in: query
+        name: tag
+        type: string
+      - description: 关键词
+        in: query
+        name: keyword
+        type: string
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取提示词列表
+      tags:
+      - Prompts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: '提示词类型: image/agent/package'
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 提示词信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePromptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建提示词
+      tags:
+      - Prompts
+  /api/prompts/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除提示词
+      tags:
+      - Prompts
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取提示词详情
+      tags:
+      - Prompts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 提示词信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePromptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新提示词
+      tags:
+      - Prompts
+  /api/prompts/{id}/package-items:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 封装 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.PromptPackageItemInfo'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取封装步骤列表
+      tags:
+      - Prompts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 封装 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 步骤列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SetPackageItemsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 设置封装步骤
+      tags:
+      - Prompts
+  /api/prompts/{id}/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 发布提示词
+      tags:
+      - Prompts
+  /api/prompts/{id}/rollback/{version_id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本 ID
+        in: path
+        name: version_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 回滚提示词到指定版本
+      tags:
+      - Prompts
+  /api/prompts/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.PromptVersionInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取提示词版本历史
+      tags:
+      - Prompts
+  /api/prompts/categories:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: image
+        description: 提示词类型
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.CategoryInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取提示词分类列表
+      tags:
+      - Prompts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: '提示词类型: image/agent/package'
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 分类信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建提示词分类
+      tags:
+      - Prompts
+  /api/prompts/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分类 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除分类
+      tags:
+      - Prompts
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分类 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取分类详情
+      tags:
+      - Prompts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 分类 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 分类信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新分类
+      tags:
+      - Prompts
+  /api/quota-packages:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.QuotaPackageInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取额度包列表
+      tags:
+      - QuotaPackages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 额度包信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateQuotaPackageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QuotaPackageInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建额度包
+      tags:
+      - QuotaPackages
+  /api/quota-packages/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 额度包 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除额度包
+      tags:
+      - QuotaPackages
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 额度包 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QuotaPackageInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取额度包详情
+      tags:
+      - QuotaPackages
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 额度包 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 额度包信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateQuotaPackageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QuotaPackageInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新额度包
+      tags:
+      - QuotaPackages
+  /api/quota-packages/batch-delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 额度包 ID 列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/admin.BatchDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量删除额度包
+      tags:
+      - QuotaPackages
+  /api/quota-packages/batch-status:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 批量状态更新
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/admin.BatchUpdateQuotaPackageStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量更新额度包状态
+      tags:
+      - QuotaPackages
+  /api/quota-transactions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 流水类型
+        in: query
+        name: type
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.QuotaTransactionInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取额度变动流水列表
+      tags:
+      - QuotaTransactions
+  /api/redemptions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态筛选
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.RedemptionInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取兑换码列表
+      tags:
+      - Redemptions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 生成配置
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateRedemptionCodesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.RedemptionInfo'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量生成兑换码
+      tags:
+      - Redemptions
+  /api/redemptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 兑换码 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除未使用的兑换码
+      tags:
+      - Redemptions
+  /api/settings:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 分类筛选
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.SettingInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取所有系统设置列表
+      tags:
+      - Settings
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 设置信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpsertSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SettingInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建或更新系统设置
+      tags:
+      - Settings
+  /api/settings/{key}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 设置 Key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除系统设置
+      tags:
+      - Settings
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 设置 Key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SettingInfo'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 根据 Key 获取系统设置
+      tags:
+      - Settings
+  /api/settings/bulk:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 设置列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BulkUpsertSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量创建或更新系统设置
+      tags:
+      - Settings
+  /api/settings/categorized:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    items:
+                      $ref: '#/definitions/dto.SettingInfo'
+                    type: array
+                  type: object
+              type: object
+      security:
+      - Bearer: []
+      summary: 获取按分类分组的系统设置
+      tags:
+      - Settings
+  /api/settings/test-email:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 目标邮箱
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TestEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 发送测试邮件
+      tags:
+      - Settings
+  /api/subscriptions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.UserSubscriptionInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户订阅列表
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅信息
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            plan_id:
+              type: integer
+            user_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserSubscriptionInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 管理员为用户订阅套餐
+      tags:
+      - Subscriptions
+  /api/subscriptions/plans:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.SubscriptionPlanInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取订阅套餐列表
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 套餐信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSubscriptionPlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SubscriptionPlanInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建订阅套餐
+      tags:
+      - Subscriptions
+  /api/subscriptions/plans/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 套餐 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除订阅套餐
+      tags:
+      - Subscriptions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 套餐 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 套餐信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSubscriptionPlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SubscriptionPlanInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新订阅套餐
+      tags:
+      - Subscriptions
+  /api/topups:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询充值订单，支持筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户 ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 订单状态
+        in: query
+        name: status
+        type: string
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.TopUpInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取充值订单列表
+      tags:
+      - TopUps
+    post:
+      consumes:
+      - application/json
+      description: 管理员手动为用户创建充值订单
+      parameters:
+      - description: 充值信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTopUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TopUpInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建充值订单
+      tags:
+      - TopUps
+  /api/topups/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TopUpInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取充值订单详情
+      tags:
+      - TopUps
+  /api/topups/{id}/failed:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TopUpInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 标记订单为失败
+      tags:
+      - TopUps
+  /api/topups/{id}/paid:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 交易流水号
+        in: query
+        name: transaction_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TopUpInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 标记订单为已支付
+      tags:
+      - TopUps
+  /api/topups/{id}/refund:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TopUpInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 退款
+      tags:
+      - TopUps
+  /api/topups/batch-status:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 批量状态更新
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/admin.BatchUpdateTopUpStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量更新充值订单状态
+      tags:
+      - TopUps
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: 分页查询用户，支持关键字搜索
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.UserInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户列表
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: 管理员创建新用户
+      parameters:
+      - description: 用户信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建用户
+      tags:
+      - Users
+  /api/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 管理员删除单个用户
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除用户
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: 根据 ID 获取单个用户信息
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户详情
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: 管理员更新用户信息
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用户信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新用户信息
+      tags:
+      - Users
+  /api/users/{id}/finance:
+    get:
+      consumes:
+      - application/json
+      description: 获取单个用户的额度、消费、订阅等财务信息汇总
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserFinanceData'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户财务概览
+      tags:
+      - UserFinance
+  /api/users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: 管理员为指定用户设置新密码
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 新密码
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 管理员重置用户密码
+      tags:
+      - Users
+  /api/users/{id}/quota:
+    post:
+      consumes:
+      - application/json
+      description: 管理员调整用户用量配额
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 调整信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdjustQuotaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 调整用户额度
+      tags:
+      - Users
+  /api/users/batch-delete:
+    post:
+      consumes:
+      - application/json
+      description: 管理员批量删除用户
+      parameters:
+      - description: 用户 ID 列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchDeleteUsersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量删除用户
+      tags:
+      - Users
+  /api/users/batch-status:
+    post:
+      consumes:
+      - application/json
+      description: 管理员批量启用/禁用用户
+      parameters:
+      - description: 用户 ID 列表和目标状态
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchUpdateUserStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 批量更新用户状态
+      tags:
+      - Users
+  /api/vendors:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.VendorInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取厂商列表
+      tags:
+      - Vendors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 厂商信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateVendorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.VendorInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 创建模型厂商
+      tags:
+      - Vendors
+  /api/vendors/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 厂商 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 删除厂商
+      tags:
+      - Vendors
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 厂商 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.VendorInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 获取厂商详情
+      tags:
+      - Vendors
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 厂商 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 厂商信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateVendorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.VendorInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - Bearer: []
+      summary: 更新厂商信息
+      tags:
+      - Vendors
+  /v1/audio/speech:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OpenAI Audio Speech 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 语音合成（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/audio/transcriptions:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: multipart/form-data 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 语音转文字（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/chat/completions:
+    post:
+      consumes:
+      - application/json
+      description: 支持流式和非流式的 Chat Completions 请求
+      parameters:
+      - description: OpenAI Chat Completions 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 对话补全（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/daily-bills:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 开始日期 YYYY-MM-DD
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: 结束日期 YYYY-MM-DD
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.DailyBillInfo'
+                        type: array
+                    type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取日账单
+      tags:
+      - RelayQuota
+  /v1/daily-bills/monthly:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 开始月份 YYYY-MM
+        in: query
+        name: start_month
+        required: true
+        type: string
+      - description: 结束月份 YYYY-MM
+        in: query
+        name: end_month
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取月账单
+      tags:
+      - RelayQuota
+  /v1/embeddings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OpenAI Embeddings 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 文本嵌入（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/images/generations:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OpenAI Image Generations 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 图像生成（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/models:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前 API Key 分组下可用的模型列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OpenAIModelList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.OpenAIErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取可用模型列表（OpenAI 兼容）
+      tags:
+      - Relay
+  /v1/prompts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: image
+        description: '提示词类型: image/agent/package'
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 分类 ID
+        in: query
+        name: category_id
+        type: integer
+      - description: 标签
+        in: query
+        name: tag
+        type: string
+      - description: 搜索关键词
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取已发布的提示词列表
+      tags:
+      - RelayPrompts
+  /v1/prompts/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PromptInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取提示词详情
+      tags:
+      - RelayPrompts
+  /v1/prompts/{id}/render:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 提示词 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 变量值
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RenderPromptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.RenderPromptResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 渲染提示词（替换变量）
+      tags:
+      - RelayPrompts
+  /v1/prompts/{id}/render-package:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 封装 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 变量值
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RenderPromptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.RenderPackageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 渲染封装（多步骤提示词）
+      tags:
+      - RelayPrompts
+  /v1/prompts/categories:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: image
+        description: 提示词类型
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PagedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取提示词分类列表
+      tags:
+      - RelayPrompts
+  /v1/quota:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QuotaInfo'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询当前用户额度
+      tags:
+      - RelayQuota
+  /v1/quota-packages:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.QuotaPackageInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取可购买的额度包列表
+      tags:
+      - RelayQuota
+  /v1/quota-transactions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.QuotaTransactionInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取额度变动流水
+      tags:
+      - RelayQuota
+  /v1/redemptions/redeem:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 兑换信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RedeemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.RedemptionInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 兑换码兑换
+      tags:
+      - RelayQuota
+  /v1/subscription-plans:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.SubscriptionPlanInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取订阅套餐列表
+      tags:
+      - RelayQuota
+  /v1/subscriptions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PagedResponse'
+                  - properties:
+                      data:
+                        items:
+                          $ref: '#/definitions/dto.UserSubscriptionInfo'
+                        type: array
+                    type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取我的订阅列表
+      tags:
+      - RelayQuota
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅信息
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            plan_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserSubscriptionInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 订阅套餐
+      tags:
+      - RelayQuota
+  /v1/subscriptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 订阅 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserSubscriptionInfo'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 取消订阅
+      tags:
+      - RelayQuota
+  /v1/topups:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 充值信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePackageOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 创建充值订单
+      tags:
+      - RelayQuota
+  /v1/webhooks/{provider}:
+    post:
+      consumes:
+      - application/json
+      description: 无需认证，第三方支付平台回调接口
+      parameters:
+      - description: 支付提供商
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 回调 payload
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 第三方支付回调 Webhook
+      tags:
+      - RelayQuota
+securityDefinitions:
+  ApiKeyAuth:
+    description: API Key for relay endpoints. Prefix with "Bearer ".
+    in: header
+    name: Authorization
+    type: apiKey
+  Bearer:
+    description: JWT Bearer token for admin API. Prefix with "Bearer ".
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
