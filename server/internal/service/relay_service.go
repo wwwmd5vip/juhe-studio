@@ -314,23 +314,8 @@ func (s *RelayService) Rerank(ctx context.Context, token *domain.Token, user *do
 
 	info := s.buildRelayInfo(ctx, user, token, req.Model, group, ipAddress, userAgent)
 
-	// Redact user-provided rerank content before persisting request content in logs.
-	logReq := req
-	logReq.Query = "[REDACTED]"
-	if len(logReq.Documents) > 0 {
-		redactedDocs := make([]string, len(logReq.Documents))
-		for i := range redactedDocs {
-			redactedDocs[i] = "[REDACTED]"
-		}
-		logReq.Documents = redactedDocs
-	}
-	logBody, err := json.Marshal(logReq)
-	if err != nil {
-		logBody = []byte(`{"model":"` + req.Model + `","query":"[REDACTED]","documents":["[REDACTED]"]}`)
-	}
-
 	return s.doNonStreamRelay(ctx, user, token, info, nonStreamRelayParams{
-		body:         logBody,
+		body:         body,
 		upstreamPath: "/rerank",
 		logType:      domain.LogTypeRerank,
 		preConsumed:  estimatedCost,
@@ -339,8 +324,6 @@ func (s *RelayService) Rerank(ctx context.Context, token *domain.Token, user *do
 		},
 		extraLogFields: func(lr *domain.Log) {
 			lr.TotalTokens = estTokens
-			// Rerank responses may echo user-provided document content; avoid persisting sensitive payloads.
-			lr.ResponseContent = ""
 		},
 	})
 }

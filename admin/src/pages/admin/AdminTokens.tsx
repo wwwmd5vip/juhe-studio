@@ -173,6 +173,19 @@ export default function AdminTokens() {
     onError: (error: Error) => message.error(error.message),
   })
 
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
+
   // Reserved: endpoint not yet implemented on server
   // const handleRevealKey = async () => {
   //   if (!revealPassword || !revealId) return
@@ -318,19 +331,6 @@ export default function AdminTokens() {
 
   const modalTitle = editingId !== null ? '编辑 Token' : '新增 Token'
   const submitLoading = createMutation.isPending || updateMutation.isPending
-
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
 
   return (
     <div>

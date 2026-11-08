@@ -224,6 +224,19 @@ export default function QuotaPackages() {
     statusToggleMutation.mutate({ id: record.id, status: newStatus })
   }
 
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
+
   const columns = [
     { title: 'ID', dataIndex: 'id', width: 60 },
     { title: '名称', dataIndex: 'name' },
@@ -305,17 +318,6 @@ export default function QuotaPackages() {
           新增额度包
         </Button>
       </div>
-
-      {isError && (
-        <div style={{ padding: 24 }}>
-          <Alert
-            type="error"
-            message="加载失败"
-            description={(error as Error)?.message || '请稍后重试'}
-            showIcon
-          />
-        </div>
-      )}
 
       {selectedRowKeys.length > 0 && (
         <Space style={{ marginBottom: 16 }}>

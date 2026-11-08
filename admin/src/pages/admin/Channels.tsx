@@ -195,6 +195,7 @@ export default function Channels() {
 
   // Initial form snapshot for dirty detection
   const initialValuesRef = useRef('')
+  const closeForceRef = useRef(false)
 
   // Confirm password modal
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -395,8 +396,6 @@ export default function Channels() {
     },
     onError: (error: Error) => message.error(error.message),
   })
-
-  const closeForceRef = useRef(false)
 
   // Early return for channels query error (after all hooks)
   if (isError) {

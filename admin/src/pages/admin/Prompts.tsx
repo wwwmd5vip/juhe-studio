@@ -228,6 +228,19 @@ export default function Prompts() {
     },
   })
 
+  if (isError) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Alert
+          type="error"
+          message="加载失败"
+          description={(error as Error)?.message || '请稍后重试'}
+          showIcon
+        />
+      </div>
+    )
+  }
+
   const handleSubmit = (values: FormValues) => {
     if (editingId !== null) {
       updateMutation.mutate({ id: editingId, values })
@@ -381,19 +394,6 @@ export default function Prompts() {
       ),
     },
   ]
-
-  if (isError) {
-    return (
-      <div style={{ padding: 24 }}>
-        <Alert
-          type="error"
-          message="加载失败"
-          description={(error as Error)?.message || '请稍后重试'}
-          showIcon
-        />
-      </div>
-    )
-  }
 
   return (
     <div>
