@@ -97,7 +97,7 @@
     "framer-motion": "^12.40.0",
     "globals": "^17.6.0",
     "html2canvas": "^1.4.1",
-    "i18next": "^23.11.5",
+    "i18next": "^26.3.4",
     "jsdom": "^29.1.1",
     "lucide-react": "^0.545.0",
     "oxlint": "^1.36.0",
